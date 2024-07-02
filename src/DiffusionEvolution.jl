@@ -8,6 +8,9 @@ module DiffusionEvolution
     export collect_data, Data
     include("workspace.jl")
     include("parameters.jl")
-    export index, compute_J!, compute_lambda!, compute_sigma!
+    export index, compute_J!, compute_lambda!, compute_sigma!, compute_parameters!
+    include("likelihood.jl")
+    export log_likelihood
+    include("utils.jl")
 
 end
