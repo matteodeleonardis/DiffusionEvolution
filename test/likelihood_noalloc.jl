@@ -2,7 +2,7 @@ function loglikelihood_noalloc(x::Vector{Float64}, data::Data, Jcheck; d::Int)
 
     ll = 0.0
     Jtri = [i<j ? x[index(i,j)] : 0.0 for i in 1:d, j in 1:d]
-    J = Jtri .+ Jtri'
+    J = Jtri + Jtri'
     @assert maximum(abs.(J .- Jcheck)) < 1e-15
     Λ = exp(-J) 
      
