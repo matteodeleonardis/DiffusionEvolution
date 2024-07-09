@@ -3,43 +3,43 @@ using DiffusionEvolution, PyPlot
 pygui(true)
 const de = DiffusionEvolution
 
-include("likelihood_noalloc.jl")
-using DiffusionEvolution: weighted_batch_dot
-using LinearAlgebra, Flux
-
-
-
 d = 10
 n_samples = 100
 T = 3
 
+Δ=[(T+1-t)/T for t in 1:T]
+figure()
 begin #CREATE RANDOM DATA
     x_p = randn(d, n_samples, T)
     for t in 1:T
-        x_p[:,:,t] .+= (t-1.0)
-    end
+        x_p[:,:,t] .+= Δ[t]*(t-1.0)
+        hist(x_p[1,:,t], bins=30, alpha=0.3, label="t=$t")
+    end 
+    legend()
     counts = Float64.(rand(1:100, n_samples, T))
     counts ./= sum(counts, dims=1)
-    deltas = fill(1, T)
+    deltas = [1, 2, 3]
     data = collect_data(x_p, counts, deltas)
 end
 
-w = de.init_workspace(data)
 
-x = randn((d^2-d)÷2)
-g = zeros((d^2-d)÷2)
+values,x = de.learn_gd(data, epochs=(10000,), η=(0.01,), λ=1.0, verbose=true);
 
-compute_parameters!(x, 1, data, w)
+begin
+    figure()
+    plot(values)
+    xlabel("epochs")
+    ylabel("log-likelihood")
+end
 
-log_likelihood(x, g, data, w)
-loglikelihood_noalloc(x, data, w.J, d=d)
-
-ps = Flux.params(x)
-gs = gradient(ps) do
-    loglikelihood_noalloc(x, data, w.J, d=d)
+begin
+    figure()
+    Σ_empirical = (data.round[end].x * data.round[end].x')./data.M
+    J_inferred = de.compute_J(x, data.d)
+    Λ_inferred = de.compute_lambda(J_inferred)
+    Σ_inferred = de.compute_sigma(T, data, J_inferred, Λ_inferred)
+    scatter(vec(Σ_empirical), vec(Σ_inferred))
 end
 
 
-gs[x]
-g
 
