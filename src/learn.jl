@@ -7,7 +7,7 @@ function log_likelihood(x::Pars,  data::Data, λ::Float64)
         ll += log(det(Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv(Σ + λ*I(data.d)))
     end
 
-    return ll
+    return ll/length(data.round)
 end
 
 
@@ -45,7 +45,7 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)),
 end
 
 
-function learn_gd(data::Data; x0=randn(npars(data.d)), epochs=(1,), η=(0.001,), λ=0.0)
+function learn_gd(data::Data; x0=randn(npars(data.d)), epochs=(1,), η=(0.001,), λ=0.0, verbose=false)
 
     @assert length(epochs)==length(η)
     vals = zeros(sum(epochs))
@@ -55,6 +55,9 @@ function learn_gd(data::Data; x0=randn(npars(data.d)), epochs=(1,), η=(0.001,),
         for it in 1:epochs[k]
             x0 .-= η[k] * g
             vals[last_epochs+it] = optim_wrapper(x0, g, data, λ)
+            if verbose
+                println("ieter $(last_epochs+it)/$(sum(epochs)): ll=$(vals[last_epochs+it])")
+            end
         end
     end
 
