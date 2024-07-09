@@ -8,6 +8,7 @@ struct Data
     round::Vector{Sample}
     delta::Vector{Int} #[t1-t0, t2-t1, ..., tN-t(N-1)]
     M::Int #number of samples
+    d::Int
 end
 
 function collect_data(coordinates::Array{Float64, 3}, counts::Matrix, delta::Vector{Int})
@@ -24,5 +25,5 @@ function collect_data(coordinates::Array{Float64, 3}, counts::Matrix, delta::Vec
 
     
 
-    return Data(sample, delta, size(w,2))
+    return Data(sample, delta, size(w,2), size(coordinates, 1))
 end

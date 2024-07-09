@@ -1,58 +1,59 @@
+function npars(d::Int)
+
+    return (d^2-d)÷2
+end
+
+
 function index(i::Int, j::Int) #i<j
 
     return (j-1)*(j-2)÷2 + i 
 end
 
 
-function compute_J!(x::Pars, w::Workspace)
-
-    for j in 1:w.d
-        for i in 1:j-1
-            w.J[i,j] = x[index(i,j)]
-            w.J[j,i] = w.J[i,j]
-        end
+function get_parameter(x::Pars, i::Int, j::Int)
+    p = 0.0
+    if i<j
+        p = x[index(i,j)]
+    elseif j<i
+        p = x[index(j,i)]
     end
+
+    return p
 end
 
 
-function compute_inverse_J!(w::Workspace)
+function compute_J(x::Pars, d::Int)
 
-    w.invJ .= inv(w.J)
+    J = [get_parameter(x, i, j) for i in 1:d, j in 1:d]
+
+    return J
 end
 
 
-function compute_lambda!(w::Workspace)
+function compute_lambda(J::Matrix{Float64})
 
-    w.Λ .= exp(-w.J)
+    return exp(-J)
 end
 
 
-function compute_mu!(t::Int, data::Data, w::Workspace)
+function compute_mu(t::Int, data::Data, Λ::Matrix{Float64})
 
-    w.μ .= (w.Λ^data.delta[t]) * data.round[t].x
+    return (Λ^data.delta[t]) * data.round[t].x
 end
 
 
-function compute_sigma!(t::Int, data::Data, w::Workspace)
+function compute_sigma(t::Int, data::Data, J::Matrix{Float64}, Λ::Matrix{Float64})
 
-    w.Σ .= w.invJ*(I(w.d) - w.Λ^(2*data.delta[t]))
+    return inv(J)*(I(size(J, 1)) - Λ^(2*data.delta[t]))
 end
 
 
-function compute_inverse_sigma!(w::Workspace)
+function compute_parameters(x::Pars, t::Int, data::Data, d::Int)
 
-    w.invΣ .= inv(w.Σ)
-end
+    J = compute_J(x, d)
+    Λ = compute_lambda(J)
+    μ = compute_mu(t, data, Λ)
+    Σ = compute_sigma(t, data, J, Λ)
 
-
-function compute_parameters!(x::Pars, t::Int, data::Data, w::Workspace)
-
-    compute_J!(x, w)
-    compute_inverse_J!(w)
-    compute_lambda!(w)
-    compute_mu!(t, data, w)
-    compute_sigma!(t, data, w)
-    compute_inverse_sigma!(w)
-
-    return
+    return μ, Σ
 end

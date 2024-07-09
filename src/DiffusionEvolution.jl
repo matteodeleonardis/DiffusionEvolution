@@ -1,16 +1,14 @@
 module DiffusionEvolution
 
-    using LinearAlgebra
+    using LinearAlgebra, Flux, NLopt
 
     const Pars = Vector{Float64}
 
     include("data.jl")
     export collect_data, Data
-    include("workspace.jl")
     include("parameters.jl")
-    export index, compute_J!, compute_lambda!, compute_sigma!, compute_parameters!
-    include("likelihood.jl")
-    export log_likelihood
+    include("learn.jl")
+    export learn
     include("utils.jl")
 
 end
