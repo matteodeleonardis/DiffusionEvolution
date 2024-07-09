@@ -1,18 +1,18 @@
 function npars(d::Int)
 
-    return (d^2-d)÷2
+    return (d^2-d)÷2+d
 end
 
 
 function index(i::Int, j::Int) #i<j
 
-    return (j-1)*(j-2)÷2 + i 
+    return j*(j-1)÷2 + i 
 end
 
 
 function get_parameter(x::Pars, i::Int, j::Int)
     p = 0.0
-    if i<j
+    if i<=j
         p = x[index(i,j)]
     elseif j<i
         p = x[index(j,i)]
