@@ -8,7 +8,7 @@ module DiffusionEvolution
     export collect_data, Data
     include("parameters.jl")
     include("learn.jl")
-    export learn
+    export learn_nlopt, learn_gd
     include("utils.jl")
 
 end
