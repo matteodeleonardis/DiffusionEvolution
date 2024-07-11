@@ -3,9 +3,9 @@ using DiffusionEvolution, PyPlot, LinearAlgebra, Statistics
 const de = DiffusionEvolution
 pygui(true)
 
-d = 50
+d = 200
 nsamples =1000
-T=10
+T=5
 
 λ_diag = 1.0
 λ_skew = 0.01
@@ -48,7 +48,13 @@ for i in 1:data.d
     end
 end
 
-ll_values, x_opt = de.learn_gd(data, x0=x0, epochs=(1000,), η=(0.01,), λ=0.0, verbose=true);
+x0
+x0_2 = zeros(de.npars(data.d))
+de.init_cov!(x0_2, data.round[end].x, data.round[end].w, d=d)
+maximum(x0 .- x0_2)
+findall(abs.(x0 .- x0_2).>1e-3)
+
+ll_values, x_opt = de.learn_gd(data, initialize=T, epochs=(1000,), η=(0.01,), λ=0.0, verbose=true);
 figure()
 plot(ll_values)
 

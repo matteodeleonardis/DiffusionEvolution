@@ -28,7 +28,7 @@ end
 
 
 
-function learn_nlopt(data::Data; x0=randn(npars(data.d)), 
+function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0)
 
     opt = Opt(alg, npars(data.d))
@@ -40,15 +40,26 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)),
     opt.maxtime=maxtime
 
     opt.min_objective = (x,g) -> optim_wrapper(x, g, data, λ)
+
+    if initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
+    end
+
     (minf, minx, status) = optimize(opt, x0)
     return (minf, minx, status)
 end
 
 
-function learn_gd(data::Data; x0=randn(npars(data.d)), epochs=(1,), η=(0.001,), λ=0.0, verbose=false)
+function learn_gd(data::Data; x0=randn(npars(data.d)), initialize=-1,
+    epochs=(1,), η=(0.001,), λ=0.0, verbose=false)
 
     @assert length(epochs)==length(η)
     vals = zeros(sum(epochs))
+
+    if initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
+    end
+
     g = zeros(npars(data.d))
     for k in eachindex(epochs)
         last_epochs = k > 1 ? epochs[k-1] : 0

@@ -7,6 +7,7 @@ version = "1.0.0-DEV"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NLopt = "76087f3c-5699-56af-9a33-bf431cd00edd"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 julia = "1"
