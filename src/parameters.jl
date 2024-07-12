@@ -1,32 +1,58 @@
-function npars(d::Int)
+function n_couplings(d::Int)
 
     return (d^2-d)÷2+d
 end
 
 
-function index(i::Int, j::Int) #i<j
+function npars(d::Int)
+
+    n_couplings(d) + d
+end
+
+
+function Jindex(i::Int, j::Int) #i<j
 
     return j*(j-1)÷2 + i 
 end
 
 
-function get_parameter(x::Pars, i::Int, j::Int)
+function Hindex(i::Int, d::Int)
+
+    return n_couplings(d) + i
+end
+
+
+function get_Jparameter(x::Pars, i::Int, j::Int)
     p = 0.0
     if i<=j
-        p = x[index(i,j)]
+        p = x[Jindex(i,j)]
     elseif j<i
-        p = x[index(j,i)]
+        p = x[Jindex(j,i)]
     end
 
     return p
 end
 
 
+function get_Hparameter(x::Pars, i::Int, d::Int)
+
+    return x[Hindex(i, d)]
+end
+
+
 function compute_J(x::Pars, d::Int)
 
-    J = [get_parameter(x, i, j) for i in 1:d, j in 1:d]
+    J = [get_Jparameter(x, i, j) for i in 1:d, j in 1:d]
 
     return J
+end
+
+
+function compute_theta(x::Pars, d::Int)
+
+    θ = [get_Hparameter(x, i, d) for i in 1:d]
+
+    return θ
 end
 
 
@@ -36,9 +62,10 @@ function compute_lambda(J::Matrix{Float64})
 end
 
 
-function compute_mu(t::Int, data::Data, Λ::Matrix{Float64})
+function compute_mu(t::Int, data::Data, Λ::Matrix{Float64}, θ::Vector{Float64}, d::Int)
 
-    return (Λ^data.delta[t]) * data.round[t].x
+    Λt = Λ^data.delta[t]
+    return Λt * data.round[t].x .- reshape(θ' *(I(d)-Λt), d, 1)
 end
 
 
@@ -51,8 +78,9 @@ end
 function compute_parameters(x::Pars, t::Int, data::Data, d::Int)
 
     J = compute_J(x, d)
+    θ = compute_theta(x, d)
     Λ = compute_lambda(J)
-    μ = compute_mu(t, data, Λ)
+    μ = compute_mu(t, data, Λ, θ, d)
     Σ = compute_sigma(t, data, J, Λ)
 
     return μ, Σ
