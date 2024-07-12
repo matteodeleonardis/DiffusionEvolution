@@ -1,6 +1,6 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim
 
     const Pars = Vector{Float64}
 

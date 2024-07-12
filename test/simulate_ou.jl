@@ -5,7 +5,7 @@ pygui(true)
 
 d = 20
 nsamples =1000
-T=10
+T=5
 
 begin #interesting values are λ_diag = 1.0, 0.001 and λ_skew = 0.1, 0.001 (modify the learning rate for convergence)
     λ_diag = 1.0
@@ -53,15 +53,8 @@ counts = ones(nsamples, T) ./ nsamples
 deltas = fill(1,T)
 data = collect_data(x, counts, deltas)
 
-ll_values, x_opt = de.learn_gd(data, initialize=T, epochs=(1000,), η=(0.001,), λ=0.0, verbose=true);
-
-x0 = zeros(de.npars(d))
-de.init_cov!(x0, data.round[T].x, data.round[T].w, d=d)
-μ0, Σ0 = de.compute_parameters(x0, T, data, d)
-Σ0
-log(det(Σ0))
-x0[end-20:end] .= 0.0
-de.log_likelihood(x0, data, 0.0)
+ll_values, x_opt = de.learn_gd(data, initialize=-1, epochs=(3000,), η=(0.001,), λ=0.0, verbose=true);
+ll_values, x_opt = de.learn_gd(data, x0=x_opt, epochs=(5000,), η=(0.001,), λ=0.0, verbose=true);
 
 figure()
 plot(ll_values)
@@ -81,7 +74,10 @@ begin
     ax[3].set_xlabel("Σ empirical")
     ax[3].set_ylabel("inverse J student")
 
-    ax[4].scatter(θ, x_opt[[de.Hindex(i,data.d) for i in 1:data.d]])
+    ax[4].scatter(θ, -x_opt[[de.Hindex(i,data.d) for i in 1:data.d]])
     ax[4].set_xlabel("θ")
     ax[4].set_ylabel("inferred θ")
 end
+
+using Optim
+de.learn_optim(data, initialize=T, λ=0.0, algorithm=Optim.GradientDescent())

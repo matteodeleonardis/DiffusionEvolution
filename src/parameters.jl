@@ -65,7 +65,7 @@ end
 function compute_mu(t::Int, data::Data, Λ::Matrix{Float64}, θ::Vector{Float64}, d::Int)
 
     Λt = Λ^data.delta[t]
-    return Λt * data.round[t].x .- reshape(θ' *(I(d)-Λt), d, 1)
+    return Λt * data.round[t].x .- (I(d)-Λt)*θ
 end
 
 

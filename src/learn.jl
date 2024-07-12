@@ -67,12 +67,31 @@ function learn_gd(data::Data; x0=randn(npars(data.d)), initialize=-1,
             x0 .-= η[k] * g
             vals[last_epochs+it] = optim_wrapper(x0, g, data, λ)
             if verbose
-                println("ieter $(last_epochs+it)/$(sum(epochs)): ll=$(vals[last_epochs+it])")
+                println("iter $(last_epochs+it)/$(sum(epochs)): ll=$(vals[last_epochs+it])")
             end
         end
     end
 
     return vals, x0
+end
+
+
+function learn_optim(data; x0=randn(npars(data.d)), initialize=-1, λ=0.0, algorithm=Optim.Adam())
+
+    if initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
+    end
+
+    f(x) = log_likelihood(x, data, λ)
+    function g!(G, x) 
+            gs = gradient(x) do par
+            log_likelihood(par, data, λ)
+        end
+
+        G .= gs[1]
+    end
+
+    return Optim.optimize(f, g!, x0, algorithm)
 end
 
 
