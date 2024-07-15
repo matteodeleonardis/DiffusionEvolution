@@ -51,7 +51,7 @@ end
 
 
 function learn_gd(data::Data; x0=randn(npars(data.d)), initialize=-1,
-    epochs=(1,), η=(0.001,), λ=0.0, verbose=false)
+    epochs=(1,), η=(0.001,), λ=0.0, verbose=false, progress=false)
 
     @assert length(epochs)==length(η)
     vals = zeros(sum(epochs))
@@ -61,6 +61,7 @@ function learn_gd(data::Data; x0=randn(npars(data.d)), initialize=-1,
     end
 
     g = zeros(npars(data.d))
+    prog = Progress(sum(epochs))
     for k in eachindex(epochs)
         last_epochs = k > 1 ? epochs[k-1] : 0
         for it in 1:epochs[k]
@@ -68,6 +69,9 @@ function learn_gd(data::Data; x0=randn(npars(data.d)), initialize=-1,
             vals[last_epochs+it] = optim_wrapper(x0, g, data, λ)
             if verbose
                 println("iter $(last_epochs+it)/$(sum(epochs)): ll=$(vals[last_epochs+it])")
+            end
+            if progress
+                next!(prog)
             end
         end
     end

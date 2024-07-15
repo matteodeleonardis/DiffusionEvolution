@@ -3,16 +3,16 @@ using DiffusionEvolution, PyPlot, LinearAlgebra, Statistics
 const de = DiffusionEvolution
 pygui(true)
 
-d = 20
+d = 5
 nsamples =1000
 T=5
 
 begin #interesting values are λ_diag = 1.0, 0.001 and λ_skew = 0.1, 0.001 (modify the learning rate for convergence)
     λ_diag = 1.0
-    λ_skew = 0.1
+    λ_skew = 0.3
     J = λ_skew*randn(d,d) + λ_diag*I(d)
     J = (J .+ J')/2
-    θ = 10.0 .+ randn(d)
+    θ = 1.0 .+ randn(d)
     minimum(eigen(inv(J)).values)
 end
 
@@ -26,7 +26,7 @@ begin
 end
 
 begin
-    tpoints = 1:2:T
+    tpoints = 1:1:T
     fig, ax = subplots(1, length(tpoints), figsize=(length(tpoints)*4,2))
     for t in eachindex(tpoints)
         ax[t].hist2d(x[1,:,tpoints[t]], x[2,:,tpoints[t]], bins=50)
@@ -53,8 +53,8 @@ counts = ones(nsamples, T) ./ nsamples
 deltas = fill(1,T)
 data = collect_data(x, counts, deltas)
 
-ll_values, x_opt = de.learn_gd(data, initialize=-1, epochs=(3000,), η=(0.001,), λ=0.0, verbose=true);
-ll_values, x_opt = de.learn_gd(data, x0=x_opt, epochs=(5000,), η=(0.001,), λ=0.0, verbose=true);
+ll_values, x_opt = de.learn_gd(data, initialize=-1, epochs=(3000,), η=(0.001,), λ=0.0, verbose=false, progress=true);
+ll_values, x_opt = de.learn_gd(data, x0=x_opt, epochs=(15000,), η=(0.001,), λ=0.0, verbose=true);
 
 figure()
 plot(ll_values)
