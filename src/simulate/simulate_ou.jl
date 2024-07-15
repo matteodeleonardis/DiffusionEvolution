@@ -3,9 +3,11 @@ function random_pars(λ_diag, λ_skew, θ0, θ1; d)
     J = λ_skew*randn(d,d) + λ_diag*I(d)
     J = (J .+ J')/2
     θ = θ0 .+ (θ1 .* randn(d))
-    min_eigv = minimum(eigen(inv(J)).values)
+    eigen_invJ = eigen(inv(J))
+    min_eigv = minimum(eigen_invJ.values)
+    max_eigv = maximum(eigen_invJ.values)
 
-    return (J, θ, min_eigv)
+    return (J, θ, min_eigv, max_eigv)
 end
 
 function simulate_ou_process(J, θ; nsamples, T)

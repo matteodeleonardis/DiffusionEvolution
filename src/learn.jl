@@ -1,10 +1,10 @@
 function log_likelihood(x::Pars,  data::Data, λ::Float64)
 
     ll = 0.0
-    
-    for t in eachindex(data.round)
+    T = length(data.round)
+    for t in 1:T-1
         μ, Σ = compute_parameters(x, t, data, data.d)
-        ll += log(det(Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv(Σ + λ*I(data.d)))
+        ll += log(det(Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv(Σ + λ*I(data.d)))
     end
 
     return ll/length(data.round)
