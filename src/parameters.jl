@@ -6,7 +6,7 @@ end
 
 function npars(d::Int)
 
-    n_couplings(d) + d
+    n_couplings(d) + d #+ 1
 end
 
 
@@ -19,6 +19,12 @@ end
 function Hindex(i::Int, d::Int)
 
     return n_couplings(d) + i
+end
+
+
+function gamma_index(d::Int)
+
+    return n_couplings(d) + d + 1
 end
 
 
@@ -40,6 +46,12 @@ function get_Hparameter(x::Pars, i::Int, d::Int)
 end
 
 
+function get_gamma(x::Pars, d::Int)
+
+    return x[gamma_index(d)]
+end
+
+
 function compute_J(x::Pars, d::Int)
 
     J = [get_Jparameter(x, i, j) for i in 1:d, j in 1:d]
@@ -56,9 +68,9 @@ function compute_theta(x::Pars, d::Int)
 end
 
 
-function compute_lambda(J::Matrix{Float64})
+function compute_lambda(J::Matrix{Float64}, γ::Float64)
 
-    return exp(-J)
+    return exp(-γ*J)
 end
 
 
@@ -79,7 +91,7 @@ function compute_parameters(x::Pars, t::Int, data::Data, d::Int)
 
     J = compute_J(x, d)
     θ = compute_theta(x, d)
-    Λ = compute_lambda(J)
+    Λ = compute_lambda(J, 1.0)
     μ = compute_mu(t, data, Λ, θ, d)
     Σ = compute_sigma(t, data, J, Λ)
 

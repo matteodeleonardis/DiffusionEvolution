@@ -23,5 +23,6 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d)
             x0[Jindex(i,j)] = J[i,j]
         end
         x0[Hindex(i, d)] = m[i]
-    end    
+    end  
+    #x0[gamma_index(d)] = 100.0  
 end
