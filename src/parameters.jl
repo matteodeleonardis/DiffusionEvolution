@@ -87,11 +87,11 @@ function compute_sigma(t::Int, data::Data, J::Matrix{Float64}, Λ::Matrix{Float6
 end
 
 
-function compute_parameters(x::Pars, t::Int, data::Data, d::Int)
+function compute_parameters(x::Pars, γ::Float64, t::Int, data::Data, d::Int)
 
     J = compute_J(x, d)
     θ = compute_theta(x, d)
-    Λ = compute_lambda(J, 1.0)
+    Λ = compute_lambda(J, γ)
     μ = compute_mu(t, data, Λ, θ, d)
     Σ = compute_sigma(t, data, J, Λ)
 

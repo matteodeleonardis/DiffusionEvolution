@@ -49,7 +49,7 @@ data = collect_data(x, counts, deltas)
 
 de.log_likelihood(x_opt, data, 0.0, 0.0)
 
-min_ll, x_opt, status = learn_nlopt(data, initialize=T, λ=0.0, prior=0.01, ftol_rel=1e-9)
+min_ll, x_opt, status = learn_nlopt(data, initialize=T, λ=0.1, prior=0.00001, ftol_rel=1e-9)
 
 begin 
     J_inferred = de.compute_J(x_opt, data.d)
