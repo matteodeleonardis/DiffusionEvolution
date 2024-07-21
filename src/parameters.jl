@@ -10,6 +10,12 @@ function npars(d::Int)
 end
 
 
+function npars_gamma(d::Int)
+
+    n_couplings(d) + d + 1
+end
+
+
 function Jindex(i::Int, j::Int) #i<j
 
     return j*(j-1)÷2 + i 
@@ -92,6 +98,18 @@ function compute_parameters(x::Pars, γ::Float64, t::Int, data::Data, d::Int)
     J = compute_J(x, d)
     θ = compute_theta(x, d)
     Λ = compute_lambda(J, γ)
+    μ = compute_mu(t, data, Λ, θ, d)
+    Σ = compute_sigma(t, data, J, Λ)
+
+    return μ, Σ
+end
+
+
+function compute_parameters(x::Pars, t::Int, data::Data, d::Int)
+
+    J = compute_J(x, d)
+    θ = compute_theta(x, d)
+    Λ = compute_lambda(J, x[gamma_index(d)])
     μ = compute_mu(t, data, Λ, θ, d)
     Σ = compute_sigma(t, data, J, Λ)
 

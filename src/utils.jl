@@ -10,7 +10,7 @@ function weighted_batch_dot(w, x, M)
 end
 
 
-function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d)
+function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false)
 
     m = mean(Xdata, dims=2)
     Δ = Xdata[:,:,end] .- m
@@ -24,5 +24,8 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d)
         end
         x0[Hindex(i, d)] = m[i]
     end  
-    #x0[gamma_index(d)] = 100.0  
+    
+    if init_gamma
+        x0[gamma_index(d)] = 1.0
+    end
 end
