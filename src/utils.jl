@@ -26,6 +26,6 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
     end  
     
     if init_gamma
-        x0[gamma_index(d)] = 1.0
+        x0[gamma_index(d)] = 0.5
     end
 end
