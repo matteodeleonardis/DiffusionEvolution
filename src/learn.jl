@@ -100,7 +100,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
-    ub =  fill(Inf, npars_gamma(data.d))
+    #ub =  fill(Inf, npars_gamma(data.d))
     lb[gamma_index(data.d)] = 1e-12
     #ub[gamma_index(data.d)] = 1.0 - 1e-12
     opt.lower_bounds = lb
