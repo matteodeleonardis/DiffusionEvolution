@@ -26,6 +26,22 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
     end  
     
     if init_gamma
-        x0[gamma_index(d)] = 0.5
+        x0[gamma_index(d)] = 1.0
+    end
+end
+
+function init_id!(x0::Pars; d, init_gamma = false)
+
+    J = I(d)
+
+    for i in 1:d
+        for j in i:d
+            x0[Jindex(i,j)] = J[i,j]
+        end
+        x0[Hindex(i, d)] = 0.0
+    end  
+    
+    if init_gamma
+        x0[gamma_index(d)] = 1.0
     end
 end

@@ -29,7 +29,7 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64)
 
     ll /= length(data.round)
     if prior > 0.0
-        for i in eachindex(x)
+        for i in 1:length(x)-1
             ll += prior*(x[i]^2)
         end
     end
@@ -70,10 +70,29 @@ function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior::F
 end
 
 
+function optim_wrapper_gamma_track(x::Pars, g::Pars, data::Data, λ::Float64, prior::Float64, history::MVHistory)
+
+    if length(g)==0
+        g = zeros(length(x))
+    end
+
+    ll = 0.0
+    gs = gradient(x) do par
+        ll = log_likelihood_gamma(par, data, λ, prior)
+    end
+
+    push!(history, :x, x)
+    push!(history, :log_likelihood, ll)
+
+    g .= gs[1]
+    return ll
+end
+
+
 
 function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0,
-    prior=0.0)
+    prior=0.0, γ=1.0)
 
     opt = Opt(alg, npars(data.d))
     opt.xtol_rel=xtol_rel
@@ -83,14 +102,18 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.maxeval=maxeval
     opt.maxtime=maxtime
 
-    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, 1.0, λ, prior)
+    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, λ, prior)
 
     if initialize>0
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
     end
 
-    (minf, minx, status) = NLopt.optimize(opt, x0)
-    return (minf, minx, status)
+    (minf, minx, status) = try NLopt.optimize!(opt, x0)
+    catch
+        return (x_err = x0, nevals=opt.numevals)
+    end
+
+    return (minf, minx, status, opt.numevals)
 end
 
 
@@ -100,9 +123,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
-    #ub =  fill(Inf, npars_gamma(data.d))
     lb[gamma_index(data.d)] = 1e-12
-    #ub[gamma_index(data.d)] = 1.0 - 1e-12
     opt.lower_bounds = lb
     opt.xtol_rel=xtol_rel
     opt.ftol_rel=ftol_rel
@@ -117,8 +138,59 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
     end
 
-    (minf, minx, status) = NLopt.optimize(opt, x0)
-    return (minf, minx, status)
+    x_start = copy(x0)
+
+    (minf, minx, status) = try NLopt.optimize!(opt, x0)
+    catch e
+        if :msg in fieldnames(typeof(e))
+            println(e.msg)
+        end
+
+        return (x=x0, nevals=opt.numevals, x_start=x_start)
+    end
+
+    return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start)
+end
+
+
+function learn_gamma_nlopt_track(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
+    alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0,
+    prior=0.0)
+
+    opt = Opt(alg, npars_gamma(data.d))
+    lb = fill(-Inf, npars_gamma(data.d))
+    lb[gamma_index(data.d)] = 1e-12
+    opt.lower_bounds = lb
+    opt.xtol_rel=xtol_rel
+    opt.ftol_rel=ftol_rel
+    opt.xtol_abs=xtol_abs
+    opt.ftol_abs=ftol_abs
+    opt.maxeval=maxeval
+    opt.maxtime=maxtime
+
+    history = MVHistory()
+
+    opt.min_objective = (x,g) -> optim_wrapper_gamma_track(x, g, data, λ, prior, history)
+
+    if initialize == 0
+        init_id!(x0, d=data.d, init_gamma=true)
+    elseif initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+    end
+
+    x_start = copy(x0)
+
+    (minf, minx, status) = try NLopt.optimize!(opt, x0)
+    catch e
+        println("exception")
+        if :msg in fieldnames(typeof(e))
+            println(e.msg)
+        end
+
+        return (x=x0, nevals=opt.numevals, x_start=x_start, history=history)
+    end
+
+    return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start, history=history)
 end
 
 

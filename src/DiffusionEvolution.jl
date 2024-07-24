@@ -1,6 +1,6 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, ProgressMeter
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, ProgressMeter, ValueHistories
 
     const Pars = Vector{Float64}
 
@@ -8,7 +8,7 @@ module DiffusionEvolution
     export collect_data, Data
     include("parameters.jl")
     include("learn.jl")
-    export learn_nlopt, learn_gamma_nlopt, learn_gd
+    export learn_nlopt, learn_gamma_nlopt, learn_gamma_nlopt_track, learn_gd
     include("utils.jl")
 
     #simulation
