@@ -5,13 +5,16 @@ end
 
 struct Data
 
+    x0::Vector{Float64}
     round::Vector{Sample}
-    delta::Vector{Int} #[t1-t0, t2-t1, ..., tN-t(N-1)]
+    time::Vector{Int} #[t1, ..., tN] we assume t0=0
     M::Int #number of samples
     d::Int
 end
 
-function collect_data(coordinates::Array{Float64, 3}, counts::Matrix, delta::Vector{Int})
+function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 3}, counts::Matrix, time::Vector{Int})
+
+    @assert size(counts,2) == length(time) 
 
     w = Float64.(counts)
     if !prod(sum(w, dims=1) .≈ 1.0)
@@ -25,5 +28,5 @@ function collect_data(coordinates::Array{Float64, 3}, counts::Matrix, delta::Vec
 
     
 
-    return Data(sample, delta, size(w,2), size(coordinates, 1))
+    return Data(x0, sample, time, size(w,2), size(coordinates, 1))
 end

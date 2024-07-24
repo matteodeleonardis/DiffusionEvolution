@@ -82,14 +82,14 @@ end
 
 function compute_mu(t::Int, data::Data, Λ::Matrix{Float64}, θ::Vector{Float64}, d::Int)
 
-    Λt = Λ^data.delta[t]
-    return Λt * data.round[t].x .+ (I(d)-Λt)*θ  
+    Λt = Λ^data.time[t]
+    return Λt * data.x0 .+ (I(d)-Λt)*θ  
 end
 
 
 function compute_sigma(t::Int, data::Data, J::Matrix{Float64}, Λ::Matrix{Float64})
 
-    return inv(J)*(I(size(J, 1)) - Λ^(2*data.delta[t]))
+    return inv(J)*(I(size(J, 1)) - Λ^(2*data.time[t]))
 end
 
 

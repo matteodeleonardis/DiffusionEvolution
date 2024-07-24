@@ -3,8 +3,8 @@ function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior::F
     ll = 0.0
     T = length(data.round)
     for t in 1:T-1
-        μ, Σ = compute_parameters(x, γ, t, data, data.d)
-        ll += log(det((1.0-λ)*Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)Σ + λ*I(data.d)))
+        μ, Σ = compute_parameters(x, γ, t+1, data, data.d)
+        ll += log(det((1.0-λ)*Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
     end
 
     ll /= length(data.round)
@@ -23,8 +23,8 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64)
     ll = 0.0
     T = length(data.round)
     for t in 1:T-1
-        μ, Σ = compute_parameters(x, t, data, data.d)
-        ll += log(det((1.0-λ)*Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)Σ + λ*I(data.d)))
+        μ, Σ = compute_parameters(x, t+1, data, data.d)
+        ll += log(det((1.0-λ)*Σ + λ*I(data.d))) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
     end
 
     ll /= length(data.round)
