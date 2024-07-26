@@ -10,13 +10,17 @@ function weighted_batch_dot(w, x, M)
 end
 
 
-function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false)
+function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false, rescale=true)
 
     m = mean(Xdata, dims=2)
     Δ = Xdata[:,:,end] .- m
     C = Δ * (reshape(w, :, 1) .* Δ')
+    if rescale 
+        C ./= sqrt.(diag(C)) * sqrt.(diag(C))'
+    end
     @assert isapprox(C,C')
     J = inv(C)
+
 
     for i in 1:d
         for j in i:d

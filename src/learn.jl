@@ -92,7 +92,7 @@ end
 
 function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0,
-    prior=0.0, γ=1.0)
+    prior=0.0, γ=1.0, rescale=false)
 
     opt = Opt(alg, npars(data.d))
     opt.xtol_rel=xtol_rel
@@ -105,7 +105,7 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, λ, prior)
 
     if initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, rescale=rescale)
     end
 
     (minf, minx, status) = try NLopt.optimize!(opt, x0)
@@ -119,7 +119,7 @@ end
 
 function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0,
-    prior=0.0)
+    prior=0.0, rescale=false)
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
@@ -135,7 +135,8 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, λ, prior)
 
     if initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
+        rescale=rescale)
     end
 
     x_start = copy(x0)
