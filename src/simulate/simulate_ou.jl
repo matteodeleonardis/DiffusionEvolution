@@ -13,9 +13,15 @@ end
 function simulate_ou_process(J, θ, γ; nsamples, T)
     d = length(θ)
     x = zeros(d, nsamples, T)
-    for s in 1:nsamples
+    Λ = compute_lambda(J, γ)
+    
+    Σ = compute_sigma(1, J, Λ, d)
+    Σ_sqrt = sqrt(Σ)
+
+    for s in 1:nsamples    
         for t in 1:T-1
-            x[:,s,t+1] = x[:,s,t] .- γ*(J*(x[:,s,t] .- θ) .+ randn(d))
+            μ = compute_mu(1, x[:,s,t], Λ, θ, d)
+            x[:,s,t+1] .= ((Σ_sqrt * randn(d)) .+ μ)
         end
     end
 

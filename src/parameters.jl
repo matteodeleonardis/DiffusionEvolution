@@ -80,38 +80,38 @@ function compute_lambda(J::Matrix{Float64}, γ::Float64)
 end
 
 
-function compute_mu(t::Int, data::Data, Λ::Matrix{Float64}, θ::Vector{Float64}, d::Int)
+function compute_mu(t::Int, x0::Vector{Float64}, Λ::Matrix{Float64}, θ::Vector{Float64}, d::Int)
 
-    Λt = Λ^data.time[t]
-    return Λt * data.x0 .+ (I(d)-Λt)*θ  
+    Λt = Λ^t
+    return Λt * x0 .+ (I(d)-Λt)*θ  
 end
 
 
-function compute_sigma(t::Int, data::Data, J::Matrix{Float64}, Λ::Matrix{Float64})
+function compute_sigma(t::Int, J::Matrix{Float64}, Λ::Matrix{Float64}, d::Int)
 
-    return inv(J)*(I(size(J, 1)) - Λ^(2*data.time[t]))
+    return inv(J)*(I(d) - Λ^(2*t))
 end
 
 
-function compute_parameters(x::Pars, γ::Float64, t::Int, data::Data, d::Int)
+function compute_parameters(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d::Int)
 
     J = compute_J(x, d)
     θ = compute_theta(x, d)
     Λ = compute_lambda(J, γ)
-    μ = compute_mu(t, data, Λ, θ, d)
-    Σ = compute_sigma(t, data, J, Λ)
+    μ = compute_mu(t, x0, Λ, θ, d)
+    Σ = compute_sigma(t, J, Λ, d)
 
     return μ, Σ
 end
 
 
-function compute_parameters(x::Pars, t::Int, data::Data, d::Int)
+function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int)
 
     J = compute_J(x, d)
     θ = compute_theta(x, d)
     Λ = compute_lambda(J, x[gamma_index(d)])
-    μ = compute_mu(t, data, Λ, θ, d)
-    Σ = compute_sigma(t, data, J, Λ)
+    μ = compute_mu(t, x0, Λ, θ, d)
+    Σ = compute_sigma(t, J, Λ, d)
 
     return μ, Σ
 end
