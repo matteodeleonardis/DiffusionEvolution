@@ -10,6 +10,7 @@ module DiffusionEvolution
     include("learn.jl")
     export learn_nlopt, learn_gamma_nlopt, learn_gamma_nlopt_track, learn_gd
     include("utils.jl")
+    export compute_energy
 
     #simulation
     include("simulate/simulate_ou.jl")

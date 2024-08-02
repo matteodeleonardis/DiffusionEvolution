@@ -49,3 +49,19 @@ function init_id!(x0::Pars; d, init_gamma = false)
         x0[gamma_index(d)] = 1.0
     end
 end
+
+
+function compute_energy(x_c::Matrix{Float64}, J::Matrix{Float64}, θ::Vector{Float64})
+    
+    xm = (x_c .- θ)
+    return vec(sum(xm .* (J*xm), dims=1))
+end
+
+function compute_energy(x_c::Matrix{Float64}, x::Vector{Float64})
+
+    d = size(x_c, 1)
+    J = compute_J(x, d)
+    θ = compute_theta(x, d)
+
+    return compute_energy(x_c, J, θ)
+end
