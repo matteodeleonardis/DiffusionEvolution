@@ -38,8 +38,6 @@ function get_Jparameter(x::Pars, i::Int, j::Int)
     p = 0.0
     if i<=j
         p = x[Jindex(i,j)]
-    elseif j<i
-        p = x[Jindex(j,i)]
     end
 
     return p
@@ -60,7 +58,8 @@ end
 
 function compute_J(x::Pars, d::Int)
 
-    J = [get_Jparameter(x, i, j) for i in 1:d, j in 1:d]
+    m = [get_Jparameter(x, i, j) for i in 1:d, j in 1:d]
+    J = m * m'
 
     return J
 end
