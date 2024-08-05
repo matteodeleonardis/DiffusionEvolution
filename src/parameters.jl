@@ -74,20 +74,20 @@ function compute_theta(x::Pars, d::Int)
 end
 
 
-function compute_lambda(J::Matrix{Float64}, γ::Float64)
+function compute_lambda(J, γ::Float64)
 
     return exp(-γ*J)
 end
 
 
-function compute_mu(t::Int, x0::Vector{Float64}, Λ::Matrix{Float64}, θ::Vector{Float64}, d::Int)
+function compute_mu(t::Int, x0::Vector{Float64}, Λ, θ::Vector{Float64}, d::Int)
 
     Λt = Λ^t
     return Λt * x0 .+ (I(d)-Λt)*θ  
 end
 
 
-function compute_sigma(t::Int, J::Matrix{Float64}, Λ::Matrix{Float64}, d::Int)
+function compute_sigma(t::Int, J, Λ, d::Int)
 
     return inv(J)*(I(d) - Λ^(2*t))
 end

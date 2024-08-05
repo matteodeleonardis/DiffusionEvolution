@@ -110,7 +110,9 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
 
     opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, λ, prior, epsilon)
 
-    if initialize>0
+    if initialize == 0
+        init_id!(x0, d=data.d, init_gamma=true)
+    elseif initialize>0
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, rescale=rescale)
     end
 
@@ -140,7 +142,9 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, λ, prior, epsilon)
 
-    if initialize>0
+    if initialize == 0
+        init_id!(x0, d=data.d, init_gamma=true)
+    elseif initialize>0
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
         rescale=rescale)
     end

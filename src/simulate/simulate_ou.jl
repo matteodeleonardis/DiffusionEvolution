@@ -16,12 +16,15 @@ function simulate_ou_process(J, θ, γ; nsamples, T)
     Λ = compute_lambda(J, γ)
     
     Σ = compute_sigma(1, J, Λ, d)
-    Σ_sqrt = sqrt(Σ)
+    Σ .+= Σ'
+    Σ .*= 0.5
+    println("is Σ symmetric: $(issymmetric(Σ))")
 
     for s in 1:nsamples    
         for t in 1:T-1
             μ = compute_mu(1, x[:,s,t], Λ, θ, d)
-            x[:,s,t+1] .= ((Σ_sqrt * randn(d)) .+ μ)
+            g = MvNormal(μ, Σ)
+            x[:,s,t+1] .= rand(g)
         end
     end
 

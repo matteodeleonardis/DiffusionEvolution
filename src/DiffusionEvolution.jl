@@ -1,6 +1,6 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, ProgressMeter, ValueHistories
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, ProgressMeter, ValueHistories, Distributions
 
     const Pars = Vector{Float64}
 
