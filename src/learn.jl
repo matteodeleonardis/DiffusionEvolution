@@ -151,7 +151,11 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     x_start = copy(x0)
 
-    (minf, minx, status) = NLopt.optimize!(opt, x0)
+    (minf, minx, status) = try NLopt.optimize!(opt, x0)
+    catch e
+        println(e)
+        return (xerr=x_0, x_start=x_start)
+    end
 
     return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start)
 end
