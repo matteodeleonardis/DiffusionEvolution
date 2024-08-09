@@ -1,14 +1,20 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, ProgressMeter, ValueHistories, Distributions
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions
 
     const Pars = Vector{Float64}
 
     include("data.jl")
     export collect_data, Data
+
     include("parameters.jl")
+
     include("learn.jl")
-    export learn_nlopt, learn_gamma_nlopt, learn_gamma_nlopt_track, learn_gd
+    export learn_nlopt
+
+    include("learn_gamma.jl")
+    export learn_gamma_nlopt
+
     include("utils.jl")
     export compute_energy
 

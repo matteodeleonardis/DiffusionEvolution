@@ -65,3 +65,9 @@ function compute_energy(x_c::Matrix{Float64}, x::Vector{Float64})
 
     return compute_energy(x_c, J, θ)
 end
+
+
+function safe_log(x::Float64, ϵ::Float64)
+
+    return log(x + ϵ)
+end
