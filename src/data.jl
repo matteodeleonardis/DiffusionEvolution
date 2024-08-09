@@ -30,3 +30,23 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 3}, count
 
     return Data(x0, sample, time, size(w,2), size(coordinates, 1))
 end
+
+
+function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 2}, counts::Matrix, time::Vector{Int})
+
+    @assert size(counts,2) == length(time) 
+
+    w = Float64.(counts)
+    if !prod(sum(w, dims=1) .≈ 1.0)
+        w ./= sum(w, dims=1)
+    end
+
+    sample = Vector{Sample}(undef, size(counts, 2))
+    for t in axes(counts, 2)
+        sample[t] = Sample(coordinates, w[:,t])
+    end
+
+    
+
+    return Data(x0, sample, time, size(w,2), size(coordinates, 1))
+end
