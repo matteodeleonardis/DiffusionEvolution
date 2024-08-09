@@ -55,7 +55,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
         init_id!(x0, d=data.d, init_gamma=true)
     elseif initialize>0
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
-        rescale=rescale)
+            rescale=rescale)
     end
 
     x_start = copy(x0)
@@ -67,4 +67,35 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     end
 
     return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start)
+end
+
+
+function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0)
+
+    if initialize == 0
+        init_id!(x0, d=data.d, init_gamma=true)
+    elseif initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
+            rescale=rescale)
+    end
+
+    lower = vcat(fill(-Inf, npars(data.d)), 1e-12)
+    upper = fill(+Inf, npars_gamma(data.d))
+
+    function fg!(F,G,x)
+
+        ll = 0.0
+        if G !== nothing
+            ll = optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
+        elseif F!== nothing
+            ll = log_likelihood_gamma(x, data, λ, prior, epsilon)
+        end
+
+        return ll
+    end
+
+    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg))
+
+    return res
 end

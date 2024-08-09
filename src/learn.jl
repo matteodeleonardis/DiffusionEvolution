@@ -51,7 +51,8 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, rescale=rescale)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false,
+            rescale=rescale)
     end
 
     (minf, minx, status) = try NLopt.optimize!(opt, x0)
