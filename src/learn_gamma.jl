@@ -71,7 +71,8 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0)
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0, x_abstol=0.0, x_reltol=0.0, 
+    f_abstol=0.0, f_reltol=0.0, g_abstol=1e-8)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -95,7 +96,9 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg))
+    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), 
+        Optim.Options(x_abstol=x_abstol, x_reltol=x_reltol, f_abstol=f_abstol, f_reltol=f_reltol,
+        g_abstol=g_abstol))
 
     return res
 end
@@ -123,7 +126,9 @@ function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg)
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, 
+        Optim.Options(x_abstol=x_abstol, x_reltol=x_reltol, f_abstol=f_abstol, f_reltol=f_reltol,
+        g_abstol=g_abstol))
 
     return res
 end
