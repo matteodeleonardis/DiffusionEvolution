@@ -99,3 +99,31 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     return res
 end
+
+
+function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0)
+
+    if initialize == 0
+        init_id!(x0, d=data.d, init_gamma=true)
+    elseif initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
+            rescale=rescale)
+    end
+
+    function fg!(F,G,x)
+
+        ll = 0.0
+        if G !== nothing
+            ll = optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
+        elseif F!== nothing
+            ll = log_likelihood_gamma(x, data, λ, prior, epsilon)
+        end
+
+        return ll
+    end
+
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg)
+
+    return res
+end
