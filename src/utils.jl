@@ -24,7 +24,7 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
 
     for i in 1:d
         for j in i:d
-            x0[Jindex(i,j)] = J[i,j]
+            x0[Jindex(i,j,d)] = J[i,j]
         end
         x0[Hindex(i, d)] = m[i]
     end  
@@ -40,7 +40,7 @@ function init_id!(x0::Pars; d, init_gamma = false)
 
     for i in 1:d
         for j in i:d
-            x0[Jindex(i,j)] = J[i,j]
+            x0[Jindex(i,j,d)] = J[i,j]
         end
         x0[Hindex(i, d)] = 0.0
     end  

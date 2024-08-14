@@ -4,7 +4,7 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64,
     T = length(data.round)
     for t in 1:T-1
         μ, Σ = compute_parameters(x, data.time[t+1], data.x0, data.d)
-        ll += safe_log(det((1.0-λ)*Σ + λ*I(data.d)), ϵ) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
+        ll += logdet((1.0-λ)*Σ + λ*I(data.d)) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
     end
 
     ll /= length(data.round)
@@ -72,7 +72,7 @@ end
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
     alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0, x_abstol=0.0, x_reltol=0.0, 
-    f_abstol=0.0, f_reltol=0.0, g_abstol=1e-8)
+    f_abstol=0.0, f_reltol=0.0, g_abstol=1e-8, err_file="err_file")
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -88,9 +88,18 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
         ll = 0.0
         if G !== nothing
-            ll = optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
+            ll = try optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
+            catch e
+                println(e)
+                @save err_file*".jld2" x
+            end
+
         elseif F!== nothing
-            ll = log_likelihood_gamma(x, data, λ, prior, epsilon)
+            ll = try log_likelihood_gamma(x, data, λ, prior, epsilon)
+            catch e
+                println(e)
+                @save err_file*".jld2" x
+            end
         end
 
         return ll

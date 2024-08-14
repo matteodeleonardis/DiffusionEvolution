@@ -1,6 +1,6 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, JLD2
 
     const Pars = Vector{Float64}
 
@@ -13,7 +13,7 @@ module DiffusionEvolution
     export learn_nlopt
 
     include("learn_gamma.jl")
-    export learn_gamma_nlopt
+    export learn_gamma_nlopt, learn_gamma_optim
 
     include("utils.jl")
     export compute_energy
