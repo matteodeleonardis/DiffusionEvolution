@@ -57,10 +57,10 @@ function compute_energy(x_c::Matrix{Float64}, J::Matrix{Float64}, θ::Vector{Flo
     return vec(sum(xm .* (J*xm), dims=1))
 end
 
-function compute_energy(x_c::Matrix{Float64}, x::Vector{Float64})
+function compute_energy(x_c::Matrix{Float64}, x::Vector{Float64}, ϵ::Float64)
 
     d = size(x_c, 1)
-    J = compute_J(x, d)
+    J = compute_J(x, d, ϵ)
     θ = compute_theta(x, d)
 
     return compute_energy(x_c, J, θ)
