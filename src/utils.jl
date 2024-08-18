@@ -12,12 +12,9 @@ end
 
 function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false, rescale=true)
 
-    m = mean(Xdata, dims=2)
-    Δ = Xdata[:,:,end] .- m
-    C = Δ * (reshape(w, :, 1) .* Δ')
-    if rescale 
-        C ./= sqrt.(diag(C)) * sqrt.(diag(C))'
-    end
+    m = mean(Xdata, Weights(w), dims=2)
+    C = cov(Xdata, Weights(w), 2)
+    
     @assert isapprox(C,C')
     J = inv(C)
 
