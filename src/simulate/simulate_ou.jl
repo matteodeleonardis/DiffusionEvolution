@@ -10,15 +10,25 @@ function random_pars(λ_diag, λ_skew, θ0, θ1; d)
     return (J, θ, min_eigv, max_eigv)
 end
 
-function simulate_ou_process(J, θ, γ; nsamples, T, epsilon=0.0)
+function simulate_ou_process(J, θ, γ; nsamples, T, epsilon=0.0, err_sym=0.0)
     d = length(θ)
     x = zeros(d, nsamples, T)
     #Λ = compute_lambda(J, γ)
     
     Σ = compute_sigma(1, J, γ, d)
-    Σ .+= Σ'
-    Σ .*= 0.5
-    println("is Σ symmetric: $(issymmetric(Σ))")
+    err = maximum(abs.(Σ .- Σ'))
+    if err > err_sym
+        println("Σ has an high error")
+        Σ .+= Σ'
+        Σ .*= 0.5
+    elseif err > 0.0
+        println("Σ has been symmetrized")
+        Σ .+= Σ'
+        Σ .*= 0.5
+    else
+        println("Σ is symmetric")
+    end
+    @assert issymmetric(Σ)
 
     for s in 1:nsamples    
         for t in 1:T-1
