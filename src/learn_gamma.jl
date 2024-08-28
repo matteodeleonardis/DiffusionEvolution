@@ -63,7 +63,8 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     (minf, minx, status) = try NLopt.optimize!(opt, x0)
     catch e
         println("Optimization failed. \n", e)
-        return (xerr=x0, x_start=x_start)
+        err_save = (xerr=x0, x_start=x_start)
+        @save "error_nlopt.jld2" err_save
     end
 
     return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start)
@@ -71,7 +72,7 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, err_file="err_file", epsilon=0.0)
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, err_file="err_file", epsilon=0.0, g_tol=1e-8, f_tol=0.0)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -80,7 +81,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
             rescale=rescale)
     end
 
-    lower = vcat(fill(-Inf, npars(data.d)), 1e-12)
+    lower = vcat(fill(-Inf, npars(data.d)), 0.0)
     upper = fill(+Inf, npars_gamma(data.d))
 
     function fg!(F,G,x)
@@ -104,14 +105,14 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg))
+    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), Optim.Options(g_tol=g_tol, f_tol=f_tol))
 
     return res
 end
 
 
 function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0)
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -124,15 +125,23 @@ function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d
 
         ll = 0.0
         if G !== nothing
-            ll = optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
+            ll = try optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
+            catch e
+                println(e)
+                @save err_file*"_grad.jld2" x data
+            end
         elseif F!== nothing
-            ll = log_likelihood_gamma(x, data, λ, prior, epsilon)
+            ll = try log_likelihood_gamma(x, data, λ, prior, epsilon)
+            catch e
+                println(e)
+                @save err_file*"_ll.jld2" x data
+            end
         end
 
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg)
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(g_tol=g_tol, f_tol=f_tol))
 
     return res
 end

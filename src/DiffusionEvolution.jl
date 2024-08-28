@@ -13,7 +13,7 @@ module DiffusionEvolution
     export learn_nlopt
 
     include("learn_gamma.jl")
-    export learn_gamma_nlopt, learn_gamma_optim
+    export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim
 
     include("utils.jl")
     export compute_energy
