@@ -1,13 +1,12 @@
 function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64, ϵ::Float64)
 
     ll = 0.0
-    T = length(data.round)
-    for t in 1:T-1
-        μ, Σ = compute_parameters(x, data.time[t+1], data.x0, data.d, ϵ)
-        ll += logdet((1.0-λ)*Σ + λ*I(data.d)) + weighted_batch_dot(data.round[t+1].w, (data.round[t+1].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
+    for t in eachindex(data.round)
+        μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ)
+        ll += logdet((1.0-λ)*Σ + λ*I(data.d)) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
+        ll += data.d*log2pi
     end
 
-    ll /= length(data.round)
     if prior > 0.0
         for i in 1:length(x)-1
             ll += prior*(x[i]^2)

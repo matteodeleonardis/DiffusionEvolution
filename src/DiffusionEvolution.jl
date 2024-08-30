@@ -3,6 +3,7 @@ module DiffusionEvolution
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, JLD2
 
     const Pars = Vector{Float64}
+    const log2pi = log(2.0*π)
 
     include("data.jl")
     export collect_data, Data
