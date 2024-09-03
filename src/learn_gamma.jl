@@ -2,8 +2,8 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64,
 
     ll = 0.0
     for t in eachindex(data.round)
-        μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ)
-        ll += logdet((1.0-λ)*Σ + λ*I(data.d)) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv((1.0-λ)*Σ + λ*I(data.d)))
+        μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ, λ)
+        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv(Σ))
         ll += data.d*log2pi
     end
 
