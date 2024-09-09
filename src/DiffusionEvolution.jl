@@ -17,7 +17,7 @@ module DiffusionEvolution
     export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim
 
     include("utils.jl")
-    export compute_energy
+    export compute_energy, compute_weight
 
     #simulation
     include("simulate/simulate_ou.jl")

@@ -10,8 +10,9 @@ function weighted_batch_dot(w, x, M)
 end
 
 
-function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false, rescale=true)
+function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false)
 
+    println("Initializing parameters with covariance.")
     m = mean(Xdata, Weights(w), dims=2)
     C = cov(Xdata, Weights(w), 2)
     
@@ -33,6 +34,7 @@ end
 
 function init_id!(x0::Pars; d, init_gamma = false)
 
+    println("Initializing parameters with identity.")
     J = I(d)
 
     for i in 1:d
@@ -61,6 +63,14 @@ function compute_energy(x_c::Matrix{Float64}, x::Vector{Float64}, ϵ::Float64)
     θ = compute_theta(x, d)
 
     return compute_energy(x_c, J, θ)
+end
+
+
+function compute_weight(x_c::Matrix{Float64}, x::Vector{Float64}, t::Int, x0::Vector{Float64},
+    ϵ::Float64, λ::Float64)
+
+    μ, Σ = compute_parameters(x, t, x0, size(x_c, 1), ϵ, λ)
+    return compute_energy(x_c, inv(Σ), μ)
 end
 
 
