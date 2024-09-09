@@ -35,7 +35,7 @@ end
 
 function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0,
-    prior=0.0, rescale=false, epsilon=0.0)
+    prior=0.0, epsilon=0.0)
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
@@ -53,8 +53,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
-            rescale=rescale)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
     end
 
     x_start = copy(x0)
@@ -71,13 +70,12 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, err_file="err_file", epsilon=0.0, g_tol=1e-8, f_tol=0.0)
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, err_file="err_file", epsilon=0.0, g_tol=1e-8, f_tol=0.0)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
-            rescale=rescale)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
     end
 
     lower = vcat(fill(-Inf, npars(data.d)), 0.0)
@@ -111,13 +109,12 @@ end
 
 
 function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, rescale=false, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
+    alg=Optim.LBFGS(), λ=0.0, prior=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true, 
-            rescale=rescale)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
     end
 
     function fg!(F,G,x)
