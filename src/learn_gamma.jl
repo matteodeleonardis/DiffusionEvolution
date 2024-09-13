@@ -1,4 +1,4 @@
-function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64, ϵ::Float64)
+function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_x::Float64, prior_γ::Float64, ϵ::Float64)
 
     ll = 0.0
     for t in eachindex(data.round)
@@ -7,17 +7,20 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior::Float64,
         ll += data.d*log2pi
     end
 
-    if prior > 0.0
+    if prior_x > 0.0
         for i in 1:length(x)-1
-            ll += prior*(x[i]^2)
+            ll += prior_x*(x[i]^2)
         end
+    end
+    if prior_γ > 0.0
+        ll += prior_γ*(x[end]^2)
     end
 
     return  ll
 end
 
 
-function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior::Float64, ϵ::Float64)
+function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_x::Float64, prior_γ::Float64, ϵ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -25,7 +28,7 @@ function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior::F
 
     ll = 0.0
     gs = gradient(x) do par
-        ll = log_likelihood_gamma(par, data, λ, prior, ϵ)
+        ll = log_likelihood_gamma(par, data, λ, prior_x, prior_γ, ϵ)
     end
 
     g .= gs[1]
@@ -34,8 +37,8 @@ end
 
 
 function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, λ=0.0,
-    prior=0.0, epsilon=0.0)
+    alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
+    prior_x=0.0, prior_gamma=0.0, epsilon=0.0)
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
@@ -48,7 +51,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     opt.maxeval=maxeval
     opt.maxtime=maxtime
 
-    opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, λ, prior, epsilon)
+    opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, lambda, prior_x, prior_gamma, epsilon)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -58,19 +61,14 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     x_start = copy(x0)
 
-    (minf, minx, status) = try NLopt.optimize!(opt, x0)
-    catch e
-        println("Optimization failed. \n", e)
-        err_save = (xerr=x0, x_start=x_start)
-        @save "error_nlopt.jld2" err_save
-    end
+    (minf, minx, status) = NLopt.optimize!(opt, x0)
 
     return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start)
 end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, err_file="err_file", epsilon=0.0, g_tol=1e-8, f_tol=0.0)
+    alg=Optim.LBFGS(), lambda=0.0, prior_x=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -85,18 +83,9 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
         ll = 0.0
         if G !== nothing
-            ll = try optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
-            catch e
-                println(e)
-                @save err_file*"_grad.jld2" x data
-            end
-
+            ll = optim_wrapper_gamma(x, G, data, lambda, prior_x, prior_gamma, epsilon)
         elseif F!== nothing
-            ll = try log_likelihood_gamma(x, data, λ, prior, epsilon)
-            catch e
-                println(e)
-                @save err_file*"_ll.jld2" x data
-            end
+            ll = log_likelihood_gamma(x, data, lambda, prior_x, prior_gamma, epsilon)
         end
 
         return ll
@@ -109,7 +98,7 @@ end
 
 
 function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), λ=0.0, prior=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
+    alg=Optim.LBFGS(), lambda=0.0, prior_x=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -121,17 +110,9 @@ function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d
 
         ll = 0.0
         if G !== nothing
-            ll = try optim_wrapper_gamma(x, G, data, λ, prior, epsilon)
-            catch e
-                println(e)
-                @save err_file*"_grad.jld2" x data
-            end
+            ll =  optim_wrapper_gamma(x, G, data, lambda, prior_x, prior_gamma, epsilon)
         elseif F!== nothing
-            ll = try log_likelihood_gamma(x, data, λ, prior, epsilon)
-            catch e
-                println(e)
-                @save err_file*"_ll.jld2" x data
-            end
+            ll = log_likelihood_gamma(x, data, lambda, prior_x, prior_gamma, epsilon)
         end
 
         return ll

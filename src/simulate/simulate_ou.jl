@@ -10,12 +10,12 @@ function random_pars(λ_diag, λ_skew, θ0, θ1; d)
     return (J, θ, min_eigv, max_eigv)
 end
 
-function simulate_ou_process(J, θ, γ; nsamples, T, epsilon=0.0, err_sym=0.0)
+function simulate_ou_process(J, θ, γ; nsamples, T, err_sym=0.0)
     d = length(θ)
     x = zeros(d, nsamples, T)
-    #Λ = compute_lambda(J, γ)
-    
-    Σ = compute_sigma(1, J, γ, d)
+
+    Λ = compute_lambda(J, γ, d) #propagator Λ for Δt=1
+    Σ = compute_sigma(J, Λ, d)
     err = maximum(abs.(Σ .- Σ'))
     if err > err_sym
         println("Σ has an high error")
@@ -31,10 +31,10 @@ function simulate_ou_process(J, θ, γ; nsamples, T, epsilon=0.0, err_sym=0.0)
     @assert issymmetric(Σ)
 
     for s in 1:nsamples    
-        for t in 1:T-1
-            μ = compute_mu(1, x[:,s,t], J, θ, γ, d)
+        for t in 2:T
+            μ = compute_mu(x[:,s,t-1], Λ, θ, d)
             g = MvNormal(μ, Σ)
-            x[:,s,t+1] .= rand(g)
+            x[:,s,t] .= rand(g)
         end
     end
 
