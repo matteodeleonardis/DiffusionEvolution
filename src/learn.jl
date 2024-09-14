@@ -52,7 +52,7 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, lambda, prior_x, 0.0, epsilon)
 
     if initialize == 0
-        init_id!(x0, d=data.d, init_gamma=true)
+        init_id!(x0, d=data.d, init_gamma=false)
     elseif initialize>0
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
     end
@@ -105,3 +105,78 @@ function learn_nlopt_only_gamma(data::Data; x0, γ0=1.0, alg=:LD_LBFGS, xtol_rel
 end
 
 
+function maximize(data::Data; x=randn(npars(data.d)), γ=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
+    ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
+    prior_x, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true)
+
+    ll_iter = zeros(iterations+1)
+
+    #setting initial condition for x
+    if initialize == 0
+        init_id!(x, d=data.d, init_gamma=false)
+    elseif initialize>0
+        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
+    end
+
+    ll_iter[1] = log_likelihood(x,data, γ, lambda, prior_x, prior_gamma, epsilon)
+
+    γ_vec = [γ]
+
+    for iter in 1:iterations
+
+        #parameter optimization
+        opt_x = Opt(alg, npars(data.d))
+        opt_x.xtol_rel=xtol_rel
+        opt_x.ftol_rel=ftol_rel
+        opt_x.xtol_abs=xtol_abs
+        opt_x.ftol_abs=ftol_abs
+        opt_x.maxeval=maxeval
+        opt_x.maxtime=maxtime
+
+        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, γ, lambda, prior_x, 0.0, epsilon)
+        x_start_x = copy(x)
+        f_start_x = log_likelihood(x, data, γ, lambda, prior_x, 0.0, epsilon)
+        (minf_x, minx, status_x) = NLopt.optimize!(opt_x, x)
+
+        if verbose
+            Δx = maximum(abs.(x_start_x .- x))
+            Δfx = abs(f_start_x - minf_x)
+            println("Parameters optimization iteration $iter exited with status $status_x. |Δx|=$(Δx), |Δfx|=$(Δfx)")
+        end
+
+        #gamma optimization
+        opt_γ = Opt(alg, 1)
+        lb_γ = [1e-12]
+        opt_γ.lower_bounds = lb_γ
+        opt_γ.xtol_rel=xtol_rel
+        opt_γ.ftol_rel=ftol_rel
+        opt_γ.xtol_abs=xtol_abs
+        opt_γ.ftol_abs=ftol_abs
+        opt_γ.maxeval=maxeval
+        opt_γ.maxtime=maxtime
+
+        opt_γ.min_objective = (γ_fγ,g_fγ) -> optim_wrapper_only_gamma(x, g_fγ, data, γ_fγ[1], lambda, prior_gamma, epsilon)
+        γ_start = γ_vec[1]
+        f_start_γ = log_likelihood(x, data, γ_vec[1], lambda, 0.0, prior_gamma, epsilon)
+        (minf_γ, minγ, status_γ) = NLopt.optimize!(opt_γ, γ_vec)
+
+        if verbose
+            Δγ = abs(γ_start - γ_vec[1])
+            Δfγ = abs(f_start_γ - minf_γ)
+            println("γ optimization iteration $iter exited with status $status_γ. |Δγ|=$(Δγ), |Δfγ|=$(Δfγ)")
+        end
+
+        #end iteration
+        ll_iter[iter+1] = log_likelihood(x, data, γ_vec[1], lambda, prior_x, prior_gamma, epsilon)
+    end
+
+    return (minx=x, minγ=γ_vec[1], ll_iter=ll_iter)
+end
+
+
+
+
+
+
+
+    
