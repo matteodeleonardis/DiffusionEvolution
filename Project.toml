@@ -10,9 +10,7 @@ JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NLopt = "76087f3c-5699-56af-9a33-bf431cd00edd"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
-ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
-ValueHistories = "98cad3c8-aec3-5f06-8e41-884608649ab7"
 
 [compat]
 julia = "1"
