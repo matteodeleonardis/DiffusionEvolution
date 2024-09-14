@@ -163,7 +163,7 @@ function maximize(data::Data; x=randn(npars(data.d)), γ=1.0, initialize=-1, alg
         if verbose
             Δγ = abs(γ_start - γ_vec[1])
             Δfγ = abs(f_start_γ - minf_γ)
-            println("γ optimization iteration $iter exited with status $status_γ. |Δγ|=$(Δγ), |Δfγ|=$(Δfγ)")
+            println("γ optimization iteration $iter exited with status $status_γ. |Δγ|=$(Δγ), |Δfγ|=$(Δfγ) \n")
         end
 
         #end iteration
