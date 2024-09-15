@@ -142,6 +142,7 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, init
             Δx = maximum(abs.(x_start_x .- x))
             Δfx = abs(f_start_x - minf_x)
             println("Parameters optimization iteration $iter exited with status $status_x. |Δx|=$(Δx), |Δfx|=$(Δfx)")
+            flush(stdout)
         end
 
         #gamma optimization
@@ -164,6 +165,7 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, init
             Δγ = abs(γ_start - γ_vec[1])
             Δfγ = abs(f_start_γ - minf_γ)
             println("γ optimization iteration $iter exited with status $status_γ. |Δγ|=$(Δγ), |Δfγ|=$(Δfγ) \n")
+            flush(stdout)
         end
 
         #end iteration
