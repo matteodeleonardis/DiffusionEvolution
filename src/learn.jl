@@ -21,7 +21,7 @@ function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_x:
 end
 
 
-function optim_wrapper(x::Pars, g::Pars, data::Data, γ::Float64, λ::Float64, prior_x::Float64, prior_γ::Float64, ϵ::Float64)
+function optim_wrapper(x::Pars, g::Pars, data::Data, γ::Float64, λ::Float64, prior_x::Float64, ϵ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -29,7 +29,7 @@ function optim_wrapper(x::Pars, g::Pars, data::Data, γ::Float64, λ::Float64, p
 
     ll = 0.0
     gs = gradient(x) do par
-        ll = log_likelihood(par, data, γ, λ, prior_x, prior_γ, ϵ)
+        ll = log_likelihood(par, data, γ, λ, prior_x, 0.0, ϵ)
     end
 
     g .= gs[1]
@@ -49,7 +49,7 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.maxeval=maxeval
     opt.maxtime=maxtime
 
-    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, lambda, prior_x, 0.0, epsilon)
+    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, lambda, prior_x, epsilon)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=false)
@@ -133,7 +133,7 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, init
         opt_x.maxeval=maxeval
         opt_x.maxtime=maxtime
 
-        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, γ, lambda, prior_x, 0.0, epsilon)
+        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, γ, lambda, prior_x, epsilon)
         x_start_x = copy(x)
         f_start_x = log_likelihood(x, data, γ, lambda, prior_x, 0.0, epsilon)
         (minf_x, minx, status_x) = NLopt.optimize!(opt_x, x)
