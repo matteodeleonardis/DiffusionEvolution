@@ -105,7 +105,7 @@ function learn_nlopt_only_gamma(data::Data; x0, γ0=1.0, alg=:LD_LBFGS, xtol_rel
 end
 
 
-function maximize(data::Data; x=randn(npars(data.d)), γ=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
+function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
     ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
     prior_x, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true)
 

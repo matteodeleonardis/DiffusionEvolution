@@ -11,7 +11,7 @@ module DiffusionEvolution
     include("parameters.jl")
 
     include("learn.jl")
-    export learn_nlopt
+    export learn_nlopt, iterative_maximization
 
     include("learn_gamma.jl")
     export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim
