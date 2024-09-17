@@ -39,7 +39,7 @@ end
 
 function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
-    prior_x=0.0, γ=1.0, epsilon=0.0)
+    prior_x=0.0, gamma=1.0, epsilon=0.0)
 
     opt = Opt(alg, npars(data.d))
     opt.xtol_rel=xtol_rel
@@ -49,7 +49,7 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.maxeval=maxeval
     opt.maxtime=maxtime
 
-    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, γ, lambda, prior_x, epsilon)
+    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, gamma, lambda, prior_x, epsilon)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=false)
@@ -81,7 +81,7 @@ function optim_wrapper_only_gamma(x::Pars, g::Pars, data::Data, γ::Float64, λ:
 end
 
 
-function learn_nlopt_only_gamma(data::Data; x0, γ0=1.0, alg=:LD_LBFGS, xtol_rel=0.0, 
+function learn_nlopt_only_gamma(data::Data; x0, gamma0=1.0, alg=:LD_LBFGS, xtol_rel=0.0, 
     ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
     prior_gamma=0.0, epsilon=0.0)
 
@@ -97,17 +97,19 @@ function learn_nlopt_only_gamma(data::Data; x0, γ0=1.0, alg=:LD_LBFGS, xtol_rel
 
     opt.min_objective = (γ,g) -> optim_wrapper_only_gamma(x0, g, data, γ[1], lambda, prior_gamma, epsilon)
 
-    γ_start = γ0
+    γ_start = gamma0
 
-    (minf, minγ, status) = NLopt.optimize!(opt, [γ0])
+    (minf, minγ, status) = NLopt.optimize!(opt, [gamma0])
 
-    return (minf=minf, minγ=minγ, status=status, nevals=opt.numevals, γ_start=γ_start)
+    return (minf=minf, min_gamma=minγ, status=status, nevals=opt.numevals, gamma_start=γ_start)
 end
 
 
-function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
+function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
     ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
-    prior_x, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true)
+    prior_x, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true, logfile::String)
+
+    file_log = open(logfile, "w")
 
     ll_iter = zeros(iterations+1)
 
@@ -118,9 +120,9 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, init
         init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
     end
 
-    ll_iter[1] = log_likelihood(x,data, γ, lambda, prior_x, prior_gamma, epsilon)
+    ll_iter[1] = log_likelihood(x,data, gamma, lambda, prior_x, prior_gamma, epsilon)
 
-    γ_vec = [γ]
+    γ_vec = [gamma]
 
     for iter in 1:iterations
 
@@ -133,15 +135,15 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, init
         opt_x.maxeval=maxeval
         opt_x.maxtime=maxtime
 
-        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, γ, lambda, prior_x, epsilon)
+        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, gamma, lambda, prior_x, epsilon)
         x_start_x = copy(x)
-        f_start_x = log_likelihood(x, data, γ, lambda, prior_x, 0.0, epsilon)
+        f_start_x = log_likelihood(x, data, gamma, lambda, prior_x, 0.0, epsilon)
         (minf_x, minx, status_x) = NLopt.optimize!(opt_x, x)
 
         if verbose
             Δx = maximum(abs.(x_start_x .- x))
             Δfx = abs(f_start_x - minf_x)
-            println("Parameters optimization iteration $iter exited with status $status_x. |Δx|=$(Δx), |Δfx|=$(Δfx)")
+            println(file_log, "Parameters optimization iteration $iter exited with status $status_x. |Δx|=$(Δx), |Δfx|=$(Δfx)")
             flush(stdout)
         end
 
@@ -164,19 +166,40 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), γ=1.0, init
         if verbose
             Δγ = abs(γ_start - γ_vec[1])
             Δfγ = abs(f_start_γ - minf_γ)
-            println("γ optimization iteration $iter exited with status $status_γ. |Δγ|=$(Δγ), |Δfγ|=$(Δfγ) \n")
+            println(file_log, "γ optimization iteration $iter exited with status $status_γ. |Δγ|=$(Δγ), |Δfγ|=$(Δfγ) \n")
             flush(stdout)
         end
 
         #end iteration
         ll_iter[iter+1] = log_likelihood(x, data, γ_vec[1], lambda, prior_x, prior_gamma, epsilon)
     end
+    close(file_log)
 
-    return (minx=x, minγ=γ_vec[1], ll_iter=ll_iter)
+    return (minx=x, min_gamma=γ_vec[1], ll_iter=ll_iter)
 end
 
 
+function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initialize=-1, 
+    lambda=0.0, prior_x, epsilon=0.0, 
+    eta=0.001, iterations=1)
 
+    ll_iter = zeros(iterations+1)
+
+    #setting initial condition for x
+    if initialize == 0
+        init_id!(x, d=data.d, init_gamma=false)
+    elseif initialize>0
+        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
+    end
+
+    ll_iter[1] = log_likelihood(x, data, gamma, lambda, prior_x, 0.0, epsilon)
+    g_x = zeros(n_pars(data.d))
+    for it in 1:iterations
+        optim_wrapper(x, g_x, data, gamma, lambda, prior_x, epsilon)
+        x .-= (eta * g_x)
+        ll_iter[it+1] = log_likelihood(x, data, gamma, lambda, prior_x, 0.0, epsilon)
+    end
+end
 
 
 
