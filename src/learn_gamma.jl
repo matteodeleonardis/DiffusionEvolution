@@ -122,3 +122,36 @@ function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d
 
     return res
 end
+
+
+function optimize_gd!(data::Data; x=randn(npars_gamma(data.d)), initialize=-1, 
+    lambda=0.0, prior_x=0.0, prior_gamma=0.0, epsilon=0.0, 
+    eta=0.001, iterations=1)
+
+    ll_iter = fill(+Inf, iterations+1)
+
+    #setting initial condition for x
+    if initialize == 0
+        init_id!(x, d=data.d, init_gamma=true)
+    elseif initialize>0
+        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+    end
+
+    ll_iter[1] = log_likelihood_gamma(x, data, lambda, prior_x, prior_gamma, epsilon)
+    g_x = zeros(npars_gamma(data.d))
+    x_update = zeros(npars_gamma(data.d))
+    for it in 1:iterations
+        println("iteration $it/$iterations")
+        optim_wrapper_gamma(x, g_x, data, lambda, prior_x, prior_gamma, epsilon)
+        x_update .= (x .- (eta * g_x))
+        ll_iter[it+1] = log_likelihood_gamma(x_update, data, lambda, prior_x, prior_gamma, epsilon)
+        if ll_iter[it+1] <= ll_iter[it]
+            x .= x_update
+        else
+            println("Log-likelihood has increased. Optimization stopped.")
+            break
+        end
+    end
+
+    return ll_iter
+end

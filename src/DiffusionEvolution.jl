@@ -14,7 +14,7 @@ module DiffusionEvolution
     export learn_nlopt, iterative_maximization, optimize_pars_gd!
 
     include("learn_gamma.jl")
-    export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim
+    export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim, optimize_gd!
 
     include("utils.jl")
     export compute_energy, compute_weight

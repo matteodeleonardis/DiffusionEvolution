@@ -107,7 +107,7 @@ end
 
 function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
     ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
-    prior_x, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true, logfile::String)
+    prior_x=0.0, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true, logfile::String)
 
     file_log = open(logfile, "w")
 
@@ -180,7 +180,7 @@ end
 
 
 function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initialize=-1, 
-    lambda=0.0, prior_x, epsilon=0.0, 
+    lambda=0.0, prior_x=0.0, epsilon=0.0, 
     eta=0.001, iterations=1)
 
     ll_iter = zeros(iterations+1)
