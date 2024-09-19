@@ -52,6 +52,18 @@ function get_gamma(x::Pars, d::Int)
 end
 
 
+function which_par(i::Int, d)
+    if i == npars_gamma(d)
+        return (:gamma, 0)
+    elseif i > n_couplings(d)
+        return (:field, i - n_couplings(d))
+    else
+        j_minus_1 = (i ÷ d)
+        return (:coupling, j_minus_1 + 1, i - j_minus_1*d)
+    end
+end
+
+        
 function compute_J(x::Pars, d::Int, ϵ::Float64)
 
     m = [get_Jparameter(x, i, j,d) for i in 1:d, j in 1:d]

@@ -9,6 +9,7 @@ module DiffusionEvolution
     export collect_data, Data
 
     include("parameters.jl")
+    export which_par
 
     include("learn.jl")
     export learn_nlopt, iterative_maximization, optimize_pars_gd!
