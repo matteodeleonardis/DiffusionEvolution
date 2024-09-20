@@ -78,3 +78,41 @@ function safe_log(x::Float64, ϵ::Float64)
 
     return log(x + ϵ)
 end
+
+
+function get_potts_params(x::Pars, Wproj::Matrix{Float64}, x_mean::Vector{Float64}; d::Int, epsilon::Float64, 
+    A::Int, L::Int, eps_warn = 1.0e-4, set_zero=false)
+
+    @assert size(Wproj, 1) <= size(Wproj, 2) #projects on a smaller space
+    @assert L*A == size(Wproj, 2)
+
+    J_embedding = compute_J(x, d, epsilon)
+    θ_embedding = compute_theta(x, d)
+    J_potts = -(Wproj')*J_embedding*Wproj
+    h_potts = vec(2 * ((Wproj*x_mean)' + θ_embedding') * J_embedding * Wproj)
+    h_potts_tens = reshape(h_potts, A, L)
+    J_potts_tens = permutedims(reshape(J_potts, A, L, A, L), (1,3,2,4))
+    flag_warning = false
+
+    for i in axes(J_potts_tens, 3)
+        for a in 1:A
+            h_potts_tens[a,i] += J_potts_tens[a,a,i,i]
+            J_potts_tens[a,a,i,i] = 0.0
+        end
+
+        if set_zero
+            if (!flag_warning) && (maximum(abs.(J_potts_tens[:,:,i,i])) > eps_warn)
+                println("Warning: possibly large value neglected in couplings J (>= $(eps_warn))")
+                flag_warning = true
+            end
+            J_potts_tens[:,:,i,i] .= 0.0
+        end
+    end
+    
+    γ = -1.0
+    if length(x)==npars_gamma(d)
+        γ = x[end]
+    end
+
+    return (J_potts_tens, h_potts_tens, γ)
+end
