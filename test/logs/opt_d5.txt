@@ -1,0 +1,15 @@
+Parameters optimization iteration 1 exited with status FTOL_REACHED. |Δx|=6.413833103821655, |Δfx|=85.09974449399746
+γ optimization iteration 1 exited with status FTOL_REACHED. |Δγ|=0.011943626854598821, |Δfγ|=0.5372881800958993 
+
+Parameters optimization iteration 2 exited with status FTOL_REACHED. |Δx|=0.0014038254120620763, |Δfx|=0.0004187977821175082
+γ optimization iteration 2 exited with status FTOL_REACHED. |Δγ|=9.054333247880686e-5, |Δfγ|=2.7103599379074694e-5 
+
+Parameters optimization iteration 3 exited with status FTOL_REACHED. |Δx|=0.0009467173610522295, |Δfx|=0.00021783102172889812
+γ optimization iteration 3 exited with status FTOL_REACHED. |Δγ|=0.00013602249550936918, |Δfγ|=6.107357867790597e-5 
+
+Parameters optimization iteration 4 exited with status FTOL_REACHED. |Δx|=0.000737366894494329, |Δfx|=0.00016346949034584668
+γ optimization iteration 4 exited with status FTOL_REACHED. |Δγ|=0.00014072536844339512, |Δfγ|=6.568846804100303e-5 
+
+Parameters optimization iteration 5 exited with status FTOL_REACHED. |Δx|=0.0009063125262169791, |Δfx|=0.0001789970737462454
+γ optimization iteration 5 exited with status FTOL_REACHED. |Δγ|=0.0001355861139459985, |Δfγ|=6.0694818799333916e-5 
+
