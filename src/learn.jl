@@ -3,7 +3,7 @@ function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_x:
     ll = 0.0
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(x, γ, data.time[t], data.x0, data.d, ϵ, λ)
-        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv(Σ))
+        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))
         ll += data.d*log2pi
     end
 

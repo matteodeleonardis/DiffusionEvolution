@@ -116,3 +116,9 @@ function get_potts_params(x::Pars, Wproj::Matrix{Float64}, x_mean::Vector{Float6
 
     return (J_potts_tens, h_potts_tens, γ)
 end
+
+
+function svd_inv(m::Matrix{Float64})
+    dec = svd(m)
+    return dec.V*diagm(inv.(dec.S))*transpose(dec.U)
+end

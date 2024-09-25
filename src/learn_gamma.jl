@@ -3,7 +3,7 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_x::Float6
     ll = 0.0
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ, λ)
-        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), inv(Σ))
+        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))
         ll += data.d*log2pi
     end
 
