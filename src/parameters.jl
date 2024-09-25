@@ -95,7 +95,9 @@ end
 
 function compute_sigma(J, Λt, d::Int)
 
-    return inv(J)*(I(d) - Λt^2)
+    dec = svd(J)
+    invJ = dec.V*diagm(inv.(dec.S))*transpose(dec.U)
+    return invJ*(I(d) - Λt^2)
 end
 
 
