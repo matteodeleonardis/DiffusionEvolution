@@ -125,3 +125,40 @@ function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
 
     return μ, Σ
 end
+
+
+function compute_mu_small_gamma(x0::Vector{Float64}, J::Matrix{Float64}, θ::Vector{Float64}, 
+    γ::Float64, t::Int)
+
+    return x0 + γ*t*J*(θ-x0)
+end
+
+
+function compute_sigma_small_gamma(J::Matrix{Float64}, γ::Float64, t::Int, d::Int)
+
+    return inv(2.0*γ*t)*I(d)+0.5*J
+end
+
+
+function compute_parameters_small_gamma(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d::Int,
+    ϵ::Float64)
+
+    J = compute_J(x, d, ϵ)
+    θ = compute_theta(x, d)
+    μ = compute_mu_small_gamma(x0, J, θ, γ, t)
+    invΣ = compute_sigma_small_gamma(J, γ, t, d)
+
+    return μ, invΣ
+end
+
+
+function compute_parameters_small_gamma(x::Pars, t::Int, x0::Vector{Float64}, d::Int, 
+    ϵ::Float64)
+
+    J = compute_J(x, d, ϵ)
+    θ = compute_theta(x, d)
+    μ = compute_mu_small_gamma(x0, J, θ, x[gamma_index(d)], t)
+    invΣ = compute_sigma_small_gamma(J, x[gamma_index(d)], t, d)
+
+    return μ, invΣ
+end

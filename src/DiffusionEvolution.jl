@@ -17,6 +17,9 @@ module DiffusionEvolution
     include("learn_gamma.jl")
     export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim, optimize_gd!
 
+    include("learn_small_gamma.jl")
+    export learn_small_gamma_nlopt, optimize_small_gamma_gd!
+
     include("utils.jl")
     export compute_energy, compute_weight, get_potts_params
 
