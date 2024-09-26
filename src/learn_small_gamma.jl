@@ -55,17 +55,45 @@ function learn_small_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), init
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
-        x0[end] = 1e-3
     elseif initialize>0
         init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
-        x0[end] = 1e-3
     end
 
-    x_start = copy(x0)
+    x_start = deepcopy(x0)
 
     (minf, minx, status) = NLopt.optimize!(opt, x0)
 
-    return (minf=minf, minx=minx, status=status, nevals=opt.numevals, x_start=x_start)
+    return (minf=minf, minx=x0, status=status, nevals=opt.numevals, x_start=x_start)
+end
+
+
+function learn_small_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
+    alg=Optim.LBFGS(), prior_x=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+
+    if initialize == 0
+        init_id!(x0, d=data.d, init_gamma=true)
+    elseif initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+    end
+
+    lower = vcat(fill(-Inf, npars(data.d)), 0.0)
+    upper = fill(+Inf, npars_gamma(data.d))
+
+    function fg!(F,G,x)
+
+        ll = 0.0
+        if G !== nothing
+            ll = optim_wrapper_small_gamma(x, G, data, prior_x, prior_gamma, epsilon)
+        elseif F!== nothing
+            ll = log_likelihood_small_gamma(x, data, prior_x, prior_gamma, epsilon)
+        end
+
+        return ll
+    end
+
+    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), Optim.Options(g_tol=g_tol, f_tol=f_tol, x_tol=x_tol))
+
+    return res
 end
 
 
@@ -78,10 +106,8 @@ function optimize_small_gamma_gd!(data::Data; x=randn(npars_gamma(data.d)), init
     #setting initial condition for x
     if initialize == 0
         init_id!(x, d=data.d, init_gamma=true)
-        x0[end] = 1e-3
     elseif initialize>0
         init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
-        x0[end] = 1e-3
     end
 
     ll_iter[1] = log_likelihood_small_gamma(x, data, prior_x, prior_gamma, epsilon)
