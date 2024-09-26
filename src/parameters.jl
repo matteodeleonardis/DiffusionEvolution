@@ -136,7 +136,7 @@ end
 
 function compute_sigma_small_gamma(J::Matrix{Float64}, γ::Float64, t::Int, d::Int)
 
-    return inv(2.0*γ*t)*I(d)+0.5*J
+    return 2.0*J(I(d)-γ*t*J)
 end
 
 
