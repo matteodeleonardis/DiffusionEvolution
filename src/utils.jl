@@ -10,7 +10,7 @@ function weighted_batch_dot(w, x, M)
 end
 
 
-function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = false)
+function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = -1.0)
 
     println("Initializing parameters with covariance.")
     m = mean(Xdata, Weights(w), dims=2)
@@ -27,12 +27,12 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
         x0[Hindex(i, d)] = m[i]
     end  
     
-    if init_gamma
-        x0[gamma_index(d)] = 1.0
+    if init_gamma > 0.0
+        x0[gamma_index(d)] = init_gamma
     end
 end
 
-function init_id!(x0::Pars; d, init_gamma = false)
+function init_id!(x0::Pars; d, init_gamma = -1.0)
 
     println("Initializing parameters with identity.")
     J = I(d)
@@ -44,8 +44,8 @@ function init_id!(x0::Pars; d, init_gamma = false)
         x0[Hindex(i, d)] = 0.0
     end  
     
-    if init_gamma
-        x0[gamma_index(d)] = 1.0
+    if init_gamma > 0.0
+        x0[gamma_index(d)] = init_gamma
     end
 end
 
