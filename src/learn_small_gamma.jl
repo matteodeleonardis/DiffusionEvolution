@@ -123,7 +123,7 @@ function optimize_small_gamma_gd!(data::Data; x=randn(npars_gamma(data.d)), init
         if ll_iter[it+1] <= ll_iter[it]
             x .= x_update
         else
-            println("Log-likelihood has increased. Optimization stopped.")
+            println("Log-likelihood has increased at iteration $(it). Optimization stopped.")
             break
         end
     end
