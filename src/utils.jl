@@ -17,12 +17,13 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
     C = cov(Xdata, Weights(w), 2)
     
     @assert isapprox(C,C')
-    J = inv(C)
+    J = svd_inv(C)
+    x_s = sqrt(J)
 
 
     for i in 1:d
         for j in i:d
-            x0[Jindex(i,j,d)] = J[i,j]
+            x0[Jindex(i,j,d)] = x_s[i,j]
         end
         x0[Hindex(i, d)] = m[i]
     end  
