@@ -1,4 +1,4 @@
-function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_x::Float64, prior_γ::Float64, ϵ::Float64)
+function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_J::Float64, prior_theta::Float64, prior_γ::Float64, ϵ::Float64)
 
     ll = 0.0
     for t in eachindex(data.round)
@@ -7,10 +7,13 @@ function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_x:
         ll += data.d*log2pi
     end
 
-    if prior_x > 0.0
-        for i in 1:length(x)-1
-            ll += prior_x*(x[i]^2)
-        end
+    if prior_J > 0.0
+        J = compute_J(x, data.d, ϵ)
+        ll += prior_J*sum(y->y^2, J)
+    end
+    if prior_theta > 0.0
+        θ = compute_theta(x, data.d)
+        ll += prior_theta*sum(y->y^2, θ)
     end
     if prior_γ > 0.0
         ll += prior_γ*(x[end]^2)
@@ -21,7 +24,7 @@ function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_x:
 end
 
 
-function optim_wrapper(x::Pars, g::Pars, data::Data, γ::Float64, λ::Float64, prior_x::Float64, ϵ::Float64)
+function optim_wrapper(x::Pars, g::Pars, data::Data, γ::Float64, λ::Float64, prior_J::Float64, prior_theta::Float64, ϵ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -29,7 +32,7 @@ function optim_wrapper(x::Pars, g::Pars, data::Data, γ::Float64, λ::Float64, p
 
     ll = 0.0
     gs = gradient(x) do par
-        ll = log_likelihood(par, data, γ, λ, prior_x, 0.0, ϵ)
+        ll = log_likelihood(par, data, γ, λ, prior_J, prior_theta, 0.0, ϵ)
     end
 
     g .= gs[1]
@@ -39,7 +42,7 @@ end
 
 function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
-    prior_x=0.0, gamma=1.0, epsilon=0.0)
+    prior_J=0.0, prior_theta=0.0, gamma=1.0, epsilon=0.0)
 
     opt = Opt(alg, npars(data.d))
     opt.xtol_rel=xtol_rel
@@ -49,7 +52,7 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.maxeval=maxeval
     opt.maxtime=maxtime
 
-    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, gamma, lambda, prior_x, epsilon)
+    opt.min_objective = (x,g) -> optim_wrapper(x, g, data, gamma, lambda, prior_J, prior_theta, epsilon)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=false)
@@ -73,7 +76,7 @@ function optim_wrapper_only_gamma(x::Pars, g::Pars, data::Data, γ::Float64, λ:
 
     ll = 0.0
     gs = gradient(γ) do par
-        ll = log_likelihood(x, data, par, λ, 0.0, prior_γ, ϵ)
+        ll = log_likelihood(x, data, par, λ, 0.0, 0.0, prior_γ, ϵ)
     end
 
     g .= gs[1]
@@ -107,7 +110,7 @@ end
 
 function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, initialize=-1, alg=:LD_LBFGS, xtol_rel=0.0, 
     ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
-    prior_x=0.0, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true, logfile::String)
+    prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, iterations=1, verbose=true, logfile::String)
 
     file_log = open(logfile, "w")
 
@@ -120,7 +123,7 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, i
         init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
     end
 
-    ll_iter[1] = log_likelihood(x,data, gamma, lambda, prior_x, prior_gamma, epsilon)
+    ll_iter[1] = log_likelihood(x,data, gamma, lambda, prior_J, prior_theta, prior_gamma, epsilon)
 
     γ_vec = [gamma]
 
@@ -135,9 +138,9 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, i
         opt_x.maxeval=maxeval
         opt_x.maxtime=maxtime
 
-        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, gamma, lambda, prior_x, epsilon)
+        opt_x.min_objective = (x_fx,g_fx) -> optim_wrapper(x_fx, g_fx, data, gamma, lambda, prior_J, prior_theta, epsilon)
         x_start_x = copy(x)
-        f_start_x = log_likelihood(x, data, gamma, lambda, prior_x, 0.0, epsilon)
+        f_start_x = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
         (minf_x, minx, status_x) = NLopt.optimize!(opt_x, x)
 
         if verbose
@@ -160,7 +163,7 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, i
 
         opt_γ.min_objective = (γ_fγ,g_fγ) -> optim_wrapper_only_gamma(x, g_fγ, data, γ_fγ[1], lambda, prior_gamma, epsilon)
         γ_start = γ_vec[1]
-        f_start_γ = log_likelihood(x, data, γ_vec[1], lambda, 0.0, prior_gamma, epsilon)
+        f_start_γ = log_likelihood(x, data, γ_vec[1], lambda, 0.0, 0.0, prior_gamma, epsilon)
         (minf_γ, minγ, status_γ) = NLopt.optimize!(opt_γ, γ_vec)
 
         if verbose
@@ -171,7 +174,7 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, i
         end
 
         #end iteration
-        ll_iter[iter+1] = log_likelihood(x, data, γ_vec[1], lambda, prior_x, prior_gamma, epsilon)
+        ll_iter[iter+1] = log_likelihood(x, data, γ_vec[1], lambda, prior_J, prior_theta, prior_gamma, epsilon)
     end
     close(file_log)
 
@@ -180,7 +183,7 @@ end
 
 
 function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initialize=-1, 
-    lambda=0.0, prior_x=0.0, epsilon=0.0, 
+    lambda=0.0, prior_J=0.0, prior_theta=0.0, epsilon=0.0, 
     eta=0.001, iterations=1)
 
     ll_iter = zeros(iterations+1)
@@ -192,12 +195,12 @@ function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initia
         init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
     end
 
-    ll_iter[1] = log_likelihood(x, data, gamma, lambda, prior_x, 0.0, epsilon)
+    ll_iter[1] = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
     g_x = zeros(n_pars(data.d))
     for it in 1:iterations
-        optim_wrapper(x, g_x, data, gamma, lambda, prior_x, epsilon)
+        optim_wrapper(x, g_x, data, gamma, lambda, prior_J, prior_theta, epsilon)
         x .-= (eta * g_x)
-        ll_iter[it+1] = log_likelihood(x, data, gamma, lambda, prior_x, 0.0, epsilon)
+        ll_iter[it+1] = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
     end
 end
 

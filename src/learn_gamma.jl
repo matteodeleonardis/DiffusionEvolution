@@ -1,4 +1,4 @@
-function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_x::Float64, prior_γ::Float64, ϵ::Float64)
+function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, prior_γ::Float64, ϵ::Float64)
 
     ll = 0.0
     for t in eachindex(data.round)
@@ -7,10 +7,13 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_x::Float6
         ll += data.d*log2pi
     end
 
-    if prior_x > 0.0
-        for i in 1:length(x)-1
-            ll += prior_x*(x[i]^2)
-        end
+    if prior_J > 0.0
+        J = compute_J(x, data.d, ϵ)
+        ll += prior_J*sum(y->y^2, J)
+    end
+    if prior_theta > 0.0
+        θ = compute_theta(x, data.d)
+        ll += prior_theta*sum(y->y^2, θ)
     end
     if prior_γ > 0.0
         ll += prior_γ*(x[end]^2)
@@ -20,7 +23,7 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_x::Float6
 end
 
 
-function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_x::Float64, prior_γ::Float64, ϵ::Float64)
+function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, prior_γ::Float64, ϵ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -28,7 +31,7 @@ function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_x:
 
     ll = 0.0
     gs = gradient(x) do par
-        ll = log_likelihood_gamma(par, data, λ, prior_x, prior_γ, ϵ)
+        ll = log_likelihood_gamma(par, data, λ, prior_J, prior_theta, prior_γ, ϵ)
     end
 
     g .= gs[1]
@@ -38,7 +41,7 @@ end
 
 function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
     alg=:LD_LBFGS, xtol_rel=0.0, ftol_rel=0.0, xtol_abs=0.0, ftol_abs=0.0, maxtime=-1, maxeval=-1, lambda=0.0,
-    prior_x=0.0, prior_gamma=0.0, epsilon=0.0)
+    prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0)
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
@@ -51,7 +54,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     opt.maxeval=maxeval
     opt.maxtime=maxtime
 
-    opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, lambda, prior_x, prior_gamma, epsilon)
+    opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -68,7 +71,7 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_x=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -83,9 +86,9 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
         ll = 0.0
         if G !== nothing
-            ll = optim_wrapper_gamma(x, G, data, lambda, prior_x, prior_gamma, epsilon)
+            ll = optim_wrapper_gamma(x, G, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         elseif F!== nothing
-            ll = log_likelihood_gamma(x, data, lambda, prior_x, prior_gamma, epsilon)
+            ll = log_likelihood_gamma(x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         end
 
         return ll
@@ -98,7 +101,7 @@ end
 
 
 function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_x=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, err_file="err_file")
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -110,9 +113,9 @@ function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d
 
         ll = 0.0
         if G !== nothing
-            ll =  optim_wrapper_gamma(x, G, data, lambda, prior_x, prior_gamma, epsilon)
+            ll =  optim_wrapper_gamma(x, G, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         elseif F!== nothing
-            ll = log_likelihood_gamma(x, data, lambda, prior_x, prior_gamma, epsilon)
+            ll = log_likelihood_gamma(x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         end
 
         return ll
@@ -125,7 +128,7 @@ end
 
 
 function optimize_gd!(data::Data; x=randn(npars_gamma(data.d)), initialize=-1, 
-    lambda=0.0, prior_x=0.0, prior_gamma=0.0, epsilon=0.0, 
+    lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, 
     eta=0.001, iterations=1, verbose=false)
 
     ll_iter = fill(+Inf, iterations+1)
@@ -137,16 +140,16 @@ function optimize_gd!(data::Data; x=randn(npars_gamma(data.d)), initialize=-1,
         init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
     end
 
-    ll_iter[1] = log_likelihood_gamma(x, data, lambda, prior_x, prior_gamma, epsilon)
+    ll_iter[1] = log_likelihood_gamma(x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
     g_x = zeros(npars_gamma(data.d))
     x_update = zeros(npars_gamma(data.d))
     for it in 1:iterations
         if verbose
             println("iteration $it/$iterations")
         end
-        optim_wrapper_gamma(x, g_x, data, lambda, prior_x, prior_gamma, epsilon)
+        optim_wrapper_gamma(x, g_x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         x_update .= (x .- (eta * g_x))
-        ll_iter[it+1] = log_likelihood_gamma(x_update, data, lambda, prior_x, prior_gamma, epsilon)
+        ll_iter[it+1] = log_likelihood_gamma(x_update, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         if ll_iter[it+1] <= ll_iter[it]
             x .= x_update
         else
