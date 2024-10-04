@@ -71,7 +71,7 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+    alg=Optim.LBFGS(), alg_inner=Optim.GradientDescent(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=true)
@@ -94,7 +94,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), Optim.Options(g_tol=g_tol, f_tol=f_tol, x_tol=x_tol))
+    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg_inner), Optim.Options(g_tol=g_tol, f_tol=f_tol, x_tol=x_tol))
 
     return res
 end
