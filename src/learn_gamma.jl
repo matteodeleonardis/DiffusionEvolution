@@ -3,8 +3,8 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     ll = 0.0
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ, λ)
-        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))
-        ll += data.d*log2pi
+        ll += weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))/x[end]
+        ll += data.d*log2pi + logdet(Σ) + data.d*log(x[end])
     end
 
     if prior_J > 0.0

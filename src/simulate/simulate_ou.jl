@@ -14,8 +14,8 @@ function simulate_ou_process(J, θ, γ; nsamples, T, err_sym=0.0)
     d = length(θ)
     x = zeros(d, nsamples, T)
 
-    Λ = compute_lambda(J, γ, d) #propagator Λ for Δt=1
-    Σ = compute_sigma(J, Λ, d)
+    Λ = exp(-γ*J) #propagator Λ for Δt=1
+    Σ = svd_inv(J)*(I(d)-Λ^2)
     err = maximum(abs.(Σ .- Σ'))
     if err > err_sym
         println("Σ has an high error")
@@ -32,7 +32,7 @@ function simulate_ou_process(J, θ, γ; nsamples, T, err_sym=0.0)
 
     for s in 1:nsamples    
         for t in 2:T
-            μ = compute_mu(x[:,s,t-1], Λ, θ, d)
+            μ = Λ*x[:,s,t-1] + (I(d)-Λ)*θ
             g = MvNormal(μ, Σ)
             x[:,s,t] .= rand(g)
         end

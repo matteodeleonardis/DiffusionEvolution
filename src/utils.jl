@@ -60,17 +60,17 @@ end
 function compute_energy(x_c::Matrix{Float64}, x::Vector{Float64}, ϵ::Float64)
 
     d = size(x_c, 1)
-    J = compute_J(x, d, ϵ)
+    J = compute_J(x, d, ϵ)/x[end]
     θ = compute_theta(x, d)
 
     return compute_energy(x_c, J, θ)
 end
 
 
-function compute_weight(x_c::Matrix{Float64}, x::Vector{Float64}, t::Int, x0::Vector{Float64},
+function compute_weight(x_c::Matrix{Float64}, x::Vector{Float64}, γ, t::Int, x0::Vector{Float64},
     ϵ::Float64, λ::Float64)
 
-    μ, Σ = compute_parameters(x, t, x0, size(x_c, 1), ϵ, λ)
+    μ, Σ = compute_parameters(x, γ, t, x0, size(x_c, 1), ϵ, λ)
     return compute_energy(x_c, inv(Σ), μ)
 end
 
@@ -87,7 +87,7 @@ function get_potts_params(x::Pars, Wproj::Matrix{Float64}, x_mean::Vector{Float6
     @assert size(Wproj, 1) <= size(Wproj, 2) #projects on a smaller space
     @assert L*A == size(Wproj, 2)
 
-    J_embedding = compute_J(x, d, epsilon)
+    J_embedding = compute_J(x, d, epsilon)/x[end]
     θ_embedding = compute_theta(x, d)
     J_potts = -(Wproj')*J_embedding*Wproj
     h_potts = vec(2 * ((Wproj*x_mean)' + θ_embedding') * J_embedding * Wproj)

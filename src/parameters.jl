@@ -81,9 +81,9 @@ function compute_theta(x::Pars, d::Int)
 end
 
 
-function compute_lambda(J, γ::Float64, t)
+function compute_lambda(J, t)
 
-    return exp(-γ*t*J)
+    return exp(-t*J)
 end
 
 
@@ -99,12 +99,18 @@ function compute_sigma(J, Λt, d::Int)
 end
 
 
-function compute_parameters(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d::Int,
+function compute_sigma(J, Λt, γ, d::Int)
+
+    return γ*svd_inv(J)*(I(d) - Λt^2)
+end
+
+
+function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
     ϵ::Float64, λ::Float64)
 
     J = compute_J(x, d, ϵ)
     θ = compute_theta(x, d)
-    Λt = compute_lambda(J, γ, t)
+    Λt = compute_lambda(J, t)
     μ = compute_mu(x0, Λt, θ, d)
     Σ = (1.0-λ)*compute_sigma(J, Λt, d)
     Σ += λ*I(d)
@@ -113,14 +119,14 @@ function compute_parameters(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d
 end
 
 
-function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int, 
+function compute_parameters(x::Pars, γ, t::Int, x0::Vector{Float64}, d::Int,
     ϵ::Float64, λ::Float64)
 
     J = compute_J(x, d, ϵ)
     θ = compute_theta(x, d)
-    Λt = compute_lambda(J, x[gamma_index(d)], t)
+    Λt = compute_lambda(J, t)
     μ = compute_mu(x0, Λt, θ, d)
-    Σ = (1.0-λ)*compute_sigma(J, Λt, d)
+    Σ = (1.0-λ)*compute_sigma(J, Λt, γ, d)
     Σ += λ*I(d)
 
     return μ, Σ
