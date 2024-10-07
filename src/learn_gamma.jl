@@ -3,8 +3,8 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     ll = 0.0
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ, λ)
-        ll += weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))/x[end]
-        ll += data.d*log2pi + logdet(Σ) + data.d*log(x[end])
+        ll += x[end]*weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))
+        ll += data.d*log2pi + logdet(Σ) - data.d*log(x[end])
     end
 
     if prior_J > 0.0
@@ -45,7 +45,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
-    lb[gamma_index(data.d)] = 1e-12
+    lb[gamma_index(data.d)] = 0.0
     opt.lower_bounds = lb
     opt.xtol_rel=xtol_rel
     opt.ftol_rel=ftol_rel
@@ -57,9 +57,9 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     opt.min_objective = (x,g) -> optim_wrapper_gamma(x, g, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
 
     if initialize == 0
-        init_id!(x0, d=data.d, init_gamma=true)
+        init_id!(x0, d=data.d, init_gamma=1.0)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=data.time[end])
     end
 
     x_start = copy(x0)
@@ -74,9 +74,9 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
     alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
 
     if initialize == 0
-        init_id!(x0, d=data.d, init_gamma=true)
+        init_id!(x0, d=data.d, init_gamma=1.0)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=data.time[end])
     end
 
     lower = vcat(fill(-Inf, npars(data.d)), 0.0)
