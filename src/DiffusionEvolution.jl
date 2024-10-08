@@ -12,7 +12,7 @@ module DiffusionEvolution
     export which_par
 
     include("learn.jl")
-    export learn_nlopt, iterative_maximization, optimize_pars_gd!
+    export learn_nlopt, iterative_maximization, optimize_pars_gd!, learn_optim
 
     include("learn_gamma.jl")
     export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim, optimize_gd!

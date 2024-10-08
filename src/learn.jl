@@ -55,9 +55,9 @@ function learn_nlopt(data::Data; x0=randn(npars(data.d)), initialize=-1,
     opt.min_objective = (x,g) -> optim_wrapper(x, g, data, gamma, lambda, prior_J, prior_theta, epsilon)
 
     if initialize == 0
-        init_id!(x0, d=data.d, init_gamma=false)
+        init_id!(x0, d=data.d)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
     end
 
     x_start = copy(x0)
@@ -118,9 +118,9 @@ function iterative_maximization(data::Data; x=randn(npars(data.d)), gamma=1.0, i
 
     #setting initial condition for x
     if initialize == 0
-        init_id!(x, d=data.d, init_gamma=false)
+        init_id!(x, d=data.d)
     elseif initialize>0
-        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
+        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d)
     end
 
     ll_iter[1] = log_likelihood(x,data, gamma, lambda, prior_J, prior_theta, prior_gamma, epsilon)
@@ -190,9 +190,9 @@ function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initia
 
     #setting initial condition for x
     if initialize == 0
-        init_id!(x, d=data.d, init_gamma=false)
+        init_id!(x, d=data.d)
     elseif initialize>0
-        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=false)
+        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d)
     end
 
     ll_iter[1] = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
@@ -205,6 +205,31 @@ function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initia
 end
 
 
+function learn_optim(data::Data; x0=randn(npars(data.d)), initialize=-1, gamma,
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+
+    if initialize == 0
+        init_id!(x0, d=data.d)
+    elseif initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
+    end
+
+    function fg!(F,G,x)
+
+        ll = 0.0
+        if G !== nothing
+            ll = optim_wrapper(x, G, data, gamma, lambda, prior_J, prior_theta, epsilon)
+        elseif F!== nothing
+            ll = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
+        end
+
+        return ll
+    end
+
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(g_tol=g_tol, f_tol=f_tol, x_tol=x_tol))
+
+    return res
+end
 
 
     
