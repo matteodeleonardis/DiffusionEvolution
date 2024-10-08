@@ -2,9 +2,9 @@ function log_likelihood(x::Pars,  data::Data, γ::Float64, λ::Float64, prior_J:
 
     ll = 0.0
     for t in eachindex(data.round)
-        μ, Σ = compute_parameters(x, γ, data.time[t], data.x0, data.d, ϵ, λ)
-        ll += logdet(Σ) + weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))
-        ll += data.d*log2pi
+        μ, Σ = compute_parameters(x, data.time[t], data.x0, data.d, ϵ, λ)
+        ll +=  γ*weighted_batch_dot(data.round[t].w, (data.round[t].x .- μ), svd_inv(Σ))
+        ll += data.d*log2pi + logdet(Σ) - data.d*log(γ)
     end
 
     if prior_J > 0.0
@@ -202,6 +202,33 @@ function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initia
         x .-= (eta * g_x)
         ll_iter[it+1] = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
     end
+end
+
+
+function learn_optim(data::Data; x0=randn(npars(data.d)), initialize=-1, gamma,
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+
+    if initialize == 0
+        init_id!(x0, d=data.d)
+    elseif initialize>0
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d)
+    end
+
+    function fg!(F,G,x)
+
+        ll = 0.0
+        if G !== nothing
+            ll = optim_wrapper(x, G, data, gamma, lambda, prior_J, prior_theta, epsilon)
+        elseif F!== nothing
+            ll = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
+        end
+
+        return ll
+    end
+
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(g_tol=g_tol, f_tol=f_tol, x_tol=x_tol))
+
+    return res
 end
 
 
