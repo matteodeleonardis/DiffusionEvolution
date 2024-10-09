@@ -232,4 +232,57 @@ function learn_optim(data::Data; x0=randn(npars(data.d)), initialize=-1, gamma,
 end
 
 
+
+function line_search_optimization(data::Data; x0=randn(npars(data.d)), initialize=-1, 
+    n_points, iterations=1, gamma_upper=1.0, gamma_lower=-1.0,
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, epsilon=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+
+    opt_results = Vector{Any}(undef, iterations)
+    opt_gamma = Vector{Any}(undef, iterations)
+
+    if gamma_lower < 0.0
+        gamma_lower = gamma_upper/n_points
+    end
+    opt_linesearch = Vector{Any}(undef, n_points)
+    
+
+    for it in 1:iterations
+        println("Iteration $it")
+        println("gamma bounds: ($gamma_lower, $gamma_upper)")
+        tau_upper = inv(gamma_lower)
+        tau_lower = inv(gamma_upper)
+        tau_range = LinRange(tau_lower, tau_upper, n_points)
+        gamma_values= inv.(reverse(tau_range))
+        println(gamma_values)
+        Threads.@threads for i in eachindex(gamma_values)
+            opt_linesearch[i] = learn_optim(data, x0=x0, initialize=initialize, gamma=gamma_values[i], alg=alg, lambda=lambda, prior_J=prior_J,
+                prior_theta=prior_theta, epsilon=epsilon, g_tol=g_tol, f_tol=f_tol, x_tol=x_tol)
+        end
+        min_i = argmin(map(x->x.minimum, opt_linesearch))
+        if min_i==1
+            println("Optimal gamma hit the lower border, something bad happened.") 
+            break
+        elseif min_i==length(gamma_values)
+            println("Optimal gamma hit the upper border, something bad happened.") 
+            break
+        end
+        opt_results[it] = opt_linesearch[min_i]
+        opt_gamma[it] = gamma_values[min_i]
+        println("optimal gamma: $(gamma_values[min_i])")
+        for i in min_i-1:-1:1
+            if opt_linesearch[i].minimum > opt_linesearch[min_i].minimum
+                gamma_lower = gamma_values[i]
+                break
+            end
+        end
+        for i in min_i+1:length(opt_linesearch)
+            if opt_linesearch[i].minimum > opt_linesearch[min_i].minimum
+                gamma_upper = gamma_values[i]
+                break
+            end
+        end
+    end
+
+    return opt_results, opt_gamma
+end
     

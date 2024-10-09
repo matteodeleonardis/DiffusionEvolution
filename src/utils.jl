@@ -12,7 +12,7 @@ end
 
 function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init_gamma = -1.0)
 
-    println("Initializing parameters with covariance.")
+    #println("Initializing parameters with covariance.")
     m = mean(Xdata, Weights(w), dims=2)
     C = cov(Xdata, Weights(w), 2)
     
