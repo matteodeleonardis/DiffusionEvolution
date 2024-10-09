@@ -253,7 +253,6 @@ function line_search_optimization(data::Data; x0=randn(npars(data.d)), initializ
         tau_lower = inv(gamma_upper)
         tau_range = LinRange(tau_lower, tau_upper, n_points)
         gamma_values= inv.(reverse(tau_range))
-        println(gamma_values)
         Threads.@threads for i in eachindex(gamma_values)
             opt_linesearch[i] = learn_optim(data, x0=x0, initialize=initialize, gamma=gamma_values[i], alg=alg, lambda=lambda, prior_J=prior_J,
                 prior_theta=prior_theta, epsilon=epsilon, g_tol=g_tol, f_tol=f_tol, x_tol=x_tol)
