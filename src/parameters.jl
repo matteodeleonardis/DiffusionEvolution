@@ -1,6 +1,7 @@
 function n_couplings(d::Int)
 
-    return d*d
+    return d*(d+1)÷2
+
 end
 
 
@@ -18,7 +19,7 @@ end
 
 function Jindex(i::Int, j::Int, d::Int)
 
-    return d*(j-1) + i 
+    return j*(j-1)÷2+i
 end
 
 
@@ -34,9 +35,14 @@ function gamma_index(d::Int)
 end
 
 
-function get_Jparameter(x::Pars, i::Int, j::Int, d::Int)
+function get_Jparameter(x::Pars, i::Int, j::Int, d::Int) #i<=j
 
-    return x[Jindex(i,j,d)]
+    J_val = 0.0
+    if i <= j
+        J_val = x[Jindex(i,j,d)]
+    end
+
+    return J_val
 end
 
 
@@ -66,7 +72,7 @@ end
         
 function compute_J(x::Pars, d::Int, ϵ::Float64)
 
-    m = [get_Jparameter(x, i, j,d) for i in 1:d, j in 1:d]
+    m = [get_Jparameter(x, i, j, d) for i in 1:d, j in 1:d]
     J = m * m'
 
     return J + ϵ*I(d)
