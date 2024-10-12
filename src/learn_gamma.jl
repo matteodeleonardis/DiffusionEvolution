@@ -132,12 +132,13 @@ function optimize_gd!(data::Data; x=randn(npars_gamma(data.d)), initialize=-1,
     eta=0.001, iterations=1, verbose=false)
 
     ll_iter = fill(+Inf, iterations+1)
+    g_iter = zeros(iterations+1)
 
     #setting initial condition for x
     if initialize == 0
-        init_id!(x, d=data.d, init_gamma=true)
+        init_id!(x, d=data.d, init_gamma=1.0)
     elseif initialize>0
-        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=true)
+        init_cov!(x, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=inv(data.time[end]))
     end
 
     ll_iter[1] = log_likelihood_gamma(x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
@@ -148,6 +149,7 @@ function optimize_gd!(data::Data; x=randn(npars_gamma(data.d)), initialize=-1,
             println("iteration $it/$iterations")
         end
         optim_wrapper_gamma(x, g_x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
+        g_iter[it] = maximum(abs.(g_x))
         x_update .= (x .- (eta * g_x))
         ll_iter[it+1] = log_likelihood_gamma(x_update, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
         if ll_iter[it+1] <= ll_iter[it]
@@ -157,6 +159,8 @@ function optimize_gd!(data::Data; x=randn(npars_gamma(data.d)), initialize=-1,
             break
         end
     end
+    optim_wrapper_gamma(x, g_x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon)
+    g_iter[end] = maximum(abs.(g_x))
 
-    return ll_iter
+    return ll_iter, g_iter
 end

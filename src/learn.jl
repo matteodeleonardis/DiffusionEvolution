@@ -187,6 +187,7 @@ function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initia
     eta=0.001, iterations=1)
 
     ll_iter = zeros(iterations+1)
+    g_iter = zeros(iterations+1)
 
     #setting initial condition for x
     if initialize == 0
@@ -197,11 +198,17 @@ function optimize_pars_gd!(data::Data; x=randn(npars(data.d)), gamma=1.0, initia
 
     ll_iter[1] = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
     g_x = zeros(n_pars(data.d))
+
     for it in 1:iterations
         optim_wrapper(x, g_x, data, gamma, lambda, prior_J, prior_theta, epsilon)
+        g_iter[it] = maximum(g_x)
         x .-= (eta * g_x)
         ll_iter[it+1] = log_likelihood(x, data, gamma, lambda, prior_J, prior_theta, 0.0, epsilon)
     end
+    optim_wrapper(x, g_x, data, gamma, lambda, prior_J, prior_theta, epsilon)
+    g_iter[end] = maximum(g_x)
+
+    return ll_iter, g_iter
 end
 
 
