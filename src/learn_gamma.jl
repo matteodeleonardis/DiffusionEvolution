@@ -45,7 +45,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
     opt = Opt(alg, npars_gamma(data.d))
     lb = fill(-Inf, npars_gamma(data.d))
-    lb[gamma_index(data.d)] = 1e-12
+    lb[gamma_index(data.d)] = 0.0
     opt.lower_bounds = lb
     opt.xtol_rel=xtol_rel
     opt.ftol_rel=ftol_rel
