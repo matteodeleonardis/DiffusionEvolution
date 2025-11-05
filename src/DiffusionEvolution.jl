@@ -1,6 +1,6 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, JLD2
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, JLD2, FastaIO, BioSeqInt, MultivariateStats
 
     const Pars = Vector{Float64}
     const log2pi = log(2.0*π)
