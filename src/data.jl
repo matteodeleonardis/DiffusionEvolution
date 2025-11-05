@@ -135,7 +135,7 @@ function read_fasta(fasta_files::Vector{String}, fasta_file_wt=nothing)
 end
 
 function compute_pca(fasta_files::Vector{String}, fasta_file_wt=nothing; weight, maxoutdim)
-    Z, w, _ = read_fasta(fasta_files, fasta_file_wt)
+    Z, w, _ = read_fasta(fasta_files, fasta_file_wt) #fasta_file_wt provided to filter out uncompatible sequences
     x_1hot = Float64.(reshape(Flux.onehotbatch(Z, collect(1:21)), :, size(Z,2)))
 
     if weight
@@ -155,9 +155,20 @@ function apply_pca(pca, fasta_file_variants)
     x_1hot = Float64.(reshape(Flux.onehotbatch(Z, collect(1:21)), :, size(Z,2)))
 
     x_pca = predict(pca, x_1hot)
+    if size(x_pca, 2) == 1
+        x_pca = dropdims(x_pca, dims=2)
+    end
     return x_pca
 end
 
+function process_data(file_nat, file_wt, file_rounds; weight, maxoutdim)
+    
+    pca = compute_pca([file_nat], file_wt; weight=weight, maxoutdim=maxoutdim)
+    x_pca_varaints = apply_pca(pca, file_rounds)
+    x_pca_wt = apply_pca(pca, [file_wt])
+
+    return x_pca_varaints, x_pca_wt
+end
 
 function data_entropy(data)
 
