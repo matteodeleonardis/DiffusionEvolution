@@ -123,3 +123,17 @@ function svd_inv(m::Matrix{Float64})
     dec = svd(m)
     return dec.V*diagm(inv.(dec.S))*transpose(dec.U)
 end
+
+
+function compute_entropy(x, d, ϵ, times)
+
+    J = compute_J(x,d,ϵ)
+    s = zeros(length(times))
+    for (i,t) in pairs(times)
+        Λt = compute_lambda(J, x[gamma_index(d)], t)
+        Σt = compute_sigma(J, Λt, d)
+        s[i] = 0.5*d*log(2.0*π*exp(1.0))+0.5*logdet(Σt)
+    end
+
+    return s
+end

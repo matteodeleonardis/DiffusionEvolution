@@ -6,7 +6,7 @@ module DiffusionEvolution
     const log2pi = log(2.0*π)
 
     include("data.jl")
-    export collect_data, Data
+    export collect_data, Data, data_entropy
 
     include("parameters.jl")
     export which_par
@@ -24,7 +24,7 @@ module DiffusionEvolution
     export learn_small_gamma_nlopt, optimize_small_gamma_gd!, learn_small_gamma_optim
 
     include("utils.jl")
-    export compute_energy, compute_weight, get_potts_params
+    export compute_energy, compute_weight, get_potts_params, compute_entropy
 
     #simulation
     include("simulate/simulate_ou.jl")

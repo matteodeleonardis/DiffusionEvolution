@@ -50,3 +50,9 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 2}, count
 
     return Data(x0, sample, time, size(w,2), size(coordinates, 1))
 end
+
+
+function data_entropy(data)
+
+    return [-sum(x-> x==0.0 ? 0.0 : x*log(x), r.w) for r in data.round]
+end
