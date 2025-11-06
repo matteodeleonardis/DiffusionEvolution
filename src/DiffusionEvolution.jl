@@ -30,4 +30,43 @@ module DiffusionEvolution
     include("simulate/simulate_ou.jl")
     export random_pars, simulate_ou_process
 
+    function learn(file_nat, file_wt, file_rounds, times; 
+
+        # options for data processing
+        weight=false, maxoutdim=10,
+
+        # generic options
+        opt_pkg::Symbol, initialize=-1,  
+        lambda=0.01, prior_J=0.0001, prior_theta=0.0001, prior_gamma=0.0001, epsilon=1.0e-9, d=1,
+
+        # optimization options for NLopt
+        nlopt_alg=:LD_LBFGS, 
+        xtol_rel=1.0e-7, ftol_rel=1.0e-7, xtol_abs=1.0e-7, ftol_abs=1.0e-7, 
+        maxtime=-1, maxeval=-1,
+
+        # optimization options for Optim
+        optim_alg=Optim.LBFGS(), g_tol=1.0e-4, f_tol=1.0e-7, x_tol=1.0e-5)
+
+        @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
+
+        data_maxoutdim = process_data(file_nat, file_wt, file_rounds, times; weight=weight, maxoutdim=maxoutdim)
+        data = subdata(data_maxoutdim, d)
+
+        x0 = randn(npars_gamma(data.d))
+
+        if opt_pkg == :NLopt
+            results =learn_gamma_nlopt(data; x0=x0, initialize=initialize, 
+                lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon=epsilon, 
+                alg=nlopt_alg, xtol_rel=xtol_rel, ftol_rel=ftol_rel, xtol_abs=xtol_abs, ftol_abs=ftol_abs, 
+                maxtime=maxtime, maxeval=maxeval)
+        elseif opt_pkg == :Optim
+            results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
+                lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon=epsilon, 
+                alg=optim_alg, g_tol=g_tol, f_tol=f_tol, x_tol=x_tol)
+        end
+
+        return data, results
+    end
+
+    export learn
 end

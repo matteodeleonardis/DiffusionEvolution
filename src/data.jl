@@ -52,6 +52,15 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 2}, count
 end
 
 
+function subdata(data::Data, d::Int)
+
+    sub_x0 = data.x0[1:d]
+    sub_round = map(x->Sample(x.x[1:d,:], x.w), data.round)
+
+    return Data(sub_x0, sub_round, data.time, data.M, d)
+end
+
+
 function read_sequences(file)
 
     is_fasta = false
@@ -161,7 +170,7 @@ function apply_pca(pca, fasta_file_variants)
     return x_pca
 end
 
-function process_data(file_nat, file_wt, file_rounds; weight, maxoutdim)
+function project_data(file_nat, file_wt, file_rounds; weight, maxoutdim)
     
     pca = compute_pca([file_nat], file_wt; weight=weight, maxoutdim=maxoutdim)
     x_pca_varaints = apply_pca(pca, file_rounds)
@@ -169,6 +178,18 @@ function process_data(file_nat, file_wt, file_rounds; weight, maxoutdim)
 
     return x_pca_varaints, x_pca_wt
 end
+
+
+function process_data(file_nat, file_wt, file_rounds, times; weight=false, maxoutdim=10)
+
+    @assert length(file_rounds) == length(times) "Error: # of rounds and # of times must be equal. ($(length(file_rounds)) != $(length(times)))"
+
+    x_pca_varaints, x_pca_wt = project_data(file_nat, file_wt, file_rounds; weight=weight, maxoutdim=maxoutdim)
+    Z, w, wt = read_fasta(file_rounds, file_wt)
+
+    return collect_data(x_pca_wt, x_pca_varaints, w, times)
+end
+
 
 function data_entropy(data)
 
