@@ -26,6 +26,9 @@ module DiffusionEvolution
     include("utils.jl")
     export compute_energy, compute_weight, get_potts_params, compute_entropy
 
+    include("inference.jl")
+    export infer_series, fit_series
+
     #simulation
     include("simulate/simulate_ou.jl")
     export random_pars, simulate_ou_process
