@@ -95,7 +95,8 @@ end
 
 function compute_sigma(J, Λt, d::Int)
 
-    return svd_inv(J)*(I(d) - Λt^2)
+    C = cholesky(J)
+    return C \ (I(d) - Λt^2)
 end
 
 
@@ -108,6 +109,8 @@ function compute_parameters(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d
     μ = compute_mu(x0, Λt, θ, d)
     Σ = (1.0-λ)*compute_sigma(J, Λt, d)
     Σ += λ*I(d)
+    Σ = 0.5 * (Σ + Σ')
+    Σ += ϵ*I(d)
 
     return μ, Σ
 end
@@ -122,6 +125,21 @@ function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
     μ = compute_mu(x0, Λt, θ, d)
     Σ = (1.0-λ)*compute_sigma(J, Λt, d)
     Σ += λ*I(d)
+    Σ = 0.5 * (Σ + Σ')
+    Σ += ϵ*I(d)
+
+    return μ, Σ
+end
+
+
+function compute_parameters(J, θ, γ, t, x0, d, λ, ϵ)
+
+    Λt = compute_lambda(J, γ, t)
+    μ = compute_mu(x0, Λt, θ, d)
+    Σ = (1.0-λ)*compute_sigma(J, Λt, d)
+    Σ += λ*I(d)
+    Σ = 0.5 * (Σ + Σ')
+    Σ += ϵ*I(d)
 
     return μ, Σ
 end
