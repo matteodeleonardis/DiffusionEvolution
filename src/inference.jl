@@ -51,5 +51,16 @@ function fit_series(data, times=[])
 end
 
 
+function get_params_tens(x, pca, d, epsilon, A, L, eps_warning=1.0e-4, set_zero=false)
+
+    W_proj = pca.proj[:,1:d]'
+    J_tens, h_tens, gamma = get_potts_params(x, W_proj, pca.mean, d=d, epsilon=epsilon, A=A, L=L, eps_warn=eps_warning, set_zero=set_zero)
+
+    return J_tens, h_tens, gamma
+end
+
+
+
+
 
 

@@ -27,7 +27,9 @@ module DiffusionEvolution
     export compute_energy, compute_weight, get_potts_params, compute_entropy
 
     include("inference.jl")
-    export infer_series, fit_series
+    export infer_series, fit_series, get_params_tens
+
+    include("contacts.jl")
 
     #simulation
     include("simulate/simulate_ou.jl")
@@ -52,7 +54,7 @@ module DiffusionEvolution
 
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
 
-        data_maxoutdim = process_data(file_nat, file_wt, file_rounds, times; weight=weight, maxoutdim=maxoutdim)
+        data_maxoutdim, pca = process_data(file_nat, file_wt, file_rounds, times; weight=weight, maxoutdim=maxoutdim)
         data = subdata(data_maxoutdim, d)
 
         x0 = randn(npars_gamma(data.d))
@@ -68,7 +70,7 @@ module DiffusionEvolution
                 alg=optim_alg, g_tol=g_tol, f_tol=f_tol, x_tol=x_tol)
         end
 
-        return data, results
+        return data, pca, results
     end
 
     export learn

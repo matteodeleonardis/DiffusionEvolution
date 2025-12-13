@@ -176,7 +176,7 @@ function project_data(file_nat, file_wt, file_rounds; weight, maxoutdim)
     x_pca_varaints = apply_pca(pca, file_rounds)
     x_pca_wt = apply_pca(pca, [file_wt])
 
-    return x_pca_varaints, x_pca_wt
+    return x_pca_varaints, x_pca_wt, pca
 end
 
 
@@ -184,10 +184,10 @@ function process_data(file_nat, file_wt, file_rounds, times; weight=false, maxou
 
     @assert length(file_rounds) == length(times) "Error: # of rounds and # of times must be equal. ($(length(file_rounds)) != $(length(times)))"
 
-    x_pca_varaints, x_pca_wt = project_data(file_nat, file_wt, file_rounds; weight=weight, maxoutdim=maxoutdim)
+    x_pca_varaints, x_pca_wt, pca = project_data(file_nat, file_wt, file_rounds; weight=weight, maxoutdim=maxoutdim)
     Z, w, wt = read_fasta(file_rounds, file_wt)
 
-    return collect_data(x_pca_wt, x_pca_varaints, w, times)
+    return collect_data(x_pca_wt, x_pca_varaints, w, times), pca
 end
 
 
