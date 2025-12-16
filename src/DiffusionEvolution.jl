@@ -1,6 +1,7 @@
 module DiffusionEvolution
 
-    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats
+    using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
+    using PyPlot, PottsGauge
 
     const Pars = Vector{Float64}
     const log2pi = log(2.0*π)
@@ -30,6 +31,10 @@ module DiffusionEvolution
     export infer_series, fit_series, get_params_tens
 
     include("contacts.jl")
+    export compute_norm, corr_APC, compute_true_positives, compute_frob_norm, contact_plot
+
+    include("analysis.jl")
+    export compute_scores, print_contact_plot, compute_ppv, plot_inf_distribution, plot_data
 
     #simulation
     include("simulate/simulate_ou.jl")

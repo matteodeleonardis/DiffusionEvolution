@@ -1,0 +1,120 @@
+function plot_data(data, times, output_root)
+    fig_emp_dist, ax_emp_dist = subplots(1, length(times), 6)
+    for i in eachindex(times)
+        ax_emp_dist[i].hist2d(data.round[i].x[1,:], data.round[i].x[2,:], weights=data.round[i].w, bins=50)
+        ax_emp_dist[i].scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
+        ax_emp_dist[i].set_title("t=$(times[i])")
+        ax_emp_dist[i].set_xlabel("PC1")
+        ax_emp_dist[i].set_ylabel("PC2")
+    end
+    fig_emp_dist.savefig(output_root * ".emp_dist.png", format="png", bbox_inches="tight")
+end
+
+
+function plot_inf_distribution(x_opt, data, times, output_root; lambda, epsilon_J, epsilon_sigma)
+    mu, sigma, eq_theta, eq_sigma = infer_series(x_opt, data, times; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+    fig_inf_dist, ax_inf_dist = subplots(1, length(times), 6)
+    for i in eachindex(times)
+        samples = rand(MultivariateNormal(mu[times[i]], sigma[times[i]]), 1000)
+        ax_inf_dist[i].hist2d(samples[1,:], samples[2,:], bins=50)
+        ax_inf_dist[i].scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
+        ax_inf_dist[i].set_title("t=$(times[i])")
+        ax_inf_dist[i].set_xlabel("PC1")
+        ax_inf_dist[i].set_ylabel("PC2")
+    end
+    fig_inf_dist.savefig(output_root * ".inf_dist.png", format="png", bbox_inches="tight")
+
+    figure()
+    fig = gcf()
+    ax = gca()
+    samples = rand(MultivariateNormal(eq_theta, eq_sigma), 1000)
+    ax.hist2d(samples[1,:], samples[2,:], bins=50)
+    ax.scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
+    ax.set_title("t=+∞")
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    fig.savefig(output_root * ".inf_dist_equilibrium.png", format="png", bbox_inches="tight")
+end
+
+
+function compute_scores(J_tens, h_tens, wt, L, output_root)
+    frob_norm(x) = compute_frob_norm(x, L, 21)
+    frobenius_norm_zerosumgauge = compute_norm(J_tens, h_tens, ZeroSumGauge(), frob_norm)
+    frobenius_norm_zerosumgauge_apc = corr_APC(frobenius_norm_zerosumgauge)
+    frobenius_norm_wildtypegauge = compute_norm(J_tens, h_tens, WildType(wt), frob_norm)
+    frobenius_norm_wildtypegauge_apc = corr_APC(frobenius_norm_wildtypegauge)
+
+    frobenius_score_zerosumgauge = PlmDCA.compute_ranking(frobenius_norm_zerosumgauge)
+    frobenius_score_zerosumgauge_apc = PlmDCA.compute_ranking(frobenius_norm_zerosumgauge_apc)
+    frobenius_score_wildtypegauge = PlmDCA.compute_ranking(frobenius_norm_wildtypegauge)
+    frobenius_score_wildtypegauge_apc = PlmDCA.compute_ranking(frobenius_norm_wildtypegauge_apc)
+
+    open(output_root * ".scores.zerosumgauge.tsv", "w") do io
+        for (a,b,c) in frobenius_score_zerosumgauge
+            println(io, a, "\t", b, "\t", c)
+        end
+    end
+
+    open(output_root * ".scores.zerosumgauge_apc.tsv", "w") do io
+        for (a,b,c) in frobenius_score_zerosumgauge_apc
+            println(io, a, "\t", b, "\t", c)
+        end
+    end
+
+    open(output_root * ".scores.wildtypegauge.tsv", "w") do io
+        for (a,b,c) in frobenius_score_wildtypegauge
+            println(io, a, "\t", b, "\t", c)
+        end
+    end
+
+    open(output_root * ".scores.wildtypegauge_apc.tsv", "w") do io
+        for (a,b,c) in frobenius_score_wildtypegauge_apc
+            println(io, a, "\t", b, "\t", c)
+        end
+    end
+
+    return frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
+        frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc
+end
+
+
+function compute_ppv(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
+    frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
+
+    ppv_frobenius_zerosumgauge = compute_true_positives(frobenius_score_zerosumgauge, true_contacts, x -> x>0.0) 
+    ppv_frobenius_zerosumgauge_apc = compute_true_positives(frobenius_score_zerosumgauge_apc, true_contacts, x -> x>0.0) 
+    ppv_frobenius_wildtypegauge = compute_true_positives(frobenius_score_wildtypegauge, true_contacts, x -> x>0.0) 
+    ppv_frobenius_wildtypegauge_apc = compute_true_positives(frobenius_score_wildtypegauge_apc, true_contacts, x -> x>0.0)
+
+    figure()
+    plot(ppv_frobenius_zerosumgauge[1:L], label="zerosumgauge")
+    plot(ppv_frobenius_zerosumgauge_apc[1:L], label="zerosumgauge_apc")
+    plot(ppv_frobenius_wildtypegauge[1:L], label="wildtypegauge")
+    plot(ppv_frobenius_wildtypegauge_apc[1:L], label="wildtypegauge_apc")
+    xticks([0, L÷2, L], ["0", "L/2", "L"])
+    legend()
+    gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
+
+    return ppv_frobenius_zerosumgauge, ppv_frobenius_zerosumgauge_apc,
+        ppv_frobenius_wildtypegauge, ppv_frobenius_wildtypegauge_apc
+end
+
+
+function print_contact_plot(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
+    frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
+
+    fig_contact, ax_contact = subplots(1, 4, 6)
+    contact_plot(frobenius_score_zerosumgauge, true_contacts, L, ax=ax_contact[1])
+    ax_contact[1].set_title("Contacts ZeroSum Gauge")
+    contact_plot(frobenius_score_zerosumgauge_apc, true_contacts, L, ax=ax_contact[2])
+    ax_contact[2].set_title("Contacts ZeroSum Gauge APC")
+    contact_plot(frobenius_score_wildtypegauge, true_contacts, L, ax=ax_contact[3])
+    ax_contact[3].set_title("Contacts WildType Gauge")
+    contact_plot(frobenius_score_wildtypegauge_apc, true_contacts, L, ax=ax_contact[4])
+    ax_contact[4].set_title("Contacts WildType Gauge APC")
+
+    map(x -> x.set_xlabel("site i"), ax_contact)
+    map(x -> x.set_ylabel("site j"), ax_contact)
+
+    fig_contact.savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
+end
