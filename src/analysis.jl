@@ -1,4 +1,4 @@
-function plot_data(data, times, output_root)
+function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, epsilon_sigma)
     fig_emp_dist, ax_emp_dist = subplots(1, length(times), 6)
     for i in eachindex(times)
         ax_emp_dist[i].hist2d(data.round[i].x[1,:], data.round[i].x[2,:], weights=data.round[i].w, bins=50)
@@ -8,10 +8,9 @@ function plot_data(data, times, output_root)
         ax_emp_dist[i].set_ylabel("PC2")
     end
     fig_emp_dist.savefig(output_root * ".emp_dist.png", format="png", bbox_inches="tight")
-end
+    xlim = ax_emp_dist[1].get_xlim()
+    ylim = ax_emp_dist[1].get_ylim()
 
-
-function plot_inf_distribution(x_opt, data, times, output_root; lambda, epsilon_J, epsilon_sigma)
     mu, sigma, eq_theta, eq_sigma = infer_series(x_opt, data, times; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
     fig_inf_dist, ax_inf_dist = subplots(1, length(times), 6)
     for i in eachindex(times)
@@ -21,6 +20,8 @@ function plot_inf_distribution(x_opt, data, times, output_root; lambda, epsilon_
         ax_inf_dist[i].set_title("t=$(times[i])")
         ax_inf_dist[i].set_xlabel("PC1")
         ax_inf_dist[i].set_ylabel("PC2")
+        ax_inf_dist[i].set_xlim(xlim)
+        ax_inf_dist[i].set_ylim(ylim)
     end
     fig_inf_dist.savefig(output_root * ".inf_dist.png", format="png", bbox_inches="tight")
 

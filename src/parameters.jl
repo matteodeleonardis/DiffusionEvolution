@@ -96,7 +96,8 @@ end
 function compute_sigma(J, Λt, d::Int)
 
     C = cholesky(J)
-    return C \ (I(d) - Λt^2)
+    sigma = C \ (I(d) - Λt^2)
+    return 0.5*(sigma + sigma')
 end
 
 

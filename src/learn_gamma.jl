@@ -63,7 +63,7 @@ function learn_gamma_nlopt(data::Data; x0=randn(npars_gamma(data.d)), initialize
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=1.0)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=inv(data.time[end]))
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=#=inv(data.time[end])=#1.0e-5)
     end
 
     x_start = copy(x0)
@@ -98,7 +98,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), Optim.Options(g_tol=g_tol, f_tol=f_tol, x_tol=x_tol))
+    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), Optim.Options(g_abstol=g_tol, f_reltol=f_tol, x_reltol=x_tol))
 
     return res
 end

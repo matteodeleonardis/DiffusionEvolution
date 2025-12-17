@@ -23,7 +23,7 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     file5 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/GenEarly/Oct10_QComp/Round5_Q15_C10_aa.aln"
     file15 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/Gen15/Gen15_aa.aln"
 
-    times = [1,2]#,3,4,5, 15]
+    times = [1,2,3,4,5, 15]
 
 
     # natural sequences
@@ -34,15 +34,22 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     lambda = 0.01
     epsilon_J = 1e-9
     epsilon_sigma = 1e-12
+    prior_J = 0.01
+    prior_theta = 0.01
+    prior_gamma = prior_J * d^2
 
-    data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2#=, file3, file4, file5, file15=#], times;
-        weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma)
+    data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
+        weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
+        prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+        lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma)
 
 
     x_opt = results.minimizer
     open(output_root * ".optimization.log", "w") do io
         print(io, "*** Optimization Results *** \n ", results, "\n")
-        print(io, "Gamma: ", results.minimizer[end])
+        print(io, "Gamma: ", results.minimizer[end], "\n")
+        print(io, "extrema |J|: ", extrema(abs.(results.minimizer[1:DiffusionEvolution.n_couplings(d)])), "\n")
+        print(io, "extrema |h|: ", extrema(abs.(results.minimizer[DiffusionEvolution.n_couplings(d)+1:end-1])), "\n")
     end
     #save parameters
     @save output_root * ".pars.jld2" x_opt
@@ -51,11 +58,9 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     @save output_root * ".data.jld2" data
     @save output_root * ".pca.jld2" pca
 
-    #plot data
-    plot_data(data, times, output_root)
 
     #plot inferred distribution
-    plot_inf_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+    plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
 
     #parameters as tensors
     fasta_wt = readfasta(file0)

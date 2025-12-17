@@ -137,3 +137,19 @@ function compute_entropy(x, d, ϵ, times)
 
     return s
 end
+
+
+function safe_cholesky(M; jitter=0.0, max_tries=5)
+    for k in 0:max_tries-1
+        t = jitter * (2.0^k)
+        try
+            return cholesky(Symmetric(M + t*I), check=true)
+        catch e
+            if !(e isa PosDefException)
+                rethrow(e)
+            end
+        end
+    end
+    return nothing
+end
+Zygote.@nograd safe_cholesky

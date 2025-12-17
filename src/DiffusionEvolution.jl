@@ -1,7 +1,7 @@
 module DiffusionEvolution
 
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
-    using PyPlot, PottsGauge
+    using PyPlot, PottsGauge, Zygote
 
     const Pars = Vector{Float64}
     const log2pi = log(2.0*π)
@@ -34,7 +34,7 @@ module DiffusionEvolution
     export compute_norm, corr_APC, compute_true_positives, compute_frob_norm, contact_plot
 
     include("analysis.jl")
-    export compute_scores, print_contact_plot, compute_ppv, plot_inf_distribution, plot_data
+    export compute_scores, print_contact_plot, compute_ppv, plot_distribution
 
     #simulation
     include("simulate/simulate_ou.jl")
@@ -55,7 +55,7 @@ module DiffusionEvolution
         maxtime=-1, maxeval=-1,
 
         # optimization options for Optim
-        optim_alg=Optim.LBFGS(), g_tol=1.0e-4, f_tol=1.0e-7, x_tol=1.0e-5)
+        optim_alg=Optim.LBFGS(), g_abstol=1.0e-3, f_reltol=1.0e-5, x_abstol=1.0e-5)
 
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
 
@@ -72,7 +72,7 @@ module DiffusionEvolution
         elseif opt_pkg == :Optim
             results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
                 lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
-                alg=optim_alg, g_tol=g_tol, f_tol=f_tol, x_tol=x_tol)
+                alg=optim_alg, g_tol=g_abstol, f_tol=f_reltol, x_tol=x_abstol)
         end
 
         return data, pca, results

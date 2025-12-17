@@ -20,6 +20,7 @@ PottsGauge = "3bb3bcb6-c561-57d3-939c-408d524c1e5b"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 BioSeqInt = "0.1.1"
@@ -32,6 +33,7 @@ PlmDCA = "1.0.4"
 PottsGauge = "0.1.0"
 PyPlot = "2.11.6"
 Random = "1.11.0"
+Zygote = "0.6.77"
 julia = "1"
 
 [extras]
