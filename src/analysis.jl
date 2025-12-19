@@ -1,11 +1,21 @@
 function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, epsilon_sigma)
     fig_emp_dist, ax_emp_dist = subplots(1, length(times), 6)
-    for i in eachindex(times)
-        ax_emp_dist[i].hist2d(data.round[i].x[1,:], data.round[i].x[2,:], weights=data.round[i].w, bins=50)
-        ax_emp_dist[i].scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
-        ax_emp_dist[i].set_title("t=$(times[i])")
-        ax_emp_dist[i].set_xlabel("PC1")
-        ax_emp_dist[i].set_ylabel("PC2")
+    if data.d > 1
+        for i in eachindex(times)
+            ax_emp_dist[i].hist2d(data.round[i].x[1,:], data.round[i].x[2,:], weights=data.round[i].w, bins=50)
+            ax_emp_dist[i].scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
+            ax_emp_dist[i].set_title("t=$(times[i])")
+            ax_emp_dist[i].set_xlabel("PC1")
+            ax_emp_dist[i].set_ylabel("PC2")
+        end
+    else
+        for i in eachindex(times)
+            ax_emp_dist[i].hist(data.round[i].x[1,:], weights=data.round[i].w, bins=50)
+            ax_emp_dist[i].axvline(data.x0[1], color="red")
+            ax_emp_dist[i].set_title("t=$(times[i])")
+            ax_emp_dist[i].set_xlabel("PC1")
+            ax_emp_dist[i].set_ylabel("pdf")
+        end
     end
     fig_emp_dist.savefig(output_root * ".emp_dist.png", format="png", bbox_inches="tight")
     xlim = ax_emp_dist[1].get_xlim()
@@ -13,29 +23,51 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
 
     mu, sigma, eq_theta, eq_sigma = infer_series(x_opt, data, times; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
     fig_inf_dist, ax_inf_dist = subplots(1, length(times), 6)
-    for i in eachindex(times)
-        samples = rand(MultivariateNormal(mu[times[i]], sigma[times[i]]), 1000)
-        ax_inf_dist[i].hist2d(samples[1,:], samples[2,:], bins=50)
-        ax_inf_dist[i].scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
-        ax_inf_dist[i].set_title("t=$(times[i])")
-        ax_inf_dist[i].set_xlabel("PC1")
-        ax_inf_dist[i].set_ylabel("PC2")
-        ax_inf_dist[i].set_xlim(xlim)
-        ax_inf_dist[i].set_ylim(ylim)
+    if data.d > 1
+        for i in eachindex(times)
+            samples = rand(MultivariateNormal(mu[times[i]], sigma[times[i]]), 1000)
+            ax_inf_dist[i].hist2d(samples[1,:], samples[2,:], bins=50)
+            ax_inf_dist[i].scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
+            ax_inf_dist[i].set_title("t=$(times[i])")
+            ax_inf_dist[i].set_xlabel("PC1")
+            ax_inf_dist[i].set_ylabel("PC2")
+            ax_inf_dist[i].set_xlim(xlim)
+            ax_inf_dist[i].set_ylim(ylim)
+        end
+    else
+        for i in eachindex(times)
+            samples = rand(Normal(mu[times[i]][1], sigma[times[i]][1,1]), 1000)
+            ax_inf_dist[i].hist(samples, bins=50)
+            ax_inf_dist[i].axvline(data.x0[1], color="red")
+            ax_inf_dist[i].set_title("t=$(times[i])")
+            ax_inf_dist[i].set_xlabel("PC1")
+            ax_inf_dist[i].set_ylabel("pdf")
+            ax_inf_dist[i].set_xlim(xlim)
+        end
     end
     fig_inf_dist.savefig(output_root * ".inf_dist.png", format="png", bbox_inches="tight")
 
     figure()
     fig = gcf()
     ax = gca()
-    samples = rand(MultivariateNormal(eq_theta, eq_sigma), 1000)
-    ax.hist2d(samples[1,:], samples[2,:], bins=50)
-    ax.scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
-    ax.set_title("t=+∞")
-    ax.set_xlabel("PC1")
-    ax.set_ylabel("PC2")
+    if data.d > 1
+        samples = rand(MultivariateNormal(eq_theta, eq_sigma), 1000)
+        ax.hist2d(samples[1,:], samples[2,:], bins=50)
+        ax.scatter([data.x0[1]], [data.x0[2]], marker="o", color="red", s=30)
+        ax.set_title("t=+∞")
+        ax.set_xlabel("PC1")
+        ax.set_ylabel("PC2")
+    else
+        samples = rand(Normal(eq_theta[1], eq_sigma[1,1]), 1000)
+        ax.hist(samples, bins=50)
+        ax.axvline(data.x0[1], color="red")
+        ax.set_title("t=+∞")
+        ax.set_xlabel("PC1")
+        ax.set_ylabel("pdf")
+    end
     fig.savefig(output_root * ".inf_dist_equilibrium.png", format="png", bbox_inches="tight")
 end
+
 
 
 function compute_scores(J_tens, h_tens, wt, L, output_root)

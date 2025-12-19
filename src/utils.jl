@@ -152,4 +152,3 @@ function safe_cholesky(M; jitter=0.0, max_tries=5)
     end
     return nothing
 end
-Zygote.@nograd safe_cholesky

@@ -1,8 +1,6 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 
-using Revise
-
 using DiffusionEvolution, PyPlot, Distributions, Random, JLD2, Optim, NLopt, PlmDCA, NPZ, FastaIO, PottsGauge, DelimitedFiles, BioSeqInt
 
 import PyPlot.subplots
@@ -15,19 +13,19 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     # contacts_file="/home/matteo/Projects/mDHFR/contacts_prediction/contact_map.npy"
 
     # experiment data
-    file0 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/uniprot/mDHFR.fasta"
-    file1 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/GenEarly/Oct10_QComp/Round1_Q15_C10_aa.aln"
-    file2 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/GenEarly/Oct10_QComp/Round2_Q15_C10_aa.aln"
-    file3 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/GenEarly/Oct10_QComp/Round3_Q15_C10_aa.aln"
-    file4 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/GenEarly/Oct10_QComp/Round4_Q15_C10_aa.aln"
-    file5 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/GenEarly/Oct10_QComp/Round5_Q15_C10_aa.aln"
-    file15 = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/Gen15/Gen15_aa.aln"
+    file0 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/mDHFR.fasta"
+    file1 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round1_Q15_C10_aa.aln"
+    file2 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round2_Q15_C10_aa.aln"
+    file3 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round3_Q15_C10_aa.aln"
+    file4 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round4_Q15_C10_aa.aln"
+    file5 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round5_Q15_C10_aa.aln"
+    file15 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Gen15_aa.aln"
 
     times = [1,2,3,4,5, 15]
 
 
     # natural sequences
-    file_nat = "/home/matteo/Projects/mDHFR/dhfr_neutral_evolution/DHFR/uniprot/mDHFR_clean.fasta"
+    file_nat = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/mDHFR_clean.fasta"
     #file_nat = file1
 
     #training
@@ -84,5 +82,7 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
         frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
 end
 
-run_training(d=2, opt_pkg=:Optim, output_root="/home/matteo/.julia/dev/DiffusionEvolution/analysis/test_results/test",
-    contacts_file="/home/matteo/Projects/mDHFR/contacts_prediction/contact_map.npy")
+d = parse(Int, ARGS[1])
+
+run_training(d=d, opt_pkg=:Optim, output_root="/home/students/s301803/diffusion_evolution/dev/analysis/mdhfr_analysis_d_$d/mdhfr_analysis_d_$d",
+    contacts_file="/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy")

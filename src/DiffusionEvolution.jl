@@ -1,7 +1,7 @@
 module DiffusionEvolution
 
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
-    using PyPlot, PottsGauge, Zygote
+    using PyPlot, PottsGauge
 
     const Pars = Vector{Float64}
     const log2pi = log(2.0*π)
