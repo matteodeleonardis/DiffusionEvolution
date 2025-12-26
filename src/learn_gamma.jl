@@ -98,7 +98,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), lower, upper, x0, Fminbox(alg), Optim.Options(g_abstol=g_tol, f_reltol=f_tol, x_reltol=x_tol))
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(g_abstol=g_tol, f_reltol=f_tol, x_reltol=x_tol))
 
     return res
 end

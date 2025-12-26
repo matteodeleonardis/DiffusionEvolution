@@ -1,6 +1,6 @@
 function n_couplings(d::Int)
 
-    return d*d
+    return div(d*(d+1), 2)
 end
 
 
@@ -17,8 +17,8 @@ end
 
 
 function Jindex(i::Int, j::Int, d::Int)
-
-    return d*(j-1) + i 
+    #assume i <= j
+    return div(j*(j-1), 2) + i 
 end
 
 
@@ -36,7 +36,13 @@ end
 
 function get_Jparameter(x::Pars, i::Int, j::Int, d::Int)
 
-    return x[Jindex(i,j,d)]
+    if i > j 
+        return 0.0
+    elseif i == j
+        return log1pexp(x[Jindex(i,j,d)])
+    else
+        return x[Jindex(i,j,d)]
+    end
 end
 
 
@@ -48,7 +54,7 @@ end
 
 function get_gamma(x::Pars, d::Int)
 
-    return x[gamma_index(d)]
+    return log1pexp(x[gamma_index(d)])
 end
 
 
@@ -122,7 +128,7 @@ function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
 
     J = compute_J(x, d, ϵ)
     θ = compute_theta(x, d)
-    Λt = compute_lambda(J, x[gamma_index(d)], t)
+    Λt = compute_lambda(J, get_gamma(x, d), t)
     μ = compute_mu(x0, Λt, θ, d)
     Σ = (1.0-λ)*compute_sigma(J, Λt, d)
     Σ += λ*I(d)
@@ -177,8 +183,8 @@ function compute_parameters_small_gamma(x::Pars, t::Int, x0::Vector{Float64}, d:
 
     J = compute_J(x, d, ϵ)
     θ = compute_theta(x, d)
-    μ = compute_mu_small_gamma(x0, J, θ, x[gamma_index(d)], t)
-    invΣ = (1.0-λ)*compute_sigma_small_gamma(J, x[gamma_index(d)], t, d)
+    μ = compute_mu_small_gamma(x0, J, θ, get_gamma(x,d), t)
+    invΣ = (1.0-λ)*compute_sigma_small_gamma(J, get_gamma(x,d), t, d)
     invΣ += λ*I(d)
 
     return μ, invΣ
