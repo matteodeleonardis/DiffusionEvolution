@@ -47,7 +47,7 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     end
     open(output_root * ".optimization.log", "w") do io
         print(io, "*** Optimization Results *** \n ", results, "\n")
-        print(io, "Gamma: ", results.minimizer[end], "\n")
+        print(io, "Gamma: ", DiffusionEvolution.get_gamma(results.minimizer, d), "\n")
         print(io, "extrema |J|: ", extrema(abs.(results.minimizer[1:DiffusionEvolution.n_couplings(d)])), "\n")
         print(io, "extrema |h|: ", extrema(abs.(results.minimizer[DiffusionEvolution.n_couplings(d)+1:end-1])), "\n")
         print(io, "max |g|: ", maximum(abs.(g_res)), "\n")

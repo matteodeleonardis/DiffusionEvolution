@@ -36,10 +36,13 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     prior_theta = 0.01
     prior_gamma = prior_J * d^2
 
+    #stopping criteria
+    stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
+
     data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
         weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
         prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
-        lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+        lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
 
 
     x_opt = results.minimizer
@@ -51,7 +54,7 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
     end
     open(output_root * ".optimization.log", "w") do io
         print(io, "*** Optimization Results *** \n ", results, "\n")
-        print(io, "Gamma: ", results.minimizer[end], "\n")
+        print(io, "Gamma: ", DiffusionEvolution.get_gamma(results.minimizer, d), "\n")
         print(io, "extrema |J|: ", extrema(abs.(results.minimizer[1:DiffusionEvolution.n_couplings(d)])), "\n")
         print(io, "extrema |h|: ", extrema(abs.(results.minimizer[DiffusionEvolution.n_couplings(d)+1:end-1])), "\n")
         print(io, "max |g|: ", maximum(abs.(g_res)), "\n")

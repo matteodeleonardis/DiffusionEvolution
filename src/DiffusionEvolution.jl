@@ -50,12 +50,14 @@ module DiffusionEvolution
         lambda=0.01, prior_J=0.0001, prior_theta=0.0001, prior_gamma=0.0001, epsilon_J=1.0e-9, epsilon_sigma=1.0e-12, d=1,
 
         # optimization options for NLopt
-        nlopt_alg=:LD_LBFGS, 
-        xtol_rel=1.0e-7, ftol_rel=1.0e-7, xtol_abs=1.0e-7, ftol_abs=1.0e-7, 
+        nlopt_alg=:LD_LBFGS,  
         maxtime=-1, maxeval=-1,
 
         # optimization options for Optim
-        optim_alg=Optim.LBFGS(), g_abstol=1.0e-3, f_reltol=1.0e-5, x_abstol=1.0e-5)
+        optim_alg=Optim.LBFGS(), 
+        
+        #tolerance for stopping criteria
+        stop_tol...)
 
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
 
@@ -67,12 +69,11 @@ module DiffusionEvolution
         if opt_pkg == :NLopt
             results =learn_gamma_nlopt(data; x0=x0, initialize=initialize, 
                 lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma,
-                alg=nlopt_alg, xtol_rel=xtol_rel, ftol_rel=ftol_rel, xtol_abs=xtol_abs, ftol_abs=ftol_abs, 
-                maxtime=maxtime, maxeval=maxeval)
+                alg=nlopt_alg, maxtime=maxtime, maxeval=maxeval, stop_tol...)
         elseif opt_pkg == :Optim
             results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
                 lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
-                alg=optim_alg, g_tol=g_abstol, f_tol=f_reltol, x_tol=x_abstol)
+                alg=optim_alg, stop_tol...)
         end
 
         return data, pca, results

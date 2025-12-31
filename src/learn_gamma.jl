@@ -13,6 +13,7 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
         ll += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)
     end
 
+
     if prior_J > 0.0
         ll += prior_J*sum(abs2, J)
     end
@@ -20,7 +21,7 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
         ll += prior_theta*sum(abs2, θ)
     end
     if prior_γ > 0.0
-        ll += prior_γ*(abs2(x[end]))
+        ll += prior_γ*(abs2(γ))
     end
 
     return  ll
@@ -75,7 +76,7 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon_J=0.0, epsilon_sigma=0.0, g_tol=1e-8, f_tol=0.0, x_tol=0.0)
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=1.0)
@@ -98,7 +99,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(g_abstol=g_tol, f_reltol=f_tol, x_reltol=x_tol))
+    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(; stop_tol...))
 
     return res
 end
