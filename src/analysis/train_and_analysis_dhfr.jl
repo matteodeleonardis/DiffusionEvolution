@@ -1,12 +1,4 @@
-import Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-
-using DiffusionEvolution, PyPlot, Distributions, Random, JLD2, Optim, NLopt, PlmDCA, NPZ, FastaIO, PottsGauge, DelimitedFiles, BioSeqInt
-
-import PyPlot.subplots
-subplots(x, y ,d) = PyPlot.subplots(x, y, figsize=(d*y, d*x))
-
-function run_training(;d, opt_pkg, output_root, contacts_file)
+function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     # d=2
     # opt_pkg=:Optim
     # output_root="/home/matteo/.julia/dev/DiffusionEvolution/analysis/test_results/test"
@@ -101,8 +93,8 @@ function run_training(;d, opt_pkg, output_root, contacts_file)
         frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
 end
 
-d = parse(Int, ARGS[1])
-output_root = ARGS[2]
+# d = parse(Int, ARGS[1])
+# output_root = ARGS[2]
 
-run_training(d=d, opt_pkg=:Optim, output_root=output_root,
-    contacts_file="/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy")
+# run_training(d=d, opt_pkg=:Optim, output_root=output_root,
+#     contacts_file="/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy")

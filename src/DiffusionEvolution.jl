@@ -1,7 +1,10 @@
 module DiffusionEvolution
 
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
-    using PyPlot, PottsGauge, LogExpFunctions
+    using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles
+
+    import PyPlot.subplots
+    subplots(x, y ,d) = PyPlot.subplots(x, y, figsize=(d*y, d*x))
 
     const Pars = Vector{Float64}
     const log2pi = log(2.0*π)
@@ -80,4 +83,10 @@ module DiffusionEvolution
     end
 
     export learn
+
+    include("analysis/train_and_analysis_dhfr.jl")
+    export run_analysis_dhfr
+
+    include("analysis/train_and_analysis_pse1.jl")
+    export run_analysis_pse1
 end
