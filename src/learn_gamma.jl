@@ -15,13 +15,13 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
 
 
     if prior_J > 0.0
-        ll += prior_J*sum(abs2, J)
+        ll += prior_J*sum(abs2, J)/data.d^2
     end
     if prior_theta > 0.0
-        ll += prior_theta*sum(abs2, θ)
+        ll += prior_theta*sum(abs2, θ)/data.d
     end
     if prior_γ > 0.0
-        ll += prior_γ*(abs2(γ))
+        ll += prior_γ*(abs2(x[end]))
     end
 
     return  ll

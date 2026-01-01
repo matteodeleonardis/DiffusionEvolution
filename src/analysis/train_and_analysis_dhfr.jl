@@ -26,7 +26,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     epsilon_sigma = 1e-12
     prior_J = 0.01
     prior_theta = 0.01
-    prior_gamma = prior_J * d^2
+    prior_gamma = 0.001 #prior_J * d^2
 
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
@@ -46,9 +46,14 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     end
     open(output_root * ".optimization.log", "w") do io
         print(io, "*** Optimization Results *** \n ", results, "\n")
+        J_opt = DiffusionEvolution.compute_J(x_opt, d, epsilon_J)
+        theta_opt = DiffusionEvolution.compute_theta(x_opt, d)
         print(io, "Gamma: ", DiffusionEvolution.get_gamma(results.minimizer, d), "\n")
-        print(io, "extrema |J|: ", extrema(abs.(results.minimizer[1:DiffusionEvolution.n_couplings(d)])), "\n")
-        print(io, "extrema |h|: ", extrema(abs.(results.minimizer[DiffusionEvolution.n_couplings(d)+1:end-1])), "\n")
+        print(io, "extrema |J|: ", extrema(abs.(J_opt)), "\n")
+        print(io, "extrema |h|: ", extrema(abs.(theta_opt)), "\n")
+        print(io, "x[gamma]: ", results.minimizer[end], "\n")
+        print(io, "extrema |x[J]|: ", extrema(abs.(results.minimizer[1:DiffusionEvolution.n_couplings(d)])), "\n")
+        print(io, "extrema |x[h]|: ", extrema(abs.(results.minimizer[DiffusionEvolution.n_couplings(d)+1:end-1])), "\n")
         print(io, "max |g|: ", maximum(abs.(g_res)), "\n")
         print(io, "max |g|/|f|: ", maximum(abs.(g_res))/ll_opt, "\n")
         print(io, "\n")

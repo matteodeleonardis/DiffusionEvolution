@@ -22,7 +22,7 @@ function run_analysis_pse1(;d, opt_pkg, output_root, contacts_file)
     epsilon_sigma = 1e-12
     prior_J = 0.01
     prior_theta = 0.01
-    prior_gamma = prior_J * d^2
+    prior_gamma = 0.01 #prior_J * d^2
 
     data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2], times;
         weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
