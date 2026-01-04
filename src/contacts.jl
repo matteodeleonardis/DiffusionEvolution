@@ -104,3 +104,37 @@ function contact_plot(rank, contact, n_contacts; cmap="BuGn", color_pos="blue", 
 		end
 	end
 end
+
+
+function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold)
+
+	contacts_plmdca = []
+	for i in 1:pairs_threshold
+		if contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
+			push!(contacts_plmdca, (plmdca_score[i][1], plmdca_score[i][2]))
+		end
+	end
+
+	n_model_scores = length(file_model_scores)
+	model_scores = [readdlm(f, '\t', Float64) for f in file_model_scores]
+
+	fig, ax = subplots(1, n_model_scores, 6)
+	for i in eachindex(ax)
+
+		model_score = model_scores[i]
+		new_contacts = []
+		for j in eachindex(1:pairs_threshold)
+			if !(Tuple(model_score[j, 1:2]) in contacts_plmdca) && (true_contacts[model_score[j, 1], model_score[j, 2]] > 0)
+				push!(new_contacts, Tuple(model_score[j, 1:2]))
+			end
+		end
+		ax[i].set_title(file_model_scores[i])
+		ax[i].set_xlabel("site i")
+		ax[i].set_ylabel("site j")
+		ax[i].matshow(true_contacts, cmap="BuGn")
+		ax[i].scatter(map(x->x[1], new_contacts), map(x->x[2], new_contacts), color="orangered", s=5)
+
+	end
+
+	return fig, ax
+end
