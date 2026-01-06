@@ -89,4 +89,7 @@ module DiffusionEvolution
 
     include("analysis/train_and_analysis_pse1.jl")
     export run_analysis_pse1
+
+    include("analysis/plmdca_dhfr.jl")
+    export run_plmdca_analysis_dhfr
 end

@@ -110,7 +110,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 	contacts_plmdca = []
 	for i in 1:pairs_threshold
-		if contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
+		if true_contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
 			push!(contacts_plmdca, (plmdca_score[i][1], plmdca_score[i][2]))
 		end
 	end
@@ -124,11 +124,11 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 		model_score = model_scores[i]
 		new_contacts = []
 		for j in eachindex(1:pairs_threshold)
-			if !(Tuple(model_score[j, 1:2]) in contacts_plmdca) && (true_contacts[model_score[j, 1], model_score[j, 2]] > 0)
-				push!(new_contacts, Tuple(model_score[j, 1:2]))
+			if !(Tuple(Int.(model_score[j, 1:2])) in contacts_plmdca) && (true_contacts[Int(model_score[j, 1]), Int(model_score[j, 2])] > 0)
+				push!(new_contacts, Tuple(Int.(model_score[j, 1:2])))
 			end
 		end
-		ax[i].set_title(file_model_scores[i])
+		ax[i].set_title(basename(file_model_scores[i]))
 		ax[i].set_xlabel("site i")
 		ax[i].set_ylabel("site j")
 		ax[i].matshow(true_contacts, cmap="BuGn")
