@@ -118,23 +118,48 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	n_model_scores = length(file_model_scores)
 	model_scores = [readdlm(f, '\t', Float64) for f in file_model_scores]
 
-	fig, ax = subplots(1, n_model_scores, 6)
-	for i in eachindex(ax)
+	n_positive_contacts = zeros(n_model_scores)
+	n_new_contacts = zeros(n_model_scores)
+
+	println("n_model_scores: ", n_model_scores)
+
+	fig, ax = subplots(1, n_model_scores, 6; squeeze=false)
+
+	for i in 1:n_model_scores
 
 		model_score = model_scores[i]
 		new_contacts = []
-		for j in eachindex(1:pairs_threshold)
-			if !(Tuple(Int.(model_score[j, 1:2])) in contacts_plmdca) && (true_contacts[Int(model_score[j, 1]), Int(model_score[j, 2])] > 0)
-				push!(new_contacts, Tuple(Int.(model_score[j, 1:2])))
+		n_contacts = 0
+		n_add_contacts = 0
+		for j in 1:pairs_threshold
+			score_i = round(Int, model_score[j, 1])
+			score_j = round(Int, model_score[j, 2])
+			if (true_contacts[score_i, score_j] > 0)
+				n_contacts += 1
+				if !((score_i, score_j) in contacts_plmdca)
+					push!(new_contacts, (score_i, score_j))
+					n_add_contacts += 1
+				end
 			end
 		end
-		ax[i].set_title(basename(file_model_scores[i]))
-		ax[i].set_xlabel("site i")
-		ax[i].set_ylabel("site j")
-		ax[i].matshow(true_contacts, cmap="BuGn")
-		ax[i].scatter(map(x->x[1], new_contacts), map(x->x[2], new_contacts), color="orangered", s=5)
+		ax[1,i].set_title(basename(file_model_scores[i]))
+		ax[1,i].set_xlabel("site i")
+		ax[1,i].set_ylabel("site j")
+		ax[1,i].matshow(true_contacts, cmap="BuGn")
+		ax[1,i].scatter(map(x->x[1], new_contacts), map(x->x[2], new_contacts), color="orangered", s=5)
+
+		n_positive_contacts[i] = n_contacts
+		n_new_contacts[i] = n_add_contacts
 
 	end
 
-	return fig, ax
+	fig_n_contacts = figure()
+	ax_n_contacts = gca()
+	ax_n_contacts.plot(1:n_model_scores, n_positive_contacts, marker="o", label="positive contacts")
+	ax_n_contacts.plot(1:n_model_scores, n_new_contacts, marker="o", label="new contacts")
+	ax_n_contacts.axhline(length(contacts_plmdca), linestyle="dashed", color="red", label="plmdca")
+	ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
+	ax_n_contacts.legend()
+
+	return fig, ax, fig_n_contacts, ax_n_contacts
 end

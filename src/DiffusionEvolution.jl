@@ -4,7 +4,7 @@ module DiffusionEvolution
     using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles
 
     import PyPlot.subplots
-    subplots(x, y ,d) = PyPlot.subplots(x, y, figsize=(d*y, d*x))
+    subplots(x, y ,d; kwargs...) = PyPlot.subplots(x, y; figsize=(d*y, d*x), kwargs...)
 
     const Pars = Vector{Float64}
     const log2pi = log(2.0*π)
@@ -92,4 +92,7 @@ module DiffusionEvolution
 
     include("analysis/plmdca_dhfr.jl")
     export run_plmdca_analysis_dhfr
+
+    include("analysis/plmdca_pse1.jl")
+    export run_plmdca_analysis_pse1
 end

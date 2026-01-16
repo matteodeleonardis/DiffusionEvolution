@@ -1,4 +1,4 @@
-function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file_model_scores::Vector)
+function run_plmdca_analysis_pse1(;input_fasta, contacts_file, output_root, file_model_scores::Vector)
 
     if !ispath(output_root * ".score.jld2")
         output_plmdca = plmdca(input_fasta; min_separation=5)
@@ -12,7 +12,10 @@ function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file
         L = score_load["L"]
     end
 
-    true_contacts = npzread(contacts_file)
+    true_contacts=JLD2.load(contacts_file)["contacts"]
+    if true_contacts != true_contacts'
+        true_contacts += true_contacts'
+    end
     ppv_plmdca = compute_true_positives(plmdca_score, true_contacts, x -> x>0.0)
 
     #ppv curve
