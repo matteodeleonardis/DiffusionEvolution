@@ -27,12 +27,13 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     prior_J = 0.01
     prior_theta = 0.01
     prior_gamma = 0.001 #prior_J * d^2
+    whiten = true
 
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
 
     data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
-        weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
+        whiten=whiten, weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
         prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
 
@@ -81,7 +82,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     wt = aa2int.(uppercase(fasta_wt[1][2]))
     L = length(fasta_wt[1][2])
     A = 21
-    J_tens, h_tens, gamma = get_params_tens(x_opt, pca, d, epsilon_J, A, L, eps_warning=1.0e-4, set_zero=false)
+    J_tens, h_tens, gamma = get_params_tens(x_opt, pca, d, epsilon_J, A, L; whiten=whiten, eps_warning=1.0e-4, set_zero=false)
 
     #computing scores
     frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 

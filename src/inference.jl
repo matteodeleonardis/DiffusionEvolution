@@ -55,9 +55,14 @@ function fit_series(data, times=[])
 end
 
 
-function get_params_tens(x, pca, d, epsilon_J, A, L; eps_warning=1.0e-4, set_zero=false)
+function get_params_tens(x, pca, d, epsilon_J, A, L; whiten, epsilon_rel=1.0e-8, eps_warning=1.0e-4, set_zero=false)
 
     W_proj = Matrix(pca.proj[:,1:d]')
+    if whiten
+        lambda = principalvars(pca)
+        epsilon = epsilon_rel * maximum(lambda)
+        W_proj = (1.0 ./ sqrt.(lambda .+ epsilon)) .* W_proj
+    end
     J_tens, h_tens, gamma = get_potts_params(x, W_proj, pca.mean, d=d, epsilon=epsilon_J, A=A, L=L, eps_warn=eps_warning, set_zero=set_zero)
 
     return J_tens, h_tens, gamma

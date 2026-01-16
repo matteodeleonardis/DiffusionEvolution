@@ -46,7 +46,7 @@ module DiffusionEvolution
     function learn(file_nat, file_wt, file_rounds, times; 
 
         # options for data processing
-        weight=false, maxoutdim=10,
+        weight=false, maxoutdim=10, whiten=false,
 
         # generic options
         opt_pkg::Symbol, initialize=-1,  
@@ -64,7 +64,7 @@ module DiffusionEvolution
 
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
 
-        data_maxoutdim, pca = process_data(file_nat, file_wt, file_rounds, times; weight=weight, maxoutdim=maxoutdim)
+        data_maxoutdim, pca = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight, maxoutdim=maxoutdim)
         data = subdata(data_maxoutdim, d)
 
         x0 = randn(npars_gamma(data.d))

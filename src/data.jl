@@ -158,36 +158,41 @@ function compute_pca(fasta_files::Vector{String}, fasta_file_wt=nothing; weight,
     return pca
 end
 
-function apply_pca(pca, fasta_file_variants)
+function apply_pca(pca, fasta_file_variants; whiten, epsilon_rel=1.0e-8)
 
     Z, _, _ = read_fasta(fasta_file_variants)
     x_1hot = Float64.(reshape(Flux.onehotbatch(Z, collect(1:21)), :, size(Z,2)))
 
     x_pca = predict(pca, x_1hot)
+    if whiten
+        lambda = principalvars(pca)
+        epsilon = epsilon_rel * maximum(lambda)
+        x_pca = (1.0 ./ sqrt.(lambda .+ epsilon)) .* x_pca
+    end
     if size(x_pca, 2) == 1
         x_pca = dropdims(x_pca, dims=2)
     end
     return x_pca
 end
 
-function project_data(file_nat, file_wt, file_rounds; weight, maxoutdim)
+function project_data(file_nat, file_wt, file_rounds; weight, maxoutdim, whiten)
     
     pca = compute_pca([file_nat], file_wt; weight=weight, maxoutdim=maxoutdim)
-    x_pca_varaints = apply_pca(pca, file_rounds)
-    x_pca_wt = apply_pca(pca, [file_wt])
+    x_pca_variants = apply_pca(pca, file_rounds; whiten=whiten)
+    x_pca_wt = apply_pca(pca, [file_wt]; whiten=whiten)
 
-    return x_pca_varaints, x_pca_wt, pca
+    return x_pca_variants, x_pca_wt, pca
 end
 
 
-function process_data(file_nat, file_wt, file_rounds, times; weight=false, maxoutdim=10)
+function process_data(file_nat, file_wt, file_rounds, times; whiten, weight=false, maxoutdim=10)
 
     @assert length(file_rounds) == length(times) "Error: # of rounds and # of times must be equal. ($(length(file_rounds)) != $(length(times)))"
 
-    x_pca_varaints, x_pca_wt, pca = project_data(file_nat, file_wt, file_rounds; weight=weight, maxoutdim=maxoutdim)
+    x_pca_variants, x_pca_wt, pca = project_data(file_nat, file_wt, file_rounds; whiten=whiten, weight=weight, maxoutdim=maxoutdim)
     Z, w, wt = read_fasta(file_rounds, file_wt)
 
-    return collect_data(x_pca_wt, x_pca_varaints, w, times), pca
+    return collect_data(x_pca_wt, x_pca_variants, w, times), pca
 end
 
 
