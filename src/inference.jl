@@ -69,6 +69,15 @@ function get_params_tens(x, pca, d, epsilon_J, A, L; whiten, epsilon_rel=1.0e-8,
 end
 
 
+function estimate_gamma(data)
+
+    mu, sigma = fit_series(data)
+    sigma_traces = [tr(sigma[t]) for t in eachindex(data.time)]
+
+    return sum(sigma_traces)/(2.0*data.d*sum(data.time))
+end
+
+
 
 
 

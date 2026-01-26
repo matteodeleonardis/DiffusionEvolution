@@ -1,7 +1,7 @@
 module DiffusionEvolution
 
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
-    using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles
+    using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles, Printf
 
     import PyPlot.subplots
     subplots(x, y ,d; kwargs...) = PyPlot.subplots(x, y; figsize=(d*y, d*x), kwargs...)
@@ -37,7 +37,7 @@ module DiffusionEvolution
     export compute_norm, corr_APC, compute_true_positives, compute_frob_norm, contact_plot
 
     include("analysis.jl")
-    export compute_scores, print_contact_plot, compute_ppv, plot_distribution
+    export compute_scores, print_contact_plot, compute_ppv, plot_distribution, plot_gamma
 
     #simulation
     include("simulate/simulate_ou.jl")
@@ -63,6 +63,7 @@ module DiffusionEvolution
         stop_tol...)
 
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
+        println("Whitening set to: ", whiten)
 
         data_maxoutdim, pca = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight, maxoutdim=maxoutdim)
         data = subdata(data_maxoutdim, d)
@@ -75,7 +76,8 @@ module DiffusionEvolution
                 alg=nlopt_alg, maxtime=maxtime, maxeval=maxeval, stop_tol...)
         elseif opt_pkg == :Optim
             results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
-                lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
+                lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+                epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
                 alg=optim_alg, stop_tol...)
         end
 

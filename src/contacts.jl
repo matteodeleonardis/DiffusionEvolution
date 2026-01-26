@@ -106,10 +106,13 @@ function contact_plot(rank, contact, n_contacts; cmap="BuGn", color_pos="blue", 
 end
 
 
-function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold)
+function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold; 
+	min_dist_intermediate = 12, max_dist_intermediate = 23)
 
 	contacts_plmdca = []
+	predictions_plmdca = []
 	for i in 1:pairs_threshold
+		push!(predictions_plmdca, (plmdca_score[i][1], plmdca_score[i][2]))
 		if true_contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
 			push!(contacts_plmdca, (plmdca_score[i][1], plmdca_score[i][2]))
 		end
@@ -120,6 +123,9 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 	n_positive_contacts = zeros(n_model_scores)
 	n_new_contacts = zeros(n_model_scores)
+	n_new_contacts_intermediate = zeros(n_model_scores)
+	n_new_contacts_long = zeros(n_model_scores)
+	n_agree_predictions = zeros(n_model_scores)
 
 	println("n_model_scores: ", n_model_scores)
 
@@ -131,6 +137,9 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 		new_contacts = []
 		n_contacts = 0
 		n_add_contacts = 0
+		n_add_contacts_intermediate = 0
+		n_add_contacts_long = 0
+		n_agr_predictions = 0
 		for j in 1:pairs_threshold
 			score_i = round(Int, model_score[j, 1])
 			score_j = round(Int, model_score[j, 2])
@@ -139,7 +148,15 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 				if !((score_i, score_j) in contacts_plmdca)
 					push!(new_contacts, (score_i, score_j))
 					n_add_contacts += 1
+					if min_dist_intermediate <= abs(score_i - score_j) <= max_dist_intermediate
+						n_add_contacts_intermediate += 1
+					elseif abs(score_i - score_j) >= max_dist_intermediate + 1
+						n_add_contacts_long += 1
+					end
 				end
+			end
+			if (score_i, score_j) in predictions_plmdca
+				n_agr_predictions += 1
 			end
 		end
 		ax[1,i].set_title(basename(file_model_scores[i]))
@@ -150,15 +167,24 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 		n_positive_contacts[i] = n_contacts
 		n_new_contacts[i] = n_add_contacts
+		n_new_contacts_intermediate[i] = n_add_contacts_intermediate
+		n_new_contacts_long[i] = n_add_contacts_long
+		n_agree_predictions[i] = n_agr_predictions
 
 	end
 
 	fig_n_contacts = figure()
 	ax_n_contacts = gca()
-	ax_n_contacts.plot(1:n_model_scores, n_positive_contacts, marker="o", label="positive contacts")
-	ax_n_contacts.plot(1:n_model_scores, n_new_contacts, marker="o", label="new contacts")
+	msize = 3
+	d_label = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]
+	ax_n_contacts.plot(d_label, n_positive_contacts, marker="o", markersize=msize, label="positive contacts")
+	ax_n_contacts.plot(d_label, n_agree_predictions, marker="o", markersize=msize, label="plmdca agree")
+	ax_n_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts")
+	ax_n_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts (intermediate)")
+	ax_n_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="new contacts (long)") 
 	ax_n_contacts.axhline(length(contacts_plmdca), linestyle="dashed", color="red", label="plmdca")
-	ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
+	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
+	ax_n_contacts.set_ylim(0.0, length(contacts_plmdca)*1.05)
 	ax_n_contacts.legend()
 
 	return fig, ax, fig_n_contacts, ax_n_contacts

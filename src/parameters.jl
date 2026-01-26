@@ -52,9 +52,9 @@ function get_Hparameter(x::Pars, i::Int, d::Int)
 end
 
 
-function get_gamma(x::Pars, d::Int)
+function get_gamma(x::Pars, d::Int; beta=1.0)
 
-    return log1pexp(x[gamma_index(d)])
+    return logistic(beta*x[gamma_index(d)])
 end
 
 

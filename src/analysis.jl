@@ -151,3 +151,29 @@ function print_contact_plot(frobenius_score_zerosumgauge, frobenius_score_zerosu
 
     fig_contact.savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
 end
+
+function plot_gamma(output::Vector)
+
+    gammas = zeros(length(output))
+    gamma_est = zeros(length(output))
+    for i in eachindex(output)
+        pars_file = output[i] * ".pars.jld2"
+        data_file = output[i] * ".data.jld2"
+        x = JLD2.load(pars_file)["x_opt"]
+        data = JLD2.load(data_file)["data"]
+        gammas[i] = get_gamma(x, data.d)
+        gamma_est[i] = estimate_gamma(data)
+    end
+
+
+    figure()
+    fig = gcf()
+    ax = gca()
+
+    ax.plot(eachindex(gammas), gammas, label="inferred")
+    ax.plot(eachindex(gammas), gamma_est, label="empirical")
+    ax.legend()
+    ax.set_xticks(eachindex(gammas), [basename(o) for o in output], rotation=90)
+
+    return fig, ax, gammas, gamma_est
+end

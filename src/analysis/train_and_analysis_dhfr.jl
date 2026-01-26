@@ -26,21 +26,24 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     epsilon_sigma = 1e-12
     prior_J = 0.01
     prior_theta = 0.01
-    prior_gamma = 0.001 #prior_J * d^2
-    whiten = true
+    prior_gamma = 0.0001 #prior_J * d^2
+    whiten = false
 
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
 
     data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
         whiten=whiten, weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
-        prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+        prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma,
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
 
 
     x_opt = results.minimizer
     g_res = zeros(length(x_opt))
-    ll_opt = DiffusionEvolution.optim_wrapper_gamma(x_opt, g_res, data, lambda, prior_J, prior_theta, prior_gamma, epsilon_J, epsilon_sigma)
+    gamma_0 = estimate_gamma(data)
+    ll_opt = DiffusionEvolution.optim_wrapper_gamma(x_opt, g_res, data, lambda, 
+        prior_J, prior_theta, prior_gamma, 
+        epsilon_J, epsilon_sigma)
     #if gamma is at the border, set gradient to zero
     if x_opt[end] <= 1e-12
         g_res[end] = 0.0
@@ -50,6 +53,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         J_opt = DiffusionEvolution.compute_J(x_opt, d, epsilon_J)
         theta_opt = DiffusionEvolution.compute_theta(x_opt, d)
         print(io, "Gamma: ", DiffusionEvolution.get_gamma(results.minimizer, d), "\n")
+        print(io, "Gamma_0: ", gamma_0, "\n")
         print(io, "extrema |J|: ", extrema(abs.(J_opt)), "\n")
         print(io, "extrema |h|: ", extrema(abs.(theta_opt)), "\n")
         print(io, "x[gamma]: ", results.minimizer[end], "\n")

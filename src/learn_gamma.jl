@@ -1,4 +1,5 @@
-function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, prior_γ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
+function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, 
+    prior_γ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
 
     ll = 0.0
     J = compute_J(x, data.d, ϵ_J)
@@ -7,10 +8,10 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
-        ll += 2*sum(log, diag(C.U)) + data.d*log2pi
+        ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
         inv_Σ_x = C \ x_μ
-        ll += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)
+        ll += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)/data.d
     end
 
 
@@ -21,14 +22,15 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
         ll += prior_theta*sum(abs2, θ)/data.d
     end
     if prior_γ > 0.0
-        ll += prior_γ*(abs2(x[end]))
+        ll += prior_γ*abs2(log1pexp(-x[gamma_index(data.d)])) #it is -log(gamma) since gamma is 1/(1+exp(-x[gamma_index(data.d)]))
     end
 
     return  ll
 end
 
 
-function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, prior_γ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
+function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_J::Float64, 
+    prior_theta::Float64, prior_γ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -76,16 +78,16 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, 
+    epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
+
+    x_gamma_0 = logit(inv(data.time[end]))
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=1.0)
     elseif initialize>0
-        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=inv(data.time[end]))
+        init_cov!(x0, data.round[initialize].x, data.round[initialize].w, d=data.d, init_gamma=x_gamma_0)
     end
-
-    lower = vcat(fill(-Inf, npars(data.d)), 0.0)
-    upper = fill(+Inf, npars_gamma(data.d))
 
     function fg!(F,G,x)
 
