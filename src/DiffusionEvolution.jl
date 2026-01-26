@@ -46,7 +46,7 @@ module DiffusionEvolution
     function learn(file_nat, file_wt, file_rounds, times; 
 
         # options for data processing
-        weight=false, maxoutdim=10, whiten=false,
+        weight=false, whiten=false, extreme=false,
 
         # generic options
         opt_pkg::Symbol, initialize=-1,  
@@ -65,8 +65,8 @@ module DiffusionEvolution
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
         println("Whitening set to: ", whiten)
 
-        data_maxoutdim, pca = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight, maxoutdim=maxoutdim)
-        data = subdata(data_maxoutdim, d)
+        data, _ = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight,
+                                d=d, extreme=extreme)
 
         x0 = randn(npars_gamma(data.d))
 
@@ -81,7 +81,12 @@ module DiffusionEvolution
                 alg=optim_alg, stop_tol...)
         end
 
-        return data, pca, results
+        gamma_min_empirical = estimate_gamma(data)
+        model_settings = (weight=weight, whiten=whiten, extreme=extreme, d=d, initialize=initialize,
+                            lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+                            epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+
+        return results, model_settings, gamma_min_empirical, data
     end
 
     export learn

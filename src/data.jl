@@ -158,16 +158,25 @@ function compute_pca(fasta_files::Vector{String}, fasta_file_wt=nothing; weight,
     return pca
 end
 
-function apply_pca(pca, fasta_file_variants; whiten, epsilon_rel=1.0e-8)
+function apply_pca(pca, fasta_file_variants; whiten, extreme, d, epsilon_rel=1.0e-8)
 
     Z, _, _ = read_fasta(fasta_file_variants)
     x_1hot = Float64.(reshape(Flux.onehotbatch(Z, collect(1:21)), :, size(Z,2)))
 
-    x_pca = predict(pca, x_1hot)
+    x_pca = zeros(d, size(x_1hot, 2))
+    if !extreme
+        x_pca .= predict(pca, x_1hot)
+    else
+        d_large = div(d, 2) + (d%2)
+        d_small = div(d, 2)
+        extreme_proj = pca.proj[:,vcat(1:d_large, end-d_small+1:end)]
+        x_pca .= transpose(extreme_proj) * (x_1hot .- pca.mean)
+    end
+
     if whiten
         lambda = principalvars(pca)
         epsilon = epsilon_rel * maximum(lambda)
-        x_pca = (1.0 ./ sqrt.(lambda .+ epsilon)) .* x_pca
+        x_pca .= (1.0 ./ sqrt.(lambda .+ epsilon)) .* x_pca
     end
     if size(x_pca, 2) == 1
         x_pca = dropdims(x_pca, dims=2)
@@ -175,24 +184,36 @@ function apply_pca(pca, fasta_file_variants; whiten, epsilon_rel=1.0e-8)
     return x_pca
 end
 
-function project_data(file_nat, file_wt, file_rounds; weight, maxoutdim, whiten)
+function project_data(file_nat, file_wt, file_rounds; weight, maxoutdim, whiten, d, extreme)
     
     pca = compute_pca([file_nat], file_wt; weight=weight, maxoutdim=maxoutdim)
-    x_pca_variants = apply_pca(pca, file_rounds; whiten=whiten)
-    x_pca_wt = apply_pca(pca, [file_wt]; whiten=whiten)
+    x_pca_variants = apply_pca(pca, file_rounds; whiten=whiten, d=d, extreme=extreme)
+    x_pca_wt = apply_pca(pca, [file_wt]; whiten=whiten, d=d, extreme=extreme)
 
     return x_pca_variants, x_pca_wt, pca
 end
 
 
-function process_data(file_nat, file_wt, file_rounds, times; whiten, weight=false, maxoutdim=10)
+function process_data(file_nat, file_wt, file_rounds, times; whiten, weight=false, d, extreme=false)
 
     @assert length(file_rounds) == length(times) "Error: # of rounds and # of times must be equal. ($(length(file_rounds)) != $(length(times)))"
-
-    x_pca_variants, x_pca_wt, pca = project_data(file_nat, file_wt, file_rounds; whiten=whiten, weight=weight, maxoutdim=maxoutdim)
     Z, w, wt = read_fasta(file_rounds, file_wt)
+    A = 21
+    L = length(wt)
 
-    return collect_data(x_pca_wt, x_pca_variants, w, times), pca
+    if extreme
+        maxoutdim = L*A
+        @assert maxoutdim >= d "Error: maxoutdim must be >= d. ($(maxoutdim) < $(d))"
+        x_pca_variants, x_pca_wt, pca = project_data(file_nat, file_wt, file_rounds; 
+            whiten=whiten, weight=weight, maxoutdim=maxoutdim, extreme=extreme, d=d)
+        return collect_data(x_pca_wt, x_pca_variants, w, times), pca
+    else
+        maxoutdim = d
+        @assert maxoutdim >= d "Error: maxoutdim must be >= d. ($(maxoutdim) < $(d))"
+        x_pca_variants, x_pca_wt, pca = project_data(file_nat, file_wt, file_rounds; 
+            whiten=whiten, weight=weight, maxoutdim=maxoutdim, extreme=extreme, d=d)
+        return collect_data(x_pca_wt, x_pca_variants, w, times), pca
+    end
 end
 
 

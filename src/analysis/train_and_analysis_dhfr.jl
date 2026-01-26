@@ -32,7 +32,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
 
-    data, pca, results = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
+    results, model_settings, gamma_min, data = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
         whiten=whiten, weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
         prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma,
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
@@ -40,7 +40,6 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
 
     x_opt = results.minimizer
     g_res = zeros(length(x_opt))
-    gamma_0 = estimate_gamma(data)
     ll_opt = DiffusionEvolution.optim_wrapper_gamma(x_opt, g_res, data, lambda, 
         prior_J, prior_theta, prior_gamma, 
         epsilon_J, epsilon_sigma)
@@ -53,7 +52,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         J_opt = DiffusionEvolution.compute_J(x_opt, d, epsilon_J)
         theta_opt = DiffusionEvolution.compute_theta(x_opt, d)
         print(io, "Gamma: ", DiffusionEvolution.get_gamma(results.minimizer, d), "\n")
-        print(io, "Gamma_0: ", gamma_0, "\n")
+        print(io, "Gamma_min_empirical: ", gamma_min, "\n")
         print(io, "extrema |J|: ", extrema(abs.(J_opt)), "\n")
         print(io, "extrema |h|: ", extrema(abs.(theta_opt)), "\n")
         print(io, "x[gamma]: ", results.minimizer[end], "\n")
@@ -70,13 +69,9 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         print(io, "epsilon_sigma: ", epsilon_sigma, "\n")
 
     end
-    #save parameters
-    @save output_root * ".pars.jld2" x_opt
-
-    #save data
-    @save output_root * ".data.jld2" data
-    @save output_root * ".pca.jld2" pca
-
+    #save parameters and settings
+    @save output_root * ".pars.jld2" x_opt gamma_min
+    @save output_root * ".settings.jld2" model_settings
 
     #plot inferred distribution
     plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
