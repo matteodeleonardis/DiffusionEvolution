@@ -4,20 +4,22 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     # output_root="/home/matteo/.julia/dev/DiffusionEvolution/analysis/test_results/test"
     # contacts_file="/home/matteo/Projects/mDHFR/contacts_prediction/contact_map.npy"
 
+    data_dir = joinpath(@__DIR__, "../../data")
+
     # experiment data
-    file0 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/mDHFR.fasta"
-    file1 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round1_Q15_C10_aa.aln"
-    file2 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round2_Q15_C10_aa.aln"
-    file3 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round3_Q15_C10_aa.aln"
-    file4 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round4_Q15_C10_aa.aln"
-    file5 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Round5_Q15_C10_aa.aln"
-    file15 = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/Gen15_aa.aln"
+    file0 = joinpath(data_dir, "dhfr/mDHFR.fasta")
+    file1 = joinpath(data_dir, "dhfr/Round1_Q15_C10_aa.aln")
+    file2 = joinpath(data_dir, "dhfr/Round2_Q15_C10_aa.aln")
+    file3 = joinpath(data_dir, "dhfr/Round3_Q15_C10_aa.aln")
+    file4 = joinpath(data_dir, "dhfr/Round4_Q15_C10_aa.aln")
+    file5 = joinpath(data_dir, "dhfr/Round5_Q15_C10_aa.aln")
+    file15 = joinpath(data_dir, "dhfr/Gen15_aa.aln")
 
     times = [1,2,3,4,5, 15]
 
 
     # natural sequences
-    file_nat = "/home/students/s301803/diffusion_evolution/dev/data/dhfr/mDHFR_clean.fasta"
+    file_nat = joinpath(data_dir, "dhfr/mDHFR_clean.fasta")
     #file_nat = file1
 
     #training
@@ -26,14 +28,15 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     epsilon_sigma = 1e-12
     prior_J = 0.01
     prior_theta = 0.01
-    prior_gamma = 0.0001 #prior_J * d^2
+    prior_gamma = 0.01 #prior_J * d^2
     whiten = false
+    extreme = false
 
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
 
-    results, model_settings, gamma_min, data = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
-        whiten=whiten, weight=false, maxoutdim=d, opt_pkg=opt_pkg, d=d, initialize=length(times), 
+    results, model_settings, gamma_min, data, pca = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
+        whiten=whiten, extreme=extreme, weight=false, opt_pkg=opt_pkg, d=d, initialize=length(times), 
         prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma,
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
 
@@ -61,16 +64,17 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         print(io, "max |g|: ", maximum(abs.(g_res)), "\n")
         print(io, "max |g|/|f|: ", maximum(abs.(g_res))/ll_opt, "\n")
         print(io, "\n")
-        print(io, "lambda: ", lambda, "\n")
-        print(io, "prior_J: ", prior_J, "\n")
-        print(io, "prior_theta: ", prior_theta, "\n")
-        print(io, "prior_gamma: ", prior_gamma, "\n")
-        print(io, "epsilon_J: ", epsilon_J, "\n")
-        print(io, "epsilon_sigma: ", epsilon_sigma, "\n")
+        print(io, "MODEL SETTINGS: \n ")
+        for (name, value) in pairs(model_settings)
+            println(io, "$(name): $(value)")
+        end
 
     end
+
+    ratio_tvar = pca.tprinvar / pca.tvar
+
     #save parameters and settings
-    @save output_root * ".pars.jld2" x_opt gamma_min
+    @save output_root * ".pars.jld2" x_opt gamma_min ratio_tvar
     @save output_root * ".settings.jld2" model_settings
 
     #plot inferred distribution

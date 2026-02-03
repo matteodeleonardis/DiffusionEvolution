@@ -161,7 +161,7 @@ function plot_gamma(output::Vector)
         settings_file = output[i] * ".settings.jld2"
         x = JLD2.load(pars_file)["x_opt"]
         gamma_min = JLD2.load(pars_file)["gamma_min"]
-        d = JLD2.load(settings_file)["model_settings"]["d"]
+        d = JLD2.load(settings_file)["model_settings"].d
         gammas[i] = get_gamma(x, d)
         gamma_est[i] = gamma_min
     end

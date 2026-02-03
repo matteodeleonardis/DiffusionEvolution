@@ -46,6 +46,18 @@ function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file
     println(out_gamma, "gamma empirical: \t", join(string.(gamma_est), "\t"))
     close(out_gamma)
 
+    #ratio_tvar plot
+    dlabel = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]
+    ratio_tvar = map(file_model_scores) do f
+        file_par = split(basename(f), ".")[1] * ".pars.jld2"
+        r = JLD2.load(joinpath(dirname(f), file_par))["ratio_tvar"]
+        return r
+    end
+    fig_rtvar = figure()
+    ax_rtvar = gca()
+    ax_rtvar.plot(dlabel, ratio_tvar, marker="o")
+    fig_rtvar.savefig(output_root * ".ratio_tvar.png", format="png", bbox_inches="tight")
+
 
 
 end

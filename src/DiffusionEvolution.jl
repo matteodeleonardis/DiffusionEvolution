@@ -65,7 +65,7 @@ module DiffusionEvolution
         @assert opt_pkg in [:NLopt, :Optim] "Only :NLopt and :Optim are allowed for [opt_pkg] option."
         println("Whitening set to: ", whiten)
 
-        data, _ = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight,
+        data, pca = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight,
                                 d=d, extreme=extreme)
 
         x0 = randn(npars_gamma(data.d))
@@ -86,7 +86,7 @@ module DiffusionEvolution
                             lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
                             epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
 
-        return results, model_settings, gamma_min_empirical, data
+        return results, model_settings, gamma_min_empirical, data, pca
     end
 
     export learn
