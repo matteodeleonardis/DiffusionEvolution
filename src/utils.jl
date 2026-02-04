@@ -152,3 +152,36 @@ function safe_cholesky(M; jitter=0.0, max_tries=5)
     end
     return nothing
 end
+
+
+function get_potts_params_null(x0::Vector{Float64}, Wproj::Matrix{Float64}, x_mean::Vector{Float64}; d::Int, 
+    A::Int, L::Int, eps_warn = 1.0e-4, set_zero=false)
+
+    @assert size(Wproj, 1) <= size(Wproj, 2) #projects on a smaller space
+    @assert L*A == size(Wproj, 2)
+
+    sigma_null = I(d)
+    θ_null = x0
+    J_potts = -(Wproj')*sigma_null*Wproj
+    h_potts = vec(2 * ((Wproj*x_mean)' + θ_null') * J_null * Wproj)
+    h_potts_tens = reshape(h_potts, A, L)
+    J_potts_tens = permutedims(reshape(J_potts, A, L, A, L), (1,3,2,4))
+    flag_warning = false
+
+    for i in axes(J_potts_tens, 3)
+        for a in 1:A
+            h_potts_tens[a,i] += J_potts_tens[a,a,i,i]
+            J_potts_tens[a,a,i,i] = 0.0
+        end
+
+        if set_zero
+            if (!flag_warning) && (maximum(abs.(J_potts_tens[:,:,i,i])) > eps_warn)
+                println("Warning: possibly large value neglected in couplings J (>= $(eps_warn))")
+                flag_warning = true
+            end
+            J_potts_tens[:,:,i,i] .= 0.0
+        end
+    end
+
+    return (J_potts_tens, h_potts_tens)
+end

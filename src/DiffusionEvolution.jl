@@ -93,9 +93,15 @@ module DiffusionEvolution
 
     include("analysis/train_and_analysis_dhfr.jl")
     export run_analysis_dhfr
+    
+    include("analysis/compute_null_model_dhfr.jl")
+    export run_analysis_dhfr_null_model
 
     include("analysis/train_and_analysis_pse1.jl")
     export run_analysis_pse1
+    
+    include("analysis/compute_null_model_pse1.jl")
+    export run_analysis_pse1_null_model
 
     include("analysis/plmdca_dhfr.jl")
     export run_plmdca_analysis_dhfr
