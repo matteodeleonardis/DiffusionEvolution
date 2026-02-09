@@ -129,6 +129,8 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 	println("n_model_scores: ", n_model_scores)
 
+	d_label = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]
+
 	fig, ax = subplots(1, n_model_scores, 6; squeeze=false)
 
 	for i in 1:n_model_scores
@@ -159,7 +161,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 				n_agr_predictions += 1
 			end
 		end
-		ax[1,i].set_title(basename(file_model_scores[i]))
+		ax[1,i].set_title("Predicted Additional Contacts (d=$(d_label[i]))")
 		ax[1,i].set_xlabel("site i")
 		ax[1,i].set_ylabel("site j")
 		ax[1,i].matshow(true_contacts, cmap="BuGn")
@@ -176,9 +178,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	fig_n_contacts = figure()
 	ax_n_contacts = gca()
 	msize = 3
-	d_label = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]
 	ax_n_contacts.plot(d_label, n_positive_contacts, marker="o", markersize=msize, label="positive contacts")
-	ax_n_contacts.plot(d_label, n_agree_predictions, marker="o", markersize=msize, label="plmdca agree")
 	ax_n_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts")
 	ax_n_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts (intermediate)")
 	ax_n_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="new contacts (long)") 
@@ -186,6 +186,20 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
 	ax_n_contacts.set_ylim(0.0, length(contacts_plmdca)*1.05)
 	ax_n_contacts.legend()
+	ax_n_contacts.set_xlabel("d")
+	ax_n_contacts.set_ylabel("number of contacts")
+	ax_n_contacts.set_title("Predicted Additional Contacts")
 
-	return fig, ax, fig_n_contacts, ax_n_contacts
+	fig_acc = figure()
+	ax_acc = gca()
+	ax_acc.plot(d_label, n_agree_predictions, marker="o", markersize=msize, label="agreement with PlmDCA")
+	ax_acc.axhline(pairs_threshold, linestyle="dashed", color="red", label="number of predictions")
+	ax_acc.set_ylim(0.0, pairs_threshold*1.05)
+	ax_acc.legend()
+	ax_acc.set_xlabel("d")
+	ax_acc.set_ylabel("number of predictions")
+	ax_acc.set_title("Agreement with PlmDCA")
+
+
+	return fig, ax, fig_n_contacts, ax_n_contacts, fig_acc, ax_acc 
 end

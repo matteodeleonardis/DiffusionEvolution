@@ -31,9 +31,10 @@ function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file
     gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
     
     #new contacts plot
-    fig, ax, fig_n_contacts, ax_n_contacts = compare_new_contacts(plmdca_score, true_contacts, file_model_scores, div(L,2))
+    fig, ax, fig_n_contacts, ax_n_contacts, fig_acc, ax_acc = compare_new_contacts(plmdca_score, true_contacts, file_model_scores, div(L,2))
     fig.savefig(output_root * ".new_contacts.png", format="png", bbox_inches="tight")
     fig_n_contacts.savefig(output_root * ".n_contacts.png", format="png", bbox_inches="tight")
+    fig_acc.savefig(output_root * ".prediction_agreement.png", format="png", bbox_inches="tight")
 
     #gamma plot
     output_files=[joinpath(dirname(f), split(basename(f), ".")[1]) for f in file_model_scores]
