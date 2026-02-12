@@ -69,19 +69,6 @@ function get_params_tens(x, pca, d, epsilon_J, A, L; whiten, epsilon_rel=1.0e-8,
 end
 
 
-function get_params_tens_null(x0, pca, d, A, L; whiten, epsilon_rel=1.0e-8, eps_warning=1.0e-4, set_zero=false)
-    W_proj = Matrix(pca.proj[:,1:d]')
-    if whiten
-        lambda = principalvars(pca)
-        epsilon = epsilon_rel * maximum(lambda)
-        W_proj = (1.0 ./ sqrt.(lambda .+ epsilon)) .* W_proj
-    end
-    J_tens, h_tens = get_potts_params_null(x0, W_proj, pca.mean, d=d, A=A, L=L, eps_warn=eps_warning, set_zero=set_zero)
-
-    return J_tens, h_tens
-end
-
-
 function estimate_gamma(data)
 
     mu, sigma = fit_series(data)

@@ -25,7 +25,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file
     #contact plot
     figure()
     ax=gca()
-    contact_plot(plmdca_score, true_contacts, L, ax=ax)
+    contact_plot(plmdca_score, true_contacts, div(L,2), ax=ax)
     ax.set_xlabel("site i")
     ax.set_ylabel("site j")
     gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
@@ -59,6 +59,49 @@ function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file
     ax_rtvar.plot(dlabel, ratio_tvar, marker="o")
     fig_rtvar.savefig(output_root * ".ratio_tvar.png", format="png", bbox_inches="tight")
 
+    #ppv comparison
+    fig_ppv, ax_ppv = subplots(1, length(file_model_scores), 6)
+    for i in eachindex(file_model_scores)
+        scores_d = []
+        open(file_model_scores[i], "r") do io
+            for line in eachline(io)
+                si, sj, score = split(line)
+                push!(scores_d, (parse(Int, si), parse(Int, sj), parse(Float64, score)))
+            end
+            ppv_d = compute_true_positives(scores_d, true_contacts, x -> x>0.0)
+            ax_ppv[i].plot(ppv_plmdca[1:L], label="PlmDCA")
+            ax_ppv[i].plot(ppv_d[1:L], label="OU model")
+            ax_ppv[i].set_xticks([0, L÷2, L], ["0", "L/2", "L"])
+            ax_ppv[i].set_ylabel("positive prediction fraction")
+            ax_ppv[i].set_title("PPV curve (d=$(dlabel[i]))")
+            ax_ppv[i].set_ylim(0.0, 1.05)
+            ax_ppv[i].legend()
+        end
+    end
+    fig_ppv.savefig(output_root * ".ppv_compare.png", format="png", bbox_inches="tight")
+
+    #contact plot comparison
+    fig_cont, ax_cont = subplots(1, length(file_model_scores), 6)
+    for i in eachindex(file_model_scores)
+        scores_d = []
+        open(file_model_scores[i], "r") do io
+            for line in eachline(io)
+                si, sj, score = split(line)
+                push!(scores_d, (parse(Int, si), parse(Int, sj), parse(Float64, score)))
+            end
+            contact_plot(plmdca_score, true_contacts, div(L,2); color_pos="purple", ax=ax_cont[i], flip=true)
+            contact_plot(scores_d, true_contacts, div(L,2); color_pos="blue", ax=ax_cont[i])
+            ax_cont[i].set_xlabel("site i")
+            ax_cont[i].set_ylabel("site j")
+            ax_cont[i].set_title("Contact Map Predictions (d=$(dlabel[i]))")
+
+            ax_cont[i].scatter([], [], color="purple", label="positive prediction PlmDCA")
+            ax_cont[i].scatter([], [], color="blue", label="postive prediction OU model")
+            ax_cont[i].scatter([], [], color="red", label="incorrect prediction")
+            ax_cont[i].legend(loc="lower left", bbox_to_anchor=(1.05, 0.0))
+        end
+    end
+    fig_cont.savefig(output_root * ".contact_map_compare.png", format="png", bbox_inches="tight")
 
 
 end

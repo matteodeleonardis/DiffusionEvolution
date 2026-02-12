@@ -2,7 +2,7 @@
 
 code="$1"
 env_path="/home/students/s301803/CODE/DiffusionEvolution/scripts"
-max_threads=2
+max_threads=4
 shift
 d_val=("$@")
 
