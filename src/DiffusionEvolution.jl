@@ -108,4 +108,16 @@ module DiffusionEvolution
 
     include("analysis/evcouplings_pse1.jl")
     export run_evcouplings_analysis_pse1
+
+    include("simulate/random_experiment.jl")
+    export generate_random_data
+
+    include("analysis/train_and_analysis_random_dhfr.jl")
+    export run_analysis_random_dhfr
+
+    include("analysis/low_rank_mf_dhfr.jl")
+    export run_low_rank_mf_analysis_dhfr
+
+    include("analysis/low_rank_mf_pse1.jl")
+    export run_low_rank_mf_analysis_pse1
 end
