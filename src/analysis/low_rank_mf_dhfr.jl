@@ -28,7 +28,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
             end
 
             W_proj = Matrix(pca.proj[:,1:d]')
-            J_low_rank = -(W_proj')*diagm(principalvars(pca)[1:d])*W_proj
+            J_low_rank = -(W_proj')*diagm(inv.(principalvars(pca)[1:d]))*W_proj
             J_low_rank_tens = permutedims(reshape(J_low_rank, A, L, A, L), (1,3,2,4))
 
             for i in axes(J_low_rank_tens, 3)
@@ -61,6 +61,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
         ax_ppv.plot(ppv_frobenius_zerosumgauge_apc[1:L], label="zerosumgauge_apc")
         xticks([0, L÷2, L], ["0", "L/2", "L"])
         fig_ppv.savefig(path_score * ".ppv.png", format="png", bbox_inches="tight")
+        close(fig_ppv)
 
         #compare predictions
         low_rank_score = frobenius_score_zerosumgauge_apc
@@ -131,6 +132,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 	ax_n_contacts.set_ylabel("number of contacts")
 	ax_n_contacts.set_title("Predicted Additional Contacts")
     fig_n_contacts.savefig(output_root * ".n_contacts_low_rank.png", format="png", bbox_inches="tight")
+    close(fig_n_contacts)
 
 	fig_acc = figure()
 	ax_acc = gca()
@@ -142,4 +144,5 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 	ax_acc.set_ylabel("number of predictions")
 	ax_acc.set_title("Agreement with Low-rank MF")
     fig_acc.savefig(output_root * ".agreement_low_rank.png", format="png", bbox_inches="tight")
+    close(fig_acc)
 end
