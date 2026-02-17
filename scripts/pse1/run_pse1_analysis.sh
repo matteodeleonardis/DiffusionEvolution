@@ -2,7 +2,7 @@
 
 code="$1"
 env_path="/home/students/s301803/CODE/DiffusionEvolution/scripts"
-max_threads=6
+max_threads=12
 shift
 d_val=("$@")
 
@@ -22,7 +22,7 @@ do
         OPENBLAS_NUM_THREADS=${max_threads} \
         MKL_NUM_THREADS=${max_threads} \
         VECLIB_MAXIMUM_THREADS=${max_threads} \
-        JULIA_NUM_THREADS=${max_threads} \
+        JULIA_NUM_THREADS=1 \
         julia --project=${env_path} pse1_analysis.jl ${d} ${output_root} \
          > ${stdout_log} 2> ${stderr_log}"
 done
