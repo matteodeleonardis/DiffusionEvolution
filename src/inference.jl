@@ -2,7 +2,11 @@ function infer_series(x, data, times=[]; lambda=0.0, epsilon_J=0.0, epsilon_sigm
     
     J = compute_J(x, data.d, epsilon_J)
     theta = compute_theta(x, data.d)
-    gamma = get_gamma(x, data.d)
+    if length(x) == npars_gamma(data.d)
+        gamma = get_gamma(x, data.d)
+    else
+        gamma = 1.0
+    end
 
     sigma = Dict{Int, Matrix{Float64}}()
     mu = Dict{Int, Vector{Float64}}()

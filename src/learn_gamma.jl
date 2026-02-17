@@ -156,10 +156,9 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
 end
 
 
-function learn_gamma_fixed(data::Data; x0=randn(npars(data.d)), initialize=-1,
+function learn_fixed_optim(data::Data; x0=randn(npars(data.d)), initialize=-1,
     alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, 
     epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
-
 
     if initialize == 0
         init_id!(x0, d=data.d)

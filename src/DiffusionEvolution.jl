@@ -19,7 +19,7 @@ module DiffusionEvolution
     export learn_nlopt, iterative_maximization, optimize_pars_gd!, learn_optim, line_search_optimization
 
     include("learn_gamma.jl")
-    export learn_gamma_nlopt, learn_gamma_optim, learn_gamma_unconstrained_optim, optimize_gd!
+    export learn_gamma_nlopt, learn_gamma_optim, learn_fixed_optim, learn_gamma_unconstrained_optim, optimize_gd!
 
     include("learn_gamma_l1.jl")
     export learn_gamma_nlopt_l1, learn_gamma_optim_l1, optimize_gd_l1!
@@ -68,20 +68,18 @@ module DiffusionEvolution
         data, pca = process_data(file_nat, file_wt, file_rounds, times; whiten=whiten, weight=weight,
                                 d=d, extreme=extreme)
 
-        x0 = randn(npars_gamma(data.d))
-
         if opt_pkg == :NLopt
             results =learn_gamma_nlopt(data; x0=x0, initialize=initialize, 
                 lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma,
                 alg=nlopt_alg, maxtime=maxtime, maxeval=maxeval, stop_tol...)
         elseif opt_pkg == :Optim
             if fixed == false
-                results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
+                results = learn_gamma_optim(data; initialize=initialize, 
                     lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
                     epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
                     alg=optim_alg, stop_tol...)
             else
-                results = learn_gamma_fixed(data; x0=x0, initialize=initialize, 
+                results = learn_fixed_optim(data; initialize=initialize, 
                     lambda=lambda, prior_J=prior_J, prior_theta=prior_theta,
                     epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
                     alg=optim_alg, stop_tol...)
@@ -89,9 +87,10 @@ module DiffusionEvolution
         end
 
         gamma_min_empirical = estimate_gamma(data)
+        num_params = length(results.minimizer)
         model_settings = (weight=weight, fixed=fixed, whiten=whiten, extreme=extreme, d=d, initialize=initialize,
                             lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
-                            epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+                            epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, num_params=num_params)
 
         return results, model_settings, gamma_min_empirical, data, pca
     end

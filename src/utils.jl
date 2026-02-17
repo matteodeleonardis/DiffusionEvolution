@@ -109,10 +109,11 @@ function get_potts_params(x::Pars, Wproj::Matrix{Float64}, x_mean::Vector{Float6
             J_potts_tens[:,:,i,i] .= 0.0
         end
     end
-    
-    γ = -1.0
+     
     if length(x)==npars_gamma(d)
-        γ = x[end]
+        γ = get_gamma(x, d)
+    else
+        γ = 1.0
     end
 
     return (J_potts_tens, h_potts_tens, γ)
