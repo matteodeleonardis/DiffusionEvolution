@@ -46,7 +46,7 @@ module DiffusionEvolution
     function learn(file_nat, file_wt, file_rounds, times; 
 
         # options for data processing
-        weight=false, whiten=false, extreme=false,
+        weight=false, whiten=false, extreme=false, fixed=false,
 
         # generic options
         opt_pkg::Symbol, initialize=-1,  
@@ -75,14 +75,21 @@ module DiffusionEvolution
                 lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma,
                 alg=nlopt_alg, maxtime=maxtime, maxeval=maxeval, stop_tol...)
         elseif opt_pkg == :Optim
-            results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
-                lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
-                epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
-                alg=optim_alg, stop_tol...)
+            if fixed == false
+                results = learn_gamma_optim(data; x0=x0, initialize=initialize, 
+                    lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+                    epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
+                    alg=optim_alg, stop_tol...)
+            else
+                results = learn_gamma_fixed(data; x0=x0, initialize=initialize, 
+                    lambda=lambda, prior_J=prior_J, prior_theta=prior_theta,
+                    epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
+                    alg=optim_alg, stop_tol...)
+            end
         end
 
         gamma_min_empirical = estimate_gamma(data)
-        model_settings = (weight=weight, whiten=whiten, extreme=extreme, d=d, initialize=initialize,
+        model_settings = (weight=weight, fixed=fixed, whiten=whiten, extreme=extreme, d=d, initialize=initialize,
                             lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
                             epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
 

@@ -28,14 +28,14 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
         x0[Hindex(i, d)] = m[i]
     end  
     
-    if init_gamma > 0.0
+    if length(x0) == npars_gamma(d)
         x0[gamma_index(d)] = init_gamma
     end
 end
 
 function init_id!(x0::Pars; d, init_gamma = -1.0)
 
-    println("Initializing parameters with identity.")
+    #println("Initializing parameters with identity.")
     J = I(d)
 
     for i in 1:d
@@ -45,7 +45,7 @@ function init_id!(x0::Pars; d, init_gamma = -1.0)
         x0[Hindex(i, d)] = 0.0
     end  
     
-    if init_gamma > 0.0
+    if length(x0) == npars_gamma(d)
         x0[gamma_index(d)] = init_gamma
     end
 end
