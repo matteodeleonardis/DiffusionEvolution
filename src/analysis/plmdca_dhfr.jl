@@ -1,4 +1,4 @@
-function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file_model_scores::Vector)
+function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, fixed, file_model_scores::Vector)
 
     if !ispath(output_root * ".score.jld2")
         output_plmdca = plmdca(input_fasta; min_separation=5)
@@ -38,14 +38,16 @@ function run_plmdca_analysis_dhfr(;input_fasta, contacts_file, output_root, file
 
     #gamma plot
     output_files=[joinpath(dirname(f), split(basename(f), ".")[1]) for f in file_model_scores]
-    fig_gamma, ax_gamma, gammas, gamma_est = plot_gamma(output_files)
-    fig_gamma.savefig(output_root * ".gamma.png", format="png", bbox_inches="tight")
-    out_gamma = open(output_root * ".gamma.txt", "w")
-    print(out_gamma, "\t")
-    println(out_gamma, join(output_files, "\t"))
-    println(out_gamma, "gamma inferred: \t", join(string.(gammas), "\t"))
-    println(out_gamma, "gamma empirical: \t", join(string.(gamma_est), "\t"))
-    close(out_gamma)
+    if fixed == false
+        fig_gamma, ax_gamma, gammas, gamma_est = plot_gamma(output_files)
+        fig_gamma.savefig(output_root * ".gamma.png", format="png", bbox_inches="tight")
+        out_gamma = open(output_root * ".gamma.txt", "w")
+        print(out_gamma, "\t")
+        println(out_gamma, join(output_files, "\t"))
+        println(out_gamma, "gamma inferred: \t", join(string.(gammas), "\t"))
+        println(out_gamma, "gamma empirical: \t", join(string.(gamma_est), "\t"))
+        close(out_gamma)
+    end
 
     #ratio_tvar plot
     dlabel = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]

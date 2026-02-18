@@ -1,6 +1,7 @@
 #!/bin/bash
 
 dir_files=$1
+gamma=$2
 
 input_fasta="/home/students/s301803/CODE/DiffusionEvolution/data/pse1/PSE1_clean.fasta"
 output_root="/home/students/s301803/CODE/DiffusionEvolution/results/pse1/${dir_files}/plmdca"
@@ -19,4 +20,4 @@ mapfile -t model_score_files < <(
 )
 
 
-julia $(dirname "$0")/plmdca_analysis.jl $input_fasta $output_root "${model_score_files[@]}"
+julia $(dirname "$0")/plmdca_analysis.jl $input_fasta $output_root $gamma "${model_score_files[@]}"

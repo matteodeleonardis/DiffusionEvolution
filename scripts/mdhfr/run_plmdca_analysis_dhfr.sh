@@ -1,6 +1,7 @@
 #!/bin/bash
 
 dir_files=$1
+gamma=$2
 input_fasta="/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR_clean.fasta"
 output_root="/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/${dir_files}/plmdca"
 output_dir=$(dirname "$output_root")
@@ -19,6 +20,6 @@ mapfile -t model_score_files < <(
 
 #debug_file=("/home/students/s301803/diffusion_evolution/dev/analysis/mdhfr/run0/mdhfr_analysis_d_50/mdhfr_analysis_d_50.scores.zerosumgauge_apc.tsv")
 
-julia $(dirname "$0")/plmdca_analysis.jl $input_fasta $output_root "${model_score_files[@]}"
+julia $(dirname "$0")/plmdca_analysis.jl $input_fasta $output_root $gamma "${model_score_files[@]}"
 
 #"${debug_file[@]}"
