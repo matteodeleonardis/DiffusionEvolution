@@ -1,10 +1,10 @@
-function run_plmdca_analysis_pse1(;input_fasta, contacts_file, output_root, fixed, file_model_scores::Vector)
+function run_plmdca_analysis_pse1(;input_fasta, plmdca_dir, contacts_file, output_root, fixed, file_model_scores::Vector)
 
     if !ispath(output_root * ".score.jld2")
         output_plmdca = plmdca(input_fasta; min_separation=5)
         _, L = size(output_plmdca.htensor)
         plmdca_score = output_plmdca.score
-        @save output_root * ".score.jld2" plmdca_score L
+        @save plmdca_dir * "plmdca.score.jld2" plmdca_score L
     else
         println("Loading plmdca scores.")
         score_load = JLD2.load(output_root * ".score.jld2")

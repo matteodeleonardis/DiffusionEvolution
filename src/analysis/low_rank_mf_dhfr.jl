@@ -3,6 +3,17 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 
     true_contacts = npzread(contacts_file)
 
+    output_dir = dirname(output_root)
+    if ispath(joinpath(output_dir, "plmdca.score.jld2"))
+        println("Loading plmdca scores.")
+        score_load = JLD2.load(joinpath(output_dir, "plmdca.score.jld2"))
+        plmdca_score = score_load["plmdca_score"]
+        L = score_load["L"]
+    else
+        println("PlmDCA scores not found. Run PlmDCA before and try again...")
+        return
+    end
+
     L = length(readfasta(wt_fasta)[1][2])
     A=21
     pca = nothing
@@ -12,6 +23,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 
     n_positive_contacts_ou = zeros(n_model_scores)
     n_positive_contacts_low_rank = zeros(n_model_scores)
+    n_new_contacts_low_rank = zeros(n_model_scores)
     n_new_contacts = zeros(n_model_scores)
     n_new_contacts_intermediate = zeros(n_model_scores)
     n_new_contacts_long = zeros(n_model_scores)
@@ -19,6 +31,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
     n_agree_predictions = zeros(n_model_scores)
 
     fig_new_contacts, ax_new_contacts = subplots(1, n_model_scores, 6; squeeze=false)
+    fig_new_contacts_low_rank, ax_new_contacts_low_rank = subplots(1, n_model_scores, 6; squeeze=false)
 
     for (di, d) in pairs(d_values)
         path_score = joinpath(low_rank_mf_dir, "low_rank_mf_$d")
@@ -66,13 +79,37 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
         #compare predictions
         low_rank_score = frobenius_score_zerosumgauge_apc
         contacts_low_rank = []
+        contacts_plmdca = []
+        new_contacts_low_rank = []
         predictions_low_rank = []
+
+        for i in 1:div(L,2)
+            if true_contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
+                push!(contacts_plmdca, (plmdca_score[i][1], plmdca_score[i][2]))
+            end
+        end
+
         for i in 1:div(L,2)
             push!(predictions_low_rank, (low_rank_score[i][1], low_rank_score[i][2]))
             if true_contacts[low_rank_score[i][1], low_rank_score[i][2]] > 0
                 push!(contacts_low_rank, (low_rank_score[i][1], low_rank_score[i][2]))
             end
         end
+
+        n_add_contacts_low_rank = 0
+        for c in contacts_low_rank
+            if !(c in contacts_plmdca)
+                n_add_contacts_low_rank += 1
+                push!(new_contacts_low_rank, c)
+            end
+        end
+        n_new_contacts_low_rank[di] = n_add_contacts_low_rank
+
+        ax_new_contacts_low_rank[1,di].set_title("Predicted Additional Contacts (d=$(d_values[di]))")
+        ax_new_contacts_low_rank[1,di].set_xlabel("site i")
+        ax_new_contacts_low_rank[1,di].set_ylabel("site j")
+        ax_new_contacts_low_rank[1,di].matshow(true_contacts, cmap="BuGn")
+        ax_new_contacts_low_rank[1,di].scatter(map(x->x[1], new_contacts_low_rank), map(x->x[2], new_contacts_low_rank), color="orangered", s=5)
 
         model_score = readdlm(file_model_scores[di], '\t', Float64)
         new_contacts = []
@@ -117,15 +154,17 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
     end
 
     fig_new_contacts.savefig(output_root * ".new_contacts_low_rank.png", format="png", bbox_inches="tight")
+    fig_new_contacts_low_rank.savefig(output_root * ".new_contacts_low_rank_vs_plmdca.png", format="png", bbox_inches="tight")
 
     fig_n_contacts = figure()
     ax_n_contacts = gca()
     msize = 3
-	ax_n_contacts.plot(d_values, n_positive_contacts_ou, marker="o", markersize=msize, label="positive contacts (OU)")
-    ax_n_contacts.plot(d_values, n_positive_contacts_low_rank, marker="o", markersize=msize, label="positive contacts (low-rank)")
-	ax_n_contacts.plot(d_values, n_new_contacts, marker="o", markersize=msize, label="new contacts")
-	ax_n_contacts.plot(d_values, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts (intermediate)")
-	ax_n_contacts.plot(d_values, n_new_contacts_long, marker="o", markersize=msize, label="new contacts (long)") 
+	ax_n_contacts.plot(d_values, n_positive_contacts_ou, marker="o", markersize=msize, label="positive contacts OU")
+    ax_n_contacts.plot(d_values, n_positive_contacts_low_rank, marker="o", markersize=msize, label="positive contacts low-rank")
+    ax_n_contacts.plot(d_values, n_new_contacts_low_rank, marker="o", markersize=msize, label="new contacts low-rank")
+	ax_n_contacts.plot(d_values, n_new_contacts, marker="o", markersize=msize, label="new contacts OU")
+	ax_n_contacts.plot(d_values, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts OU (intermediate)")
+	ax_n_contacts.plot(d_values, n_new_contacts_long, marker="o", markersize=msize, label="new contacts OU (long)") 
 	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
 	ax_n_contacts.legend()
 	ax_n_contacts.set_xlabel("d")
