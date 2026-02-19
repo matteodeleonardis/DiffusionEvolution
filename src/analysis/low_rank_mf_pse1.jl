@@ -189,4 +189,12 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
 	ax_acc.set_title("Agreement with Low-rank MF")
     fig_acc.savefig(output_root * ".agreement_low_rank.png", format="png", bbox_inches="tight")
     close(fig_acc)
+
+    if isnothing(pca)
+        pca = compute_pca([input_fasta], wt_fasta; weight=false, maxoutdim=A*L)
+    end
+    x_pca = apply_pca(pca, [input_fasta]; whiten=false, extreme=false, d=2)
+    fig_pca = hist2d_with_marginals(x_pca[1,:], x_pca[2, :], bins=50)
+    fig_pca.savefig(output_root * ".pca.png", format="png", bbox_inches="tight")
+    close(fig_pca)
 end

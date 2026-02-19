@@ -165,7 +165,7 @@ function apply_pca(pca, fasta_file_variants; whiten, extreme, d, epsilon_rel=1.0
 
     x_pca = zeros(d, size(x_1hot, 2))
     if !extreme
-        x_pca .= predict(pca, x_1hot)
+        x_pca .= predict(pca, x_1hot)[1:d,:]
     else
         d_large = div(d, 2) + (d%2)
         d_small = div(d, 2)

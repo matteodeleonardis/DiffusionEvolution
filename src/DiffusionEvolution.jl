@@ -28,7 +28,7 @@ module DiffusionEvolution
     export learn_small_gamma_nlopt, optimize_small_gamma_gd!, learn_small_gamma_optim
 
     include("utils.jl")
-    export compute_energy, compute_weight, get_potts_params, compute_entropy
+    export compute_energy, compute_weight, get_potts_params, compute_entropy, hist2d_with_marginals
 
     include("inference.jl")
     export infer_series, fit_series, get_params_tens

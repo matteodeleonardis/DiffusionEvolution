@@ -153,3 +153,48 @@ function safe_cholesky(M; jitter=0.0, max_tries=5)
     end
     return nothing
 end
+
+#plot
+function hist2d_with_marginals(x, y; bins=60, figsize=(8,8))
+
+    fig = figure(figsize=figsize)
+
+    # Create GridSpec layout
+    gs = PyPlot.matplotlib[:gridspec][:GridSpec](
+        2, 2,
+        Dict(
+            :width_ratios  => [4, 1],
+            :height_ratios => [1, 4],
+            :hspace => 0.05,
+            :wspace => 0.05
+        )
+    )
+
+    ax_top   = fig[:add_subplot](gs[0, 0])
+    ax_main  = fig[:add_subplot](gs[1, 0], sharex=ax_top)
+    ax_right = fig[:add_subplot](gs[1, 1], sharey=ax_main)
+
+    # 2D histogram
+    h = ax_main[:hist2d](x, y, bins=bins)
+    fig[:colorbar](h[4], ax=ax_main)
+
+    ax_main[:set_xlabel]("Component 1")
+    ax_main[:set_ylabel]("Component 2")
+
+    # Marginals
+    ax_top[:hist](x, bins=bins)
+    ax_right[:hist](y, bins=bins, orientation="horizontal")
+
+    # Clean appearance
+    ax_top[:tick_params](labelbottom=false)
+    ax_right[:tick_params](labelleft=false)
+
+    ax_top[:spines][:right][:set_visible](false)
+    ax_top[:spines][:top][:set_visible](false)
+    ax_right[:spines][:right][:set_visible](false)
+    ax_right[:spines][:top][:set_visible](false)
+
+    fig[:tight_layout]()
+
+    return fig
+end
