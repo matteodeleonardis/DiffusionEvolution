@@ -106,7 +106,7 @@ function contact_plot(rank, contact, n_contacts; cmap="BuGn", color_pos="blue", 
 end
 
 
-function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold; 
+function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold, label; 
 	min_dist_intermediate = 12, max_dist_intermediate = 23)
 
 	contacts_plmdca = []
@@ -179,16 +179,25 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	ax_n_contacts = gca()
 	msize = 3
 	ax_n_contacts.plot(d_label, n_positive_contacts, marker="o", markersize=msize, label="positive contacts")
-	ax_n_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts")
-	ax_n_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts (intermediate)")
-	ax_n_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="new contacts (long)") 
-	ax_n_contacts.axhline(length(contacts_plmdca), linestyle="dashed", color="red", label="plmdca")
+	ax_n_contacts.axhline(length(contacts_plmdca), linestyle="dashed", color="red", label=label)
 	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
 	ax_n_contacts.set_ylim(0.0, length(contacts_plmdca)*1.05)
 	ax_n_contacts.legend()
 	ax_n_contacts.set_xlabel("d")
 	ax_n_contacts.set_ylabel("number of contacts")
 	ax_n_contacts.set_title("Predicted Additional Contacts")
+
+	fig_n_new_contacts = figure()
+	ax_n_new_contacts = gca()
+	ax_n_new_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts")
+	ax_n_new_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts (intermediate)")
+	ax_n_new_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="new contacts (long)") 
+	ax_n_new_contacts.legend()
+	ax_n_new_contacts.set_xlabel("d")
+	ax_n_new_contacts.set_ylabel("number of contacts")
+	ax_n_new_contacts.set_title("Predicted Additional Contacts")
+
+
 
 	fig_acc = figure()
 	ax_acc = gca()
@@ -201,5 +210,5 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	ax_acc.set_title("Agreement with PlmDCA")
 
 
-	return fig, ax, fig_n_contacts, ax_n_contacts, fig_acc, ax_acc 
+	return fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc 
 end

@@ -166,10 +166,6 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
     msize = 3
 	ax_n_contacts.plot(d_values, n_positive_contacts_ou, marker="o", markersize=msize, label="positive contacts OU")
     ax_n_contacts.plot(d_values, n_positive_contacts_low_rank, marker="o", markersize=msize, label="positive contacts low-rank")
-    ax_n_contacts.plot(d_values, n_new_contacts_low_rank, marker="o", markersize=msize, label="new contacts low-rank")
-	ax_n_contacts.plot(d_values, n_new_contacts, marker="o", markersize=msize, label="new contacts OU")
-	ax_n_contacts.plot(d_values, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts OU (intermediate)")
-	ax_n_contacts.plot(d_values, n_new_contacts_long, marker="o", markersize=msize, label="new contacts OU (long)") 
 	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
 	ax_n_contacts.legend()
 	ax_n_contacts.set_xlabel("d")
@@ -177,6 +173,20 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
 	ax_n_contacts.set_title("Predicted Additional Contacts")
     fig_n_contacts.savefig(output_root * ".n_contacts_low_rank.png", format="png", bbox_inches="tight")
     close(fig_n_contacts)
+
+    fig_n_new_contacts = figure()
+    ax_n_new_contacts = gca()
+    ax_n_new_contacts.plot(d_values, n_new_contacts_low_rank, marker="o", markersize=msize, label="new contacts low-rank")
+	ax_n_new_contacts.plot(d_values, n_new_contacts, marker="o", markersize=msize, label="new contacts OU")
+	ax_n_new_contacts.plot(d_values, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts OU (intermediate)")
+	ax_n_new_contacts.plot(d_values, n_new_contacts_long, marker="o", markersize=msize, label="new contacts OU (long)") 
+	ax_n_new_contacts.legend()
+	ax_n_new_contacts.set_xlabel("d")
+	ax_n_new_contacts.set_ylabel("number of contacts")
+	ax_n_new_contacts.set_title("Predicted Additional Contacts")
+    fig_n_new_contacts.savefig(output_root * ".n_new_contacts_low_rank.png", format="png", bbox_inches="tight")
+    close(fig_n_new_contacts)
+
 
 	fig_acc = figure()
 	ax_acc = gca()
