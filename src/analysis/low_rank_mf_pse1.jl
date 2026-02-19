@@ -13,7 +13,7 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
         plmdca_score = score_load["plmdca_score"]
         L = score_load["L"]
     else
-        println("PlmDCA scores not found. Run PlmDCA before and try again...")
+        println("PlmDCA scores not found at: $(joinpath(output_dir, "plmdca.score.jld2")). Run PlmDCA before and try again...")
         return
     end
 
@@ -26,16 +26,20 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
 
     n_positive_contacts_ou = zeros(n_model_scores)
     n_positive_contacts_low_rank = zeros(n_model_scores)
-    n_new_contacts_low_rank = zeros(n_model_scores)
-    n_new_contacts = zeros(n_model_scores)
-    n_new_contacts_intermediate = zeros(n_model_scores)
-    n_new_contacts_long = zeros(n_model_scores)
+    n_new_contacts_low_rank_vs_plmdca = zeros(n_model_scores)
+    n_new_contacts_low_rank_vs_plmdca_intermediate = zeros(n_model_scores)
+    n_new_contacts_low_rank_vs_plmdca_long = zeros(n_model_scores)
+    n_new_contacts_ou_vs_plmdca = zeros(n_model_scores)
+    n_new_contacts_ou_vs_plmdca_intermediate = zeros(n_model_scores)
+    n_new_contacts_ou_vs_plmdca_long = zeros(n_model_scores)
+    n_new_contacts_ou_vs_low_rank = zeros(n_model_scores)
+    n_new_contacts_ou_vs_low_rank_intermediate = zeros(n_model_scores)
+    n_new_contacts_ou_vs_low_rank_long = zeros(n_model_scores)
 
-    n_agree_predictions = zeros(n_model_scores)
+    n_agree_predictions_ou_vs_low_rank = zeros(n_model_scores)
 
     fig_new_contacts, ax_new_contacts = subplots(1, n_model_scores, 6; squeeze=false)
-    fig_new_contacts_low_rank, ax_new_contacts_low_rank = subplots(1, n_model_scores, 6; squeeze=false)
-
+    
     for (di, d) in pairs(d_values)
         path_score = joinpath(low_rank_mf_dir, "low_rank_mf_$d")
         if !ispath(path_score * ".tsv")
@@ -84,7 +88,11 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
         low_rank_score = frobenius_score_zerosumgauge_apc
         contacts_low_rank = []
         contacts_plmdca = []
-        new_contacts_low_rank = []
+        new_contacts_low_rank_vs_plmdca = []
+        n_add_contacts_low_rank_vs_plmdca = 0
+        n_add_contacts_low_rank_vs_plmdca_intermediate = 0
+        n_add_contacts_low_rank_vs_plmdca_long = 0
+        new_contacts_ou_vs_plmdca = []
         predictions_low_rank = []
 
         for i in 1:div(L,2)
@@ -100,47 +108,58 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
             end
         end
 
-        n_add_contacts_low_rank = 0
+        n_add_contacts_low_rank_vs_plmdca = 0
         for c in contacts_low_rank
             if !(c in contacts_plmdca)
-                n_add_contacts_low_rank += 1
-                push!(new_contacts_low_rank, c)
+                n_add_contacts_low_rank_vs_plmdca += 1
+                push!(new_contacts_low_rank_vs_plmdca, c)
+                if min_dist_intermediate <= abs(c[1] - c[2]) <= max_dist_intermediate
+                    n_add_contacts_low_rank_vs_plmdca_intermediate += 1
+                elseif abs(c[1] - c[2]) >= max_dist_intermediate + 1
+                    n_add_contacts_low_rank_vs_plmdca_long += 1
+                end
             end
         end
-        n_new_contacts_low_rank[di] = n_add_contacts_low_rank
-
-        ax_new_contacts_low_rank[1,di].set_title("Predicted Additional Contacts (d=$(d_values[di]))")
-        ax_new_contacts_low_rank[1,di].set_xlabel("site i")
-        ax_new_contacts_low_rank[1,di].set_ylabel("site j")
-        ax_new_contacts_low_rank[1,di].matshow(true_contacts, cmap="BuGn")
-        ax_new_contacts_low_rank[1,di].scatter(map(x->x[1], new_contacts_low_rank), map(x->x[2], new_contacts_low_rank), color="orangered", s=5)
+        n_new_contacts_low_rank_vs_plmdca[di] = n_add_contacts_low_rank_vs_plmdca
 
 
         model_score = readdlm(file_model_scores[di], '\t', Float64)
-        new_contacts = []
+        new_contacts_ou_vs_low_rank = []
         n_contacts_low_rank = length(contacts_low_rank)
         n_contacts_ou = 0
-        n_add_contacts = 0
-        n_add_contacts_intermediate = 0
-        n_add_contacts_long = 0
-        n_agr_predictions = 0
+        n_add_contacts_ou_vs_low_rank = 0
+        n_add_contacts_ou_vs_low_rank_intermediate = 0
+        n_add_contacts_ou_vs_low_rank_long = 0
+        n_add_contacts_ou_vs_plmdca = 0
+        n_add_contacts_ou_vs_plmdca_intermediate = 0
+        n_add_contacts_ou_vs_plmdca_long = 0
+        n_agr_predictions_ou_vs_low_rank = 0
         for j in 1:div(L,2)
             score_i = round(Int, model_score[j, 1])
             score_j = round(Int, model_score[j, 2])
             if (true_contacts[score_i, score_j] > 0)
                 n_contacts_ou += 1
                 if !((score_i, score_j) in contacts_low_rank)
-                    push!(new_contacts, (score_i, score_j))
-                    n_add_contacts += 1
+                    push!(new_contacts_ou_vs_low_rank, (score_i, score_j))
+                    n_add_contacts_ou_vs_low_rank += 1
                     if min_dist_intermediate <= abs(score_i - score_j) <= max_dist_intermediate
-                        n_add_contacts_intermediate += 1
+                        n_add_contacts_ou_vs_low_rank_intermediate += 1
                     elseif abs(score_i - score_j) >= max_dist_intermediate + 1
-                        n_add_contacts_long += 1
+                        n_add_contacts_ou_vs_low_rank_long += 1
+                    end
+                end
+                if !((score_i, score_j) in contacts_plmdca)
+                    push!(new_contacts_ou_vs_plmdca, (score_i, score_j))
+                    n_add_contacts_ou_vs_plmdca += 1
+                    if min_dist_intermediate <= abs(score_i - score_j) <= max_dist_intermediate
+                        n_add_contacts_ou_vs_plmdca_intermediate += 1
+                    elseif abs(score_i - score_j) >= max_dist_intermediate + 1
+                        n_add_contacts_ou_vs_plmdca_long += 1
                     end
                 end
             end
             if (score_i, score_j) in predictions_low_rank
-                n_agr_predictions += 1
+                n_agr_predictions_ou_vs_low_rank += 1
             end
         end
 
@@ -148,18 +167,25 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
         ax_new_contacts[1,di].set_xlabel("site i")
         ax_new_contacts[1,di].set_ylabel("site j")
         ax_new_contacts[1,di].matshow(true_contacts, cmap="BuGn")
-        ax_new_contacts[1,di].scatter(map(x->x[1], new_contacts), map(x->x[2], new_contacts), color="orangered", s=5)
+        ax_new_contacts[1,di].scatter(map(x->x[1], new_contacts_ou_vs_plmdca), map(x->x[2], new_contacts_ou_vs_plmdca), 
+            color="orangered", s=5, label="new contacts (ou vs plmdca)")
+        ax_new_contacts[1,di].scatter(map(x->x[2], new_contacts_low_rank_vs_plmdca), map(x->x[1], new_contacts_low_rank_vs_plmdca), 
+            color="red", s=5, label="new contacts (low-rank vs plmdca)")
 
         n_positive_contacts_ou[di] = n_contacts_ou
         n_positive_contacts_low_rank[di] = n_contacts_low_rank
-        n_new_contacts[di] = n_add_contacts
-        n_new_contacts_intermediate[di] = n_add_contacts_intermediate
-        n_new_contacts_long[di] = n_add_contacts_long
-        n_agree_predictions[di] = n_agr_predictions
+        n_new_contacts_ou_vs_low_rank[di] = n_add_contacts_ou_vs_low_rank
+        n_new_contacts_ou_vs_low_rank_intermediate[di] = n_add_contacts_ou_vs_low_rank_intermediate
+        n_new_contacts_ou_vs_low_rank_long[di] = n_add_contacts_ou_vs_low_rank_long
+        n_new_contacts_ou_vs_plmdca[di] = n_add_contacts_ou_vs_plmdca
+        n_new_contacts_ou_vs_plmdca_intermediate[di] = n_add_contacts_ou_vs_plmdca_intermediate
+        n_new_contacts_ou_vs_plmdca_long[di] = n_add_contacts_ou_vs_plmdca_long
+        n_new_contacts_low_rank_vs_plmdca_intermediate[di] = n_add_contacts_low_rank_vs_plmdca_intermediate
+        n_new_contacts_low_rank_vs_plmdca_long[di] = n_add_contacts_low_rank_vs_plmdca_long
+        n_agree_predictions_ou_vs_low_rank[di] = n_agr_predictions_ou_vs_low_rank
     end
 
-    fig_new_contacts.savefig(output_root * ".new_contacts_low_rank.png", format="png", bbox_inches="tight")
-    fig_new_contacts_low_rank.savefig(output_root * ".new_contacts_low_rank_vs_plmdca.png", format="png", bbox_inches="tight")
+    fig_new_contacts.savefig(output_root * ".new_contacts_vs_plmdca.png", format="png", bbox_inches="tight")
 
     fig_n_contacts = figure()
     ax_n_contacts = gca()
@@ -171,26 +197,39 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
 	ax_n_contacts.set_xlabel("d")
 	ax_n_contacts.set_ylabel("number of contacts")
 	ax_n_contacts.set_title("Predicted Additional Contacts")
-    fig_n_contacts.savefig(output_root * ".n_contacts_low_rank.png", format="png", bbox_inches="tight")
+    fig_n_contacts.savefig(output_root * ".n_contacts_ou_vs_low_rank.png", format="png", bbox_inches="tight")
     close(fig_n_contacts)
 
     fig_n_new_contacts = figure()
     ax_n_new_contacts = gca()
-    ax_n_new_contacts.plot(d_values, n_new_contacts_low_rank, marker="o", markersize=msize, label="new contacts low-rank")
-	ax_n_new_contacts.plot(d_values, n_new_contacts, marker="o", markersize=msize, label="new contacts OU")
-	ax_n_new_contacts.plot(d_values, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts OU (intermediate)")
-	ax_n_new_contacts.plot(d_values, n_new_contacts_long, marker="o", markersize=msize, label="new contacts OU (long)") 
+	ax_n_new_contacts.plot(d_values, n_new_contacts_ou_vs_low_rank, marker="o", markersize=msize, label="new contacts OU vs low-rank")
+	ax_n_new_contacts.plot(d_values, n_new_contacts_ou_vs_low_rank_intermediate, marker="o", markersize=msize, label="new contacts OU vs low-rank (intermediate)")
+	ax_n_new_contacts.plot(d_values, n_new_contacts_ou_vs_low_rank_long, marker="o", markersize=msize, label="new contacts OU vs low-rank (long)") 
 	ax_n_new_contacts.legend()
 	ax_n_new_contacts.set_xlabel("d")
 	ax_n_new_contacts.set_ylabel("number of contacts")
 	ax_n_new_contacts.set_title("Predicted Additional Contacts")
-    fig_n_new_contacts.savefig(output_root * ".n_new_contacts_low_rank.png", format="png", bbox_inches="tight")
+    fig_n_new_contacts.savefig(output_root * ".n_new_contacts_ou_vs_low_rank.png", format="png", bbox_inches="tight")
     close(fig_n_new_contacts)
 
+    fig_n_new_contacts_plmdca = figure()
+    ax_n_new_contacts_plmdca = gca()
+	ax_n_new_contacts_plmdca.plot(d_values, n_new_contacts_ou_vs_plmdca, marker="o", markersize=msize, label="new contacts OU vs plmdca")
+	ax_n_new_contacts_plmdca.plot(d_values, n_new_contacts_ou_vs_plmdca_intermediate, marker="o", markersize=msize, label="new contacts OU vs plmdca (intermediate)")
+	ax_n_new_contacts_plmdca.plot(d_values, n_new_contacts_ou_vs_plmdca_long, marker="o", markersize=msize, label="new contacts OU vs plmdca (long)") 
+    ax_n_new_contacts_plmdca.plot(d_values, n_new_contacts_low_rank_vs_plmdca, marker="o", markersize=msize, label="new contacts low-rank vs plmdca")
+	ax_n_new_contacts_plmdca.plot(d_values, n_new_contacts_low_rank_vs_plmdca_intermediate, marker="o", markersize=msize, label="new contacts low-rank vs plmdca (intermediate)")
+	ax_n_new_contacts_plmdca.plot(d_values, n_new_contacts_low_rank_vs_plmdca_long, marker="o", markersize=msize, label="new contacts low-rank vs plmdca (long)") 
+	ax_n_new_contacts_plmdca.legend()
+	ax_n_new_contacts_plmdca.set_xlabel("d")
+	ax_n_new_contacts_plmdca.set_ylabel("number of contacts")
+	ax_n_new_contacts_plmdca.set_title("Predicted Additional Contacts")
+    fig_n_new_contacts_plmdca.savefig(output_root * ".n_new_contacts_vs_plmdca.png", format="png", bbox_inches="tight")
+    close(fig_n_new_contacts_plmdca)
 
 	fig_acc = figure()
 	ax_acc = gca()
-	ax_acc.plot(d_values, n_agree_predictions, marker="o", markersize=msize, label="agreement with PlmDCA")
+	ax_acc.plot(d_values, n_agree_predictions_ou_vs_low_rank, marker="o", markersize=msize, label="agreement with PlmDCA")
 	ax_acc.axhline(div(L,2), linestyle="dashed", color="red", label="number of predictions")
 	ax_acc.set_ylim(0.0, div(L,2)*1.05)
 	ax_acc.legend()
