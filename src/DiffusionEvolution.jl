@@ -126,4 +126,7 @@ module DiffusionEvolution
 
     include("analysis/low_rank_mf_pse1.jl")
     export run_low_rank_mf_analysis_pse1
+
+    include("analysis/J_divergence.jl")
+    export J_divergence
 end
