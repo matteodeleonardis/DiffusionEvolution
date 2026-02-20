@@ -27,32 +27,66 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
 
     end
 
+    J_div_score_grad = derivative_nonuniform(d_values, J_div_score)
+    J_div_score_grad = [(v<J_div_score_grad[1]) ? NaN : v for v in J_div_score_grad]
+    off_diag_energy_grad = derivative_nonuniform(d_values, off_diag_energy)
+    off_diag_energy_grad = [(v>off_diag_energy_grad[1]) ? NaN : v for v in off_diag_energy_grad]
+    spectrum_dev_grad = derivative_nonuniform(d_values, spectrum_dev)
+    spectrum_dev_grad = [(v<spectrum_dev_grad[1]) ? NaN : v for v in spectrum_dev_grad]
+
     fig_Jdiv = figure()
     ax_Jdiv = gca()
-    ax_Jdiv.plot(d_values, J_div_score)
+    ax_Jdiv.plot(d_values, J_div_score, marker="o")
     ax_Jdiv.set_xlabel("d")
     ax_Jdiv.set_ylabel("value")
     ax_Jdiv.set_title("J divergence")
     fig_Jdiv.savefig(output_root * ".J_divergence.png", format="png", bbox_inches="tight")
     close(fig_Jdiv)
 
+    fig_Jdiv_grad = figure()
+    ax_Jdiv_grad = gca()
+    ax_Jdiv_grad.plot(d_values, J_div_score_grad ./ J_div_score_grad[1], marker="o")
+    ax_Jdiv_grad.set_xlabel("d")
+    ax_Jdiv_grad.set_ylabel("value (normalized)")
+    ax_Jdiv_grad.set_title("J divergence derivative")
+    fig_Jdiv_grad.savefig(output_root * ".J_divergence_derivative.png", format="png", bbox_inches="tight")
+    close(fig_Jdiv_grad)
+
     fig_Jode = figure()
     ax_Jode = gca()
-    ax_Jode.plot(d_values, off_diag_energy)
+    ax_Jode.plot(d_values, off_diag_energy, marker="o")
     ax_Jode.set_xlabel("d")
     ax_Jode.set_ylabel("value")
     ax_Jode.set_title("J off-diagonal energy")
     fig_Jode.savefig(output_root * ".J_off_diagonal_energy.png", format="png", bbox_inches="tight")
     close(fig_Jode)
 
+    fig_Jode_grad = figure()
+    ax_Jode_grad = gca()
+    ax_Jode_grad.plot(d_values, off_diag_energy_grad ./ off_diag_energy_grad[1], marker="o")
+    ax_Jode_grad.set_xlabel("d")
+    ax_Jode_grad.set_ylabel("value (normalized)")
+    ax_Jode_grad.set_title("J off-diagonal energy derivative")
+    fig_Jode_grad.savefig(output_root * ".J_off_diagonal_energy_derivative.png", format="png", bbox_inches="tight")
+    close(fig_Jode_grad)
+
     fig_specdev = figure()
     ax_specdev = gca()
-    ax_specdev.plot(d_values, spectrum_dev)
+    ax_specdev.plot(d_values, spectrum_dev, marker="o")
     ax_specdev.set_xlabel("d")
     ax_specdev.set_ylabel("value")
     ax_specdev.set_title("J spectrum deviation")
     fig_specdev.savefig(output_root * ".J_spectrum_deviation.png", format="png", bbox_inches="tight")
     close(fig_specdev)
+
+    fig_specdev_grad = figure()
+    ax_specdev_grad = gca()
+    ax_specdev_grad.plot(d_values, spectrum_dev_grad ./ spectrum_dev_grad[1], marker="o")
+    ax_specdev_grad.set_xlabel("d")
+    ax_specdev_grad.set_ylabel("value (normalized)")
+    ax_specdev_grad.set_title("J spectrum deviation derivative")
+    fig_specdev_grad.savefig(output_root * ".J_spectrum_deviation_derivative.png", format="png", bbox_inches="tight")
+    close(fig_specdev_grad)
 
 end
 

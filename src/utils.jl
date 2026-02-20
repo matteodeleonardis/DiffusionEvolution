@@ -198,3 +198,28 @@ function hist2d_with_marginals(x, y; bins=60, figsize=(8,8))
 
     return fig
 end
+
+
+function derivative_nonuniform(x, y)
+    n = length(x)
+    dy = similar(y)
+
+    # Forward difference (first point)
+    dy[1] = (y[2] - y[1]) / (x[2] - x[1])
+
+    # Central differences (non-uniform grid)
+    for i in 2:n-1
+        h1 = x[i] - x[i-1]
+        h2 = x[i+1] - x[i]
+
+        dy[i] =
+            (-h2/(h1*(h1+h2))) * y[i-1] +
+            ((h2-h1)/(h1*h2))  * y[i]   +
+            (h1/(h2*(h1+h2)))  * y[i+1]
+    end
+
+    # Backward difference (last point)
+    dy[n] = (y[n] - y[n-1]) / (x[n] - x[n-1])
+
+    return dy
+end
