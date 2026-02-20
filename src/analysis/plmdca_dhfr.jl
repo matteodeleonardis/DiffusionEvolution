@@ -17,8 +17,11 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
 
     #ppv curve
     figure()
-    plot(ppv_plmdca[1:L], label="plmdca")
+    plot(ppv_plmdca[1:L], label="PlmDCA")
+    title("PPV curve PlmDCA")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
+    xlabel("number of pairs")
+    ylabel("fraction correct predictions")
     legend()
     gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
 
@@ -28,10 +31,13 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     contact_plot(plmdca_score, true_contacts, div(L,2), ax=ax)
     ax.set_xlabel("site i")
     ax.set_ylabel("site j")
+    ax.scatter([], [], color="blue", label="correct prediction")
+    ax.scatter([], [], color="red", label="incorrect prediction")
+    ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
     gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
     
     #new contacts plot
-    fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc = compare_new_contacts(plmdca_score, true_contacts, file_model_scores, div(L,2))
+    fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc = compare_new_contacts(plmdca_score, true_contacts, file_model_scores, div(L,2), "PlmDCA")
     fig.savefig(output_root * ".new_contacts.png", format="png", bbox_inches="tight")
     fig_n_contacts.savefig(output_root * ".n_contacts.png", format="png", bbox_inches="tight")
     fig_n_new_contacts.savefig(output_root * ".n_new_contacts.png", format="png", bbox_inches="tight")
@@ -60,6 +66,9 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     fig_rtvar = figure()
     ax_rtvar = gca()
     ax_rtvar.plot(dlabel, ratio_tvar, marker="o")
+    ax_rtvar.set_xlabel("d")
+    ax_rtvar.set_ylabel("total variance fraction")
+    ax_rtvar.set_title("Fraction of Explained Variance from Natural Sequences")
     fig_rtvar.savefig(output_root * ".ratio_tvar.png", format="png", bbox_inches="tight")
 
     #ppv comparison
@@ -84,7 +93,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     fig_ppv.savefig(output_root * ".ppv_compare.png", format="png", bbox_inches="tight")
 
     #contact plot comparison
-    fig_cont, ax_cont = subplots(1, length(file_model_scores), 6)
+    fig_cont, ax_cont = subplots(1, length(file_model_scores), 6, constrained_layout=true)
     for i in eachindex(file_model_scores)
         scores_d = []
         open(file_model_scores[i], "r") do io
@@ -101,7 +110,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
             ax_cont[i].scatter([], [], color="purple", label="positive prediction PlmDCA")
             ax_cont[i].scatter([], [], color="blue", label="postive prediction OU model")
             ax_cont[i].scatter([], [], color="red", label="incorrect prediction")
-            ax_cont[i].legend(loc="lower left", bbox_to_anchor=(1.05, 0.0))
+            ax_cont[i].legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
         end
     end
     fig_cont.savefig(output_root * ".contact_map_compare.png", format="png", bbox_inches="tight")

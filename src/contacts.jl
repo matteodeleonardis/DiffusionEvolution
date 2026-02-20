@@ -185,7 +185,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	ax_n_contacts.legend()
 	ax_n_contacts.set_xlabel("d")
 	ax_n_contacts.set_ylabel("number of contacts")
-	ax_n_contacts.set_title("Predicted Additional Contacts")
+	ax_n_contacts.set_title("Correctly Predicted Contacts")
 
 	fig_n_new_contacts = figure()
 	ax_n_new_contacts = gca()
@@ -195,19 +195,19 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	ax_n_new_contacts.legend()
 	ax_n_new_contacts.set_xlabel("d")
 	ax_n_new_contacts.set_ylabel("number of contacts")
-	ax_n_new_contacts.set_title("Predicted Additional Contacts")
+	ax_n_new_contacts.set_title("Correctly Predicted Additional Contacts")
 
 
 
 	fig_acc = figure()
 	ax_acc = gca()
-	ax_acc.plot(d_label, n_agree_predictions, marker="o", markersize=msize, label="agreement with PlmDCA")
+	ax_acc.plot(d_label, n_agree_predictions, marker="o", markersize=msize, label="agreement")
 	ax_acc.axhline(pairs_threshold, linestyle="dashed", color="red", label="number of predictions")
 	ax_acc.set_ylim(0.0, pairs_threshold*1.05)
 	ax_acc.legend()
 	ax_acc.set_xlabel("d")
-	ax_acc.set_ylabel("number of predictions")
-	ax_acc.set_title("Agreement with PlmDCA")
+	ax_acc.set_ylabel("number of common predictions")
+	ax_acc.set_title("Agreement with $label")
 
 
 	return fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc 
