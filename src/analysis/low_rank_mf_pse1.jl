@@ -24,6 +24,7 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
 
     n_model_scores = length(file_model_scores)
 
+    n_contacts_plmdca = 0
     n_positive_contacts_ou = zeros(n_model_scores)
     n_positive_contacts_low_rank = zeros(n_model_scores)
     n_new_contacts_low_rank_vs_plmdca = zeros(n_model_scores)
@@ -103,6 +104,9 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
             if true_contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
                 push!(contacts_plmdca, (plmdca_score[i][1], plmdca_score[i][2]))
             end
+        end
+        if n_contacts_plmdca == 0
+            n_contacts_plmdca = length(contacts_plmdca)
         end
 
         for i in 1:div(L,2)
@@ -196,8 +200,9 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
     fig_n_contacts = figure()
     ax_n_contacts = gca()
     msize = 3
-	ax_n_contacts.plot(d_values, n_positive_contacts_ou, marker="o", markersize=msize, label="positive contacts OU")
-    ax_n_contacts.plot(d_values, n_positive_contacts_low_rank, marker="o", markersize=msize, label="positive contacts low-rank")
+	ax_n_contacts.plot(d_values, n_positive_contacts_ou, marker="o", markersize=msize, label="positive predictions OU")
+    ax_n_contacts.plot(d_values, n_positive_contacts_low_rank, marker="o", markersize=msize, label="positive predictions low-rank")
+    ax_n_contacts.axhline(n_contacts_plmdca, linestyle="dashed", color="red", label="PlmDCA positive predictions")
 	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
 	ax_n_contacts.legend()
 	ax_n_contacts.set_xlabel("d")
