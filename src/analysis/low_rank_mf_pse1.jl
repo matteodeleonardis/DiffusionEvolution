@@ -38,7 +38,7 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
 
     n_agree_predictions_ou_vs_low_rank = zeros(n_model_scores)
 
-    fig_new_contacts, ax_new_contacts = subplots(1, n_model_scores, 6; squeeze=false)
+    fig_new_contacts, ax_new_contacts = subplots(1, n_model_scores, 6; squeeze=false, constrained_layout=true)
     
     for (di, d) in pairs(d_values)
         path_score = joinpath(low_rank_mf_dir, "low_rank_mf_$d")
@@ -79,8 +79,12 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
         ppv_frobenius_zerosumgauge_apc = compute_true_positives(frobenius_score_zerosumgauge_apc, true_contacts, x -> x>0.0)
         fig_ppv = figure()
         ax_ppv = gca() 
-        ax_ppv.plot(ppv_frobenius_zerosumgauge_apc[1:L], label="zerosumgauge_apc")
+        ax_ppv.plot(ppv_frobenius_zerosumgauge_apc[1:L], label="low-rank")
+        title("PPV curve Low-Rank GaussDCA")
         xticks([0, L÷2, L], ["0", "L/2", "L"])
+        xlabel("number of pairs")
+        ylabel("fraction correct predictions")
+        legend()
         fig_ppv.savefig(path_score * ".ppv.png", format="png", bbox_inches="tight")
         close(fig_ppv)
 
@@ -168,9 +172,11 @@ function run_low_rank_mf_analysis_pse1(; input_fasta, wt_fasta, contacts_file, o
         ax_new_contacts[1,di].set_ylabel("site j")
         ax_new_contacts[1,di].matshow(true_contacts, cmap="BuGn")
         ax_new_contacts[1,di].scatter(map(x->x[1], new_contacts_ou_vs_plmdca), map(x->x[2], new_contacts_ou_vs_plmdca), 
-            color="orangered", s=5, label="new contacts (ou vs plmdca)")
+            color="orangered", s=5, label="new contacts (OU vs PlmDCA)")
         ax_new_contacts[1,di].scatter(map(x->x[2], new_contacts_low_rank_vs_plmdca), map(x->x[1], new_contacts_low_rank_vs_plmdca), 
-            color="red", s=5, label="new contacts (low-rank vs plmdca)")
+            color="red", s=5, label="new contacts (Low-Rank vs PlmDCA)")
+            ax_new_contacts[1,di].legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
+
 
         n_positive_contacts_ou[di] = n_contacts_ou
         n_positive_contacts_low_rank[di] = n_contacts_low_rank

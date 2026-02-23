@@ -34,8 +34,11 @@ function run_evcouplings_analysis_pse1(;in_nat,
 
     #ppv curve
     figure()
-    plot(ppv_ev_couplings[1:L], label="ev_couplings")
+    plot(ppv_ev_couplings[1:L], label="EVCouplings")
+    title("PPV curve EVCouplings")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
+    xlabel("number of pairs")
+    ylabel("fraction correct predictions")
     legend()
     gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
 
@@ -45,6 +48,9 @@ function run_evcouplings_analysis_pse1(;in_nat,
     contact_plot(ev_couplings_score, true_contacts, div(L,2), ax=ax)
     ax.set_xlabel("site i")
     ax.set_ylabel("site j")
+    ax.scatter([], [], color="blue", label="correct prediction")
+    ax.scatter([], [], color="red", label="incorrect prediction")
+    ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
     gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
     
     #new contacts plot
@@ -79,7 +85,7 @@ function run_evcouplings_analysis_pse1(;in_nat,
     fig_ppv.savefig(output_root * ".ppv_compare.png", format="png", bbox_inches="tight")
 
     #contact plot comparison
-    fig_cont, ax_cont = subplots(1, length(file_model_scores), 6)
+    fig_cont, ax_cont = subplots(1, length(file_model_scores), 6, constrained_layout=true)
     for i in eachindex(file_model_scores)
         scores_d = []
         open(file_model_scores[i], "r") do io
@@ -96,7 +102,7 @@ function run_evcouplings_analysis_pse1(;in_nat,
             ax_cont[i].scatter([], [], color="purple", label="positive prediction ev_couplings")
             ax_cont[i].scatter([], [], color="blue", label="postive prediction OU model")
             ax_cont[i].scatter([], [], color="red", label="incorrect prediction")
-            ax_cont[i].legend(loc="lower left", bbox_to_anchor=(1.05, 0.0))
+            ax_cont[i].legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
         end
     end
     fig_cont.savefig(output_root * ".contact_map_compare.png", format="png", bbox_inches="tight")
@@ -142,7 +148,7 @@ function run_evcouplings_analysis_pse1(;in_nat,
             n_agr_predictions += 1
         end
     end
-    ax_plmdca.set_title("Predicted Additional Contacts (EV Couplings)")
+    ax_plmdca.set_title("Predicted Additional Contacts (EV Couplings vs PlmDCA)")
     ax_plmdca.set_xlabel("site i")
     ax_plmdca.set_ylabel("site j")
     ax_plmdca.matshow(true_contacts, cmap="BuGn")

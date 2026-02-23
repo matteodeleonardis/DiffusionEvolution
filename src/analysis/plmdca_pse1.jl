@@ -20,8 +20,11 @@ function run_plmdca_analysis_pse1(;input_fasta, plmdca_dir, contacts_file, outpu
 
     #ppv curve
     figure()
-    plot(ppv_plmdca[1:L], label="plmdca")
+    plot(ppv_plmdca[1:L], label="PlmDCA")
+    title("PPV curve PlmDCA")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
+    xlabel("number of pairs")
+    ylabel("fraction correct predictions")
     legend()
     gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
 
@@ -31,6 +34,9 @@ function run_plmdca_analysis_pse1(;input_fasta, plmdca_dir, contacts_file, outpu
     contact_plot(plmdca_score, true_contacts, div(L,2), ax=ax)
     ax.set_xlabel("site i")
     ax.set_ylabel("site j")
+    ax.scatter([], [], color="blue", label="correct prediction")
+    ax.scatter([], [], color="red", label="incorrect prediction")
+    ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
     gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
     
     #new contacts plot
@@ -63,6 +69,9 @@ function run_plmdca_analysis_pse1(;input_fasta, plmdca_dir, contacts_file, outpu
     fig_rtvar = figure()
     ax_rtvar = gca()
     ax_rtvar.plot(dlabel, ratio_tvar, marker="o")
+    ax_rtvar.set_xlabel("d")
+    ax_rtvar.set_ylabel("total variance fraction")
+    ax_rtvar.set_title("Fraction of Explained Variance from Natural Sequences")
     fig_rtvar.savefig(output_root * ".ratio_tvar.png", format="png", bbox_inches="tight")
 
     #ppv comparison
