@@ -106,7 +106,7 @@ function contact_plot(rank, contact, n_contacts; cmap="BuGn", color_pos="blue", 
 end
 
 
-function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold, label; 
+function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Vector, pairs_threshold, label1, label2; 
 	min_dist_intermediate = 12, max_dist_intermediate = 23)
 
 	contacts_plmdca = []
@@ -131,7 +131,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 	d_label = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]
 
-	fig, ax = subplots(1, n_model_scores, 6; squeeze=false)
+	fig, ax = subplots(1, n_model_scores, 6; squeeze=false, constrained_layout=true)
 
 	for i in 1:n_model_scores
 
@@ -161,7 +161,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 				n_agr_predictions += 1
 			end
 		end
-		ax[1,i].set_title("Predicted Additional Contacts (d=$(d_label[i]))")
+		ax[1,i].set_title("Predicted Additional Contacts $label1 vs $label2 (d=$(d_label[i]))")
 		ax[1,i].set_xlabel("site i")
 		ax[1,i].set_ylabel("site j")
 		ax[1,i].matshow(true_contacts, cmap="BuGn")
@@ -178,8 +178,8 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	fig_n_contacts = figure()
 	ax_n_contacts = gca()
 	msize = 3
-	ax_n_contacts.plot(d_label, n_positive_contacts, marker="o", markersize=msize, label="positive contacts")
-	ax_n_contacts.axhline(length(contacts_plmdca), linestyle="dashed", color="red", label=label)
+	ax_n_contacts.plot(d_label, n_positive_contacts, marker="o", markersize=msize, label="positive contacts $label1")
+	ax_n_contacts.axhline(length(contacts_plmdca), linestyle="dashed", color="red", label=label2)
 	#ax_n_contacts.set_xticks(1:n_model_scores, [basename(f) for f in file_model_scores], rotation=90)
 	ax_n_contacts.set_ylim(0.0, length(contacts_plmdca)*1.05)
 	ax_n_contacts.legend()
@@ -189,13 +189,13 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 	fig_n_new_contacts = figure()
 	ax_n_new_contacts = gca()
-	ax_n_new_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts")
-	ax_n_new_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="new contacts (intermediate)")
-	ax_n_new_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="new contacts (long)") 
+	ax_n_new_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts $label1 vs $label2")
+	ax_n_new_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="intermediate-range")
+	ax_n_new_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="long-range") 
 	ax_n_new_contacts.legend()
 	ax_n_new_contacts.set_xlabel("d")
 	ax_n_new_contacts.set_ylabel("number of contacts")
-	ax_n_new_contacts.set_title("Correctly Predicted Additional Contacts")
+	ax_n_new_contacts.set_title("Correctly Predicted Additional Contacts $label1 vs $label2")
 
 
 
@@ -207,7 +207,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	ax_acc.legend()
 	ax_acc.set_xlabel("d")
 	ax_acc.set_ylabel("number of common predictions")
-	ax_acc.set_title("Agreement with $label")
+	ax_acc.set_title("Agreement $label1 with $label2")
 
 
 	return fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc 
