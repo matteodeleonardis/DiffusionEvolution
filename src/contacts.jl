@@ -192,7 +192,7 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 	ax_n_new_contacts.plot(d_label, n_new_contacts, marker="o", markersize=msize, label="new contacts $label1 vs $label2")
 	ax_n_new_contacts.plot(d_label, n_new_contacts_intermediate, marker="o", markersize=msize, label="intermediate-range")
 	ax_n_new_contacts.plot(d_label, n_new_contacts_long, marker="o", markersize=msize, label="long-range") 
-	ax_n_new_contacts.legend()
+	ax_n_new_contacts.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
 	ax_n_new_contacts.set_xlabel("d")
 	ax_n_new_contacts.set_ylabel("number of contacts")
 	ax_n_new_contacts.set_title("Correctly Predicted Additional Contacts $label1 vs $label2")

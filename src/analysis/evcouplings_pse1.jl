@@ -54,7 +54,7 @@ function run_evcouplings_analysis_pse1(;in_nat,
     gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
     
     #new contacts plot
-    fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "EVCouplings", "PlmDCA")
+    fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "OU", "EVCouplings")
     fig.savefig(output_root * ".new_contacts.png", format="png", bbox_inches="tight")
     fig_n_contacts.savefig(output_root * ".n_contacts.png", format="png", bbox_inches="tight")
     fig_n_new_contacts.savefig(output_root * ".n_new_contacts.png", format="png", bbox_inches="tight")
