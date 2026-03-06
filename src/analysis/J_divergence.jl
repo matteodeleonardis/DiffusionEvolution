@@ -7,6 +7,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
 
     J_div_score = zeros(length(d_values))
     off_diag_energy = zeros(length(d_values))
+    off_diag_energy_tri = zeros(length(d_values))
     spectrum_dev = zeros(length(d_values))
 
     for (di, d) in pairs(d_values)
@@ -21,6 +22,8 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
 
         off_diag_energy[di] = sum(abs2, J_inferred - diagm(diag(J_inferred)))/sum(abs2, J_inferred)
 
+        off_diag_energy_tri[di] = 1.0/(1.0 + sum(abs2, [J_inferred[i,i] for i in 1:d])/sum(abs2, [J_inferred[i,j] for i in 1:d, j in 1:d if i>j]))
+
         spectrum_J = eigen(J_inferred).values
         spectrum_dev[di] = sum(abs2, log.(sort(spectrum_J)) - log.(sort(inv.(principalvars(pca)[1:d]))))/d
 
@@ -31,6 +34,8 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     J_div_score_grad = [(v<J_div_score_grad[1]) ? NaN : v for v in J_div_score_grad]
     off_diag_energy_grad = derivative_nonuniform(d_values, off_diag_energy)
     off_diag_energy_grad = [(v>off_diag_energy_grad[1]) ? NaN : v for v in off_diag_energy_grad]
+    off_diag_energy_tri_grad = derivative_nonuniform(d_values, off_diag_energy_tri)
+    off_diag_energy_tri_grad = [(v>off_diag_energy_tri_grad[1]) ? NaN : v for v in off_diag_energy_tri_grad]
     spectrum_dev_grad = derivative_nonuniform(d_values, spectrum_dev)
     spectrum_dev_grad = [(v<spectrum_dev_grad[1]) ? NaN : v for v in spectrum_dev_grad]
 
@@ -60,6 +65,15 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_Jode.set_title("J off-diagonal energy")
     fig_Jode.savefig(output_root * ".J_off_diagonal_energy.png", format="png", bbox_inches="tight")
     close(fig_Jode)
+
+    fig_Jodet = figure()
+    ax_Jodet = gca()
+    ax_Jodet.plot(d_values, off_diag_energy_tri, marker="o")
+    ax_Jodet.set_xlabel("d")
+    ax_Jodet.set_ylabel("value")
+    ax_Jodet.set_title("J off-diagonal energy (triangular)")
+    fig_Jodet.savefig(output_root * ".J_off_diagonal_energy_tri.png", format="png", bbox_inches="tight")
+    close(fig_Jodet)
 
     fig_Jode_grad = figure()
     ax_Jode_grad = gca()
