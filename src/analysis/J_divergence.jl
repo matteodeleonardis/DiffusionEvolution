@@ -45,7 +45,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_Jdiv.set_xlabel("d")
     ax_Jdiv.set_ylabel("value")
     ax_Jdiv.set_title("J divergence")
-    fig_Jdiv.savefig(output_root * ".J_divergence.png", format="png", bbox_inches="tight")
+    fig_Jdiv.savefig(output_root * ".J_divergence.svg", format="svg", bbox_inches="tight")
     close(fig_Jdiv)
 
     fig_Jdiv_grad = figure()
@@ -54,7 +54,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_Jdiv_grad.set_xlabel("d")
     ax_Jdiv_grad.set_ylabel("value (normalized)")
     ax_Jdiv_grad.set_title("J divergence derivative")
-    fig_Jdiv_grad.savefig(output_root * ".J_divergence_derivative.png", format="png", bbox_inches="tight")
+    fig_Jdiv_grad.savefig(output_root * ".J_divergence_derivative.svg", format="svg", bbox_inches="tight")
     close(fig_Jdiv_grad)
 
     fig_Jode = figure()
@@ -63,7 +63,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_Jode.set_xlabel("d")
     ax_Jode.set_ylabel("value")
     ax_Jode.set_title("J off-diagonal energy")
-    fig_Jode.savefig(output_root * ".J_off_diagonal_energy.png", format="png", bbox_inches="tight")
+    fig_Jode.savefig(output_root * ".J_off_diagonal_energy.svg", format="svg", bbox_inches="tight")
     close(fig_Jode)
 
     fig_Jodet = figure()
@@ -72,7 +72,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_Jodet.set_xlabel("d")
     ax_Jodet.set_ylabel("value")
     ax_Jodet.set_title("J off-diagonal energy (triangular)")
-    fig_Jodet.savefig(output_root * ".J_off_diagonal_energy_tri.png", format="png", bbox_inches="tight")
+    fig_Jodet.savefig(output_root * ".J_off_diagonal_energy_tri.svg", format="svg", bbox_inches="tight")
     close(fig_Jodet)
 
     fig_Jode_grad = figure()
@@ -81,7 +81,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_Jode_grad.set_xlabel("d")
     ax_Jode_grad.set_ylabel("value (normalized)")
     ax_Jode_grad.set_title("J off-diagonal energy derivative")
-    fig_Jode_grad.savefig(output_root * ".J_off_diagonal_energy_derivative.png", format="png", bbox_inches="tight")
+    fig_Jode_grad.savefig(output_root * ".J_off_diagonal_energy_derivative.svg", format="svg", bbox_inches="tight")
     close(fig_Jode_grad)
 
     fig_specdev = figure()
@@ -90,7 +90,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_specdev.set_xlabel("d")
     ax_specdev.set_ylabel("value")
     ax_specdev.set_title("J spectrum deviation")
-    fig_specdev.savefig(output_root * ".J_spectrum_deviation.png", format="png", bbox_inches="tight")
+    fig_specdev.savefig(output_root * ".J_spectrum_deviation.svg", format="svg", bbox_inches="tight")
     close(fig_specdev)
 
     fig_specdev_grad = figure()
@@ -99,7 +99,7 @@ function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, e
     ax_specdev_grad.set_xlabel("d")
     ax_specdev_grad.set_ylabel("value (normalized)")
     ax_specdev_grad.set_title("J spectrum deviation derivative")
-    fig_specdev_grad.savefig(output_root * ".J_spectrum_deviation_derivative.png", format="png", bbox_inches="tight")
+    fig_specdev_grad.savefig(output_root * ".J_spectrum_deviation_derivative.svg", format="svg", bbox_inches="tight")
     close(fig_specdev_grad)
 
 end

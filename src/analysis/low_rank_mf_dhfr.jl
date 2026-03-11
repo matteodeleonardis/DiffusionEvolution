@@ -82,7 +82,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
         xlabel("number of pairs")
         ylabel("fraction correct predictions")
         legend()
-        fig_ppv.savefig(path_score * ".ppv.png", format="png", bbox_inches="tight")
+        fig_ppv.savefig(path_score * ".ppv.svg", format="svg", bbox_inches="tight")
         close(fig_ppv)
 
         #compare predictions
@@ -190,7 +190,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
         n_agree_predictions_ou_vs_low_rank[di] = n_agr_predictions_ou_vs_low_rank
     end
 
-    fig_new_contacts.savefig(output_root * ".new_contacts_vs_plmdca.png", format="png", bbox_inches="tight")
+    fig_new_contacts.savefig(output_root * ".new_contacts_vs_plmdca.svg", format="svg", bbox_inches="tight")
 
     fig_n_contacts = figure()
     ax_n_contacts = gca()
@@ -203,7 +203,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 	ax_n_contacts.set_xlabel("d")
 	ax_n_contacts.set_ylabel("number of contacts")
 	ax_n_contacts.set_title("Predicted Additional Contacts")
-    fig_n_contacts.savefig(output_root * ".n_contacts_ou_vs_low_rank.png", format="png", bbox_inches="tight")
+    fig_n_contacts.savefig(output_root * ".n_contacts_ou_vs_low_rank.svg", format="svg", bbox_inches="tight")
     close(fig_n_contacts)
 
     fig_n_new_contacts = figure()
@@ -215,7 +215,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 	ax_n_new_contacts.set_xlabel("d")
 	ax_n_new_contacts.set_ylabel("number of contacts")
 	ax_n_new_contacts.set_title("Predicted Additional Contacts")
-    fig_n_new_contacts.savefig(output_root * ".n_new_contacts_ou_vs_low_rank.png", format="png", bbox_inches="tight")
+    fig_n_new_contacts.savefig(output_root * ".n_new_contacts_ou_vs_low_rank.svg", format="svg", bbox_inches="tight")
     close(fig_n_new_contacts)
 
     fig_n_new_contacts_plmdca = figure()
@@ -230,7 +230,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 	ax_n_new_contacts_plmdca.set_xlabel("d")
 	ax_n_new_contacts_plmdca.set_ylabel("number of contacts")
 	ax_n_new_contacts_plmdca.set_title("Predicted Additional Contacts")
-    fig_n_new_contacts_plmdca.savefig(output_root * ".n_new_contacts_vs_plmdca.png", format="png", bbox_inches="tight")
+    fig_n_new_contacts_plmdca.savefig(output_root * ".n_new_contacts_vs_plmdca.svg", format="svg", bbox_inches="tight")
     close(fig_n_new_contacts_plmdca)
 
 	fig_acc = figure()
@@ -242,7 +242,7 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
 	ax_acc.set_xlabel("d")
 	ax_acc.set_ylabel("number of predictions")
 	ax_acc.set_title("Agreement with Low-rank MF")
-    fig_acc.savefig(output_root * ".agreement_low_rank.png", format="png", bbox_inches="tight")
+    fig_acc.savefig(output_root * ".agreement_low_rank.svg", format="svg", bbox_inches="tight")
     close(fig_acc)
 
     if isnothing(pca)
@@ -250,6 +250,6 @@ function run_low_rank_mf_analysis_dhfr(; input_fasta, wt_fasta, contacts_file, o
     end
     x_pca = apply_pca(pca, [input_fasta]; whiten=false, extreme=false, d=2)
     fig_pca = hist2d_with_marginals(x_pca[1,:], x_pca[2, :], bins=50)
-    fig_pca.savefig(output_root * ".pca.png", format="png", bbox_inches="tight")
+    fig_pca.savefig(output_root * ".pca.svg", format="svg", bbox_inches="tight")
     close(fig_pca)
 end

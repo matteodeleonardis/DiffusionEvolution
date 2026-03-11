@@ -41,7 +41,7 @@ function run_evcouplings_analysis_dhfr(; in_nat,
     xlabel("number of pairs")
     ylabel("fraction correct predictions")
     legend()
-    gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
+    gcf().savefig(output_root * ".ppv.svg", format="svg", bbox_inches="tight")
 
     #contact plot
     figure()
@@ -52,14 +52,14 @@ function run_evcouplings_analysis_dhfr(; in_nat,
     ax.scatter([], [], color="blue", label="correct prediction")
     ax.scatter([], [], color="red", label="incorrect prediction")
     ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
-    gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
+    gcf().savefig(output_root * ".contact.svg", format="svg", bbox_inches="tight")
     
     #new contacts plot
     fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "OU", "EVCouplings")
-    fig.savefig(output_root * ".new_contacts.png", format="png", bbox_inches="tight")
-    fig_n_contacts.savefig(output_root * ".n_contacts.png", format="png", bbox_inches="tight")
-    fig_n_new_contacts.savefig(output_root * ".n_new_contacts.png", format="png", bbox_inches="tight")
-    fig_acc.savefig(output_root * ".prediction_agreement.png", format="png", bbox_inches="tight")
+    fig.savefig(output_root * ".new_contacts.svg", format="svg", bbox_inches="tight")
+    fig_n_contacts.savefig(output_root * ".n_contacts.svg", format="svg", bbox_inches="tight")
+    fig_n_new_contacts.savefig(output_root * ".n_new_contacts.svg", format="svg", bbox_inches="tight")
+    fig_acc.savefig(output_root * ".prediction_agreement.svg", format="svg", bbox_inches="tight")
     ax_acc.set_title("Agreement with EV Couplings")
 
     dlabel = [parse(Int, split(split(basename(f), ".")[1], "_")[4]) for f in file_model_scores]
@@ -83,7 +83,7 @@ function run_evcouplings_analysis_dhfr(; in_nat,
             ax_ppv[i].legend()
         end
     end
-    fig_ppv.savefig(output_root * ".ppv_compare.png", format="png", bbox_inches="tight")
+    fig_ppv.savefig(output_root * ".ppv_compare.svg", format="svg", bbox_inches="tight")
 
     #contact plot comparison
     fig_cont, ax_cont = subplots(1, length(file_model_scores), 6, constrained_layout=true)
@@ -106,7 +106,7 @@ function run_evcouplings_analysis_dhfr(; in_nat,
             ax_cont[i].legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
         end
     end
-    fig_cont.savefig(output_root * ".contact_map_compare.png", format="png", bbox_inches="tight")
+    fig_cont.savefig(output_root * ".contact_map_compare.svg", format="svg", bbox_inches="tight")
 
 
     #comparison with plmdca
@@ -155,7 +155,7 @@ function run_evcouplings_analysis_dhfr(; in_nat,
     ax_plmdca.matshow(true_contacts, cmap="BuGn")
     ax_plmdca.scatter(map(x->x[1], new_contacts), map(x->x[2], new_contacts), color="orangered", s=5)
 
-    fig_plmdca.savefig(output_root * ".contacts_vs_plmdca.png", format="png", bbox_inches="tight")
+    fig_plmdca.savefig(output_root * ".contacts_vs_plmdca.svg", format="svg", bbox_inches="tight")
 
     open(output_root * "_vs_plmdca.txt", "w") do io
         write(io, "Number predicted contacts: $(n_contacts)\n")
