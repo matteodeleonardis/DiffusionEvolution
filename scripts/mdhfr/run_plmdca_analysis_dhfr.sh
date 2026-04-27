@@ -2,9 +2,10 @@
 
 dir_files=$1
 gamma=$2
-input_fasta="/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR_clean.fasta"
-plmdca_dir="/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/plmdca"
-output_root="/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/${dir_files}/plmdca"
+this_dir="$(dirname ${BASH_SOURCE[0]})"
+input_fasta="${this_dir}/../../data/dhfr/mDHFR_clean.fasta"
+plmdca_dir="${this_dir}/../../results/mdhfr/plmdca"
+output_root="${this_dir}/../../results/mdhfr/${dir_files}/plmdca"
 output_dir=$(dirname "$output_root")
 mkdir -p $output_dir
 if [ ! -L "${output_root}.score.jld2" ] || [ ! -e "${output_root}.score.jld2" ]; then
@@ -13,7 +14,7 @@ fi
 
 #mapfile -t model_score_files < <(find "$PWD/run0" -type f -name "mdhfr_analysis_d_*.scores.zerosumgauge_apc.tsv")
 mapfile -t model_score_files < <(
-  find "$(dirname "$0")/../../results/mdhfr/$dir_files" -type f -name 'mdhfr_analysis_d_*.scores.zerosumgauge_apc.tsv' \
+  find "${this_dir}/../../results/mdhfr/$dir_files" -type f -name 'mdhfr_analysis_d_*.scores.zerosumgauge_apc.tsv' \
   | awk 'match($0, /\/mdhfr_analysis_d_([0-9]+)\/mdhfr_analysis_d_[0-9]+\.scores\.zerosumgauge_apc\.tsv$/, m) {print m[1] "\t" $0}' \
   | sort -n -k1,1 \
   | cut -f2-

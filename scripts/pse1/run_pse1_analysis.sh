@@ -1,7 +1,8 @@
 #!/bin/bash
 
 code="$1"
-env_path="/home/students/s301803/CODE/DiffusionEvolution/scripts"
+this_dir="$(dirname ${BASH_SOURCE[0]})"
+env_path="${this_dir}/.."
 max_threads=12
 shift
 d_val=("$@")
@@ -9,7 +10,7 @@ d_val=("$@")
 for d in "${d_val[@]}"
 do
     session="${code}-pse1_d_${d}"
-    outdir="/home/students/s301803/CODE/DiffusionEvolution/results/pse1/${code}/pse1_analysis_d_${d}"
+    outdir="${this_dir}/../../results/pse1/${code}/pse1_analysis_d_${d}"
     output_root="${outdir}/pse1_analysis_d_${d}"
 
     stdout_log="${outdir}/stdout.log"

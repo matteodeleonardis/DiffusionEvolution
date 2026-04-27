@@ -1,0 +1,22 @@
+#!/bin/bash
+
+awk '
+NF == 2 && $1 !~ /^#/ && $1 != "//" {
+    if (!seen[$1]++) {
+        order[++nseq] = $1
+    }
+    seq[$1] = seq[$1] $2
+}
+END {
+    if (nseq == 0) exit
+
+    query = order[1]
+
+    for (i = 2; i <= nseq; i++) {
+        id = order[i]
+        printf(">%s\n%s\n", id, seq[id])
+    }
+
+    printf(">%s\n%s\n", query, seq[query])
+}
+' "$1"

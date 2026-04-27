@@ -1,11 +1,11 @@
 import Pkg
-Pkg.activate(joinpath("@__DIR__", "..", ".."))
+Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
 using DiffusionEvolution
 
 d = parse(Int, ARGS[1])
 output_root = ARGS[2]
-contacts_file = "/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy"
+contacts_file = joinpath(@__DIR__, "../../data/dhfr/contact_map.npy")
 
 run_analysis_dhfr(
     d=d, 

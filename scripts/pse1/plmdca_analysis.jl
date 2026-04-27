@@ -1,14 +1,13 @@
 import Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
+Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
-using DiffusionEvolution
 
 input_fasta = ARGS[1]
 plmdca_dir = ARGS[2]
 output_root = ARGS[3]
 fixed  = ARGS[4] == "no"
 model_scores = ARGS[5:end]
-contacts_file = "/home/students/s301803/CODE/DiffusionEvolution/data/pse1/contact_map.jld2"
+contacts_file = joinpath(@__DIR__, "../../data/pse1/contact_map.jld2")
 
 run_plmdca_analysis_pse1(
     input_fasta=input_fasta,

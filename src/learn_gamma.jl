@@ -64,7 +64,7 @@ function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_J:
     end
 
     ll = 0.0
-    gs = gradient(x) do par
+    gs = Flux.gradient(x) do par
         ll = log_likelihood_gamma(par, data, λ, prior_J, prior_theta, prior_γ, ϵ_J, ϵ_Σ)
     end
 
@@ -81,7 +81,7 @@ function optim_wrapper_fixed(x::Pars, g::Pars, data::Data, λ::Float64, prior_J:
     end
 
     ll = 0.0
-    gs = gradient(x) do par
+    gs = Flux.gradient(x) do par
         ll = log_likelihood_fixed(par, data, λ, prior_J, prior_theta, ϵ_J, ϵ_Σ)
     end
 
@@ -150,7 +150,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
     println("gamma value: ", get_gamma(x0, data.d))
     println()
 
-    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(; stop_tol...))
+    res = Optim.optimize(NLSolversBase.only_fg!(fg!), x0, alg, Optim.Options(; stop_tol...))
 
     return res
 end
@@ -178,7 +178,7 @@ function learn_fixed_optim(data::Data; x0=randn(npars(data.d)), initialize=-1,
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(; stop_tol...))
+    res = Optim.optimize(NLSolversBase.only_fg!(fg!), x0, alg, Optim.Options(; stop_tol...))
 
     return res
 end
@@ -205,7 +205,7 @@ function learn_gamma_unconstrained_optim(data::Data; x0=randn(npars_gamma(data.d
         return ll
     end
 
-    res = Optim.optimize(Optim.only_fg!(fg!), x0, alg, Optim.Options(g_tol=g_tol, f_tol=f_tol))
+    res = Optim.optimize(NLSolversBase.only_fg!(fg!), x0, alg, Optim.Options(g_tol=g_tol, f_tol=f_tol))
 
     return res
 end

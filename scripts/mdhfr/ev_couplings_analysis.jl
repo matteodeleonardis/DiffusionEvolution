@@ -1,7 +1,5 @@
 import Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
-
-using DiffusionEvolution
+Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
 in_nat = ARGS[1]
 in_wt = ARGS[2]
@@ -14,7 +12,7 @@ in_r15 = ARGS[8]
 evc_score_dir = ARGS[9]
 output_root = ARGS[10]
 model_scores = ARGS[11:end]
-contacts_file = "/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy"
+contacts_file = joinpath(@__DIR__, "..", "..", "data/dhfr/contact_map.npy")
 
 run_evcouplings_analysis_dhfr(
     in_nat=in_nat,
