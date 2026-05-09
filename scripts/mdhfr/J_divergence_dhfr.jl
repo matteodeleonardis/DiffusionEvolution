@@ -1,6 +1,7 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
+using DiffusionEvolution
 
 input_fasta = ARGS[1]
 wt_fasta = ARGS[2]

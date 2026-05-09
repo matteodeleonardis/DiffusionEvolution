@@ -1,6 +1,8 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
+using DiffusionEvolution
+
 
 contacts_file = joinpath(@__DIR__, "../../data/pse1/contact_map.jld2")
 input_fasta = ARGS[1]

@@ -1,6 +1,8 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
+using DiffusionEvolution
+
 contacts_file = joinpath(@__DIR__, "..", "..", "data/dhfr/contact_map.npy")
 input_fasta = ARGS[1]
 wt_fasta = ARGS[2]

@@ -89,7 +89,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     @save output_root * ".settings.jld2" model_settings
 
     #plot inferred distribution
-    plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+    #plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
 
     #parameters as tensors
     fasta_wt = readfasta(file0)

@@ -1,6 +1,8 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
+using DiffusionEvolution
+
 
 in_nat = ARGS[1]
 in_wt = ARGS[2]

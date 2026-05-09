@@ -1,6 +1,8 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
+using DiffusionEvolution
+
 
 input_fasta = ARGS[1]
 plmdca_dir = ARGS[2]
