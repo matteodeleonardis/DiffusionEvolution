@@ -30,7 +30,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     prior_theta = 0.01
     prior_gamma = 0.01 #prior_J * d^2
     whiten = false
-    fixed = true
+    fixed = false
     extreme = false
 
     #stopping criteria

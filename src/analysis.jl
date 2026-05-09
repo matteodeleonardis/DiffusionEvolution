@@ -1,4 +1,5 @@
 function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, epsilon_sigma)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
     fig_emp_dist, ax_emp_dist = subplots(1, length(times), 6)
     if data.d > 1
         for i in eachindex(times)
@@ -17,7 +18,7 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
             ax_emp_dist[i].set_ylabel("pdf")
         end
     end
-    fig_emp_dist.savefig(output_root * ".emp_dist.png", format="png", bbox_inches="tight")
+    fig_emp_dist.savefig(output_root * ".emp_dist.svg", format="svg", bbox_inches="tight")
     xlim = ax_emp_dist[1].get_xlim()
     ylim = ax_emp_dist[1].get_ylim()
 
@@ -45,7 +46,7 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
             ax_inf_dist[i].set_xlim(xlim)
         end
     end
-    fig_inf_dist.savefig(output_root * ".inf_dist.png", format="png", bbox_inches="tight")
+    fig_inf_dist.savefig(output_root * ".inf_dist.svg", format="svg", bbox_inches="tight")
 
     figure()
     fig = gcf()
@@ -65,7 +66,7 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
         ax.set_xlabel("PC1")
         ax.set_ylabel("pdf")
     end
-    fig.savefig(output_root * ".inf_dist_equilibrium.png", format="png", bbox_inches="tight")
+    fig.savefig(output_root * ".inf_dist_equilibrium.svg", format="svg", bbox_inches="tight")
 end
 
 
@@ -113,6 +114,7 @@ end
 
 function compute_ppv(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
     frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     ppv_frobenius_zerosumgauge = compute_true_positives(frobenius_score_zerosumgauge, true_contacts, x -> x>0.0) 
     ppv_frobenius_zerosumgauge_apc = compute_true_positives(frobenius_score_zerosumgauge_apc, true_contacts, x -> x>0.0) 
@@ -126,7 +128,7 @@ function compute_ppv(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_
     plot(ppv_frobenius_wildtypegauge_apc[1:L], label="wildtypegauge_apc")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
     legend()
-    gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
+    gcf().savefig(output_root * ".ppv.svg", format="svg", bbox_inches="tight")
 
     return ppv_frobenius_zerosumgauge, ppv_frobenius_zerosumgauge_apc,
         ppv_frobenius_wildtypegauge, ppv_frobenius_wildtypegauge_apc
@@ -135,6 +137,7 @@ end
 
 function print_contact_plot(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
     frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     fig_contact, ax_contact = subplots(1, 4, 6)
     contact_plot(frobenius_score_zerosumgauge, true_contacts, L, ax=ax_contact[1])
@@ -149,7 +152,7 @@ function print_contact_plot(frobenius_score_zerosumgauge, frobenius_score_zerosu
     map(x -> x.set_xlabel("site i"), ax_contact)
     map(x -> x.set_ylabel("site j"), ax_contact)
 
-    fig_contact.savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
+    fig_contact.savefig(output_root * ".contact.svg", format="svg", bbox_inches="tight")
 end
 
 function plot_gamma(output::Vector)

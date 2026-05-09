@@ -1,4 +1,5 @@
 function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, output_root, fixed, file_model_scores::Vector)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     if !ispath(output_root * ".score.jld2")
         output_plmdca = plmdca(input_fasta; min_separation=5)
@@ -13,17 +14,18 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     end
 
     true_contacts = npzread(contacts_file)
+    true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), j in 1:size(true_contacts,2)]
     ppv_plmdca = compute_true_positives(plmdca_score, true_contacts, x -> x>0.0)
 
     #ppv curve
     figure()
     plot(ppv_plmdca[1:L], label="PlmDCA")
-    title("PPV curve PlmDCA")
+    title("PlmDCA PPV curve for mDHFR")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
     xlabel("number of pairs")
     ylabel("fraction correct predictions")
     legend()
-    gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
+    gcf().savefig(output_root * ".ppv.svg", format="svg", bbox_inches="tight")
 
     #contact plot
     figure()
@@ -33,21 +35,23 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     ax.set_ylabel("site j")
     ax.scatter([], [], color="blue", label="correct prediction")
     ax.scatter([], [], color="red", label="incorrect prediction")
+    ax.scatter([], [], color="green", label="real contact")
     ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
-    gcf().savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
+    ax..set_title("Contact Map Predictions PlmDCA for mDHFR")
+    gcf().savefig(output_root * ".contact.svg", format="svg", bbox_inches="tight")
     
     #new contacts plot
     fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc = compare_new_contacts(plmdca_score, true_contacts, file_model_scores, div(L,2), "OU","PlmDCA")
-    fig.savefig(output_root * ".new_contacts.png", format="png", bbox_inches="tight")
-    fig_n_contacts.savefig(output_root * ".n_contacts.png", format="png", bbox_inches="tight")
-    fig_n_new_contacts.savefig(output_root * ".n_new_contacts.png", format="png", bbox_inches="tight")
-    fig_acc.savefig(output_root * ".prediction_agreement.png", format="png", bbox_inches="tight")
+    fig.savefig(output_root * ".new_contacts.svg", format="svg", bbox_inches="tight")
+    fig_n_contacts.savefig(output_root * ".n_contacts.svg", format="svg", bbox_inches="tight")
+    fig_n_new_contacts.savefig(output_root * ".n_new_contacts.svg", format="svg", bbox_inches="tight")
+    fig_acc.savefig(output_root * ".prediction_agreement.svg", format="svg", bbox_inches="tight")
 
     #gamma plot
     output_files=[joinpath(dirname(f), split(basename(f), ".")[1]) for f in file_model_scores]
     if fixed == false
         fig_gamma, ax_gamma, gammas, gamma_est = plot_gamma(output_files)
-        fig_gamma.savefig(output_root * ".gamma.png", format="png", bbox_inches="tight")
+        fig_gamma.savefig(output_root * ".gamma.svg", format="svg", bbox_inches="tight")
         out_gamma = open(output_root * ".gamma.txt", "w")
         print(out_gamma, "\t")
         println(out_gamma, join(output_files, "\t"))
@@ -69,7 +73,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     ax_rtvar.set_xlabel("d")
     ax_rtvar.set_ylabel("total variance fraction")
     ax_rtvar.set_title("Fraction of Explained Variance from Natural Sequences")
-    fig_rtvar.savefig(output_root * ".ratio_tvar.png", format="png", bbox_inches="tight")
+    fig_rtvar.savefig(output_root * ".ratio_tvar.svg", format="svg", bbox_inches="tight")
 
     #ppv comparison
     fig_ppv, ax_ppv = subplots(1, length(file_model_scores), 6)
@@ -90,7 +94,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
             ax_ppv[i].legend()
         end
     end
-    fig_ppv.savefig(output_root * ".ppv_compare.png", format="png", bbox_inches="tight")
+    fig_ppv.savefig(output_root * ".ppv_compare.svg", format="svg", bbox_inches="tight")
 
     #contact plot comparison
     fig_cont, ax_cont = subplots(1, length(file_model_scores), 6, constrained_layout=true)
@@ -113,7 +117,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
             ax_cont[i].legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
         end
     end
-    fig_cont.savefig(output_root * ".contact_map_compare.png", format="png", bbox_inches="tight")
+    fig_cont.savefig(output_root * ".contact_map_compare.svg", format="svg", bbox_inches="tight")
 
 
 end
