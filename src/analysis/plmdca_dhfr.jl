@@ -1,4 +1,5 @@
 function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, output_root, fixed, file_model_scores::Vector)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     if !ispath(output_root * ".score.jld2")
         output_plmdca = plmdca(input_fasta; min_separation=5)
@@ -13,12 +14,13 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     end
 
     true_contacts = npzread(contacts_file)
+    true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), j in 1:size(true_contacts,2)]
     ppv_plmdca = compute_true_positives(plmdca_score, true_contacts, x -> x>0.0)
 
     #ppv curve
     figure()
     plot(ppv_plmdca[1:L], label="PlmDCA")
-    title("PPV curve PlmDCA")
+    title("PlmDCA PPV curve for mDHFR")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
     xlabel("number of pairs")
     ylabel("fraction correct predictions")
@@ -33,7 +35,9 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     ax.set_ylabel("site j")
     ax.scatter([], [], color="blue", label="correct prediction")
     ax.scatter([], [], color="red", label="incorrect prediction")
+    ax.scatter([], [], color="green", label="real contact")
     ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
+    ax..set_title("Contact Map Predictions PlmDCA for mDHFR")
     gcf().savefig(output_root * ".contact.svg", format="svg", bbox_inches="tight")
     
     #new contacts plot

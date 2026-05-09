@@ -1,4 +1,5 @@
 function run_plmdca_analysis_pse1(;input_fasta, plmdca_dir, contacts_file, output_root, fixed, file_model_scores::Vector)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     if !ispath(output_root * ".score.jld2")
         output_plmdca = plmdca(input_fasta; min_separation=5)

@@ -1,4 +1,5 @@
 function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, epsilon_sigma)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
     fig_emp_dist, ax_emp_dist = subplots(1, length(times), 6)
     if data.d > 1
         for i in eachindex(times)
@@ -113,6 +114,7 @@ end
 
 function compute_ppv(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
     frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     ppv_frobenius_zerosumgauge = compute_true_positives(frobenius_score_zerosumgauge, true_contacts, x -> x>0.0) 
     ppv_frobenius_zerosumgauge_apc = compute_true_positives(frobenius_score_zerosumgauge_apc, true_contacts, x -> x>0.0) 
@@ -135,6 +137,7 @@ end
 
 function print_contact_plot(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
     frobenius_score_wildtypegauge, frobenius_score_wildtypegauge_apc, true_contacts, L, output_root)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     fig_contact, ax_contact = subplots(1, 4, 6)
     contact_plot(frobenius_score_zerosumgauge, true_contacts, L, ax=ax_contact[1])

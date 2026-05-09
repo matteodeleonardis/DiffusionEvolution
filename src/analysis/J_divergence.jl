@@ -1,4 +1,5 @@
 function J_divergence(; input_fasta, wt_fasta, output_root, file_model_scores, epsilon_J=1.0e-9)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     L = length(readfasta(wt_fasta)[1][2])
     A=21

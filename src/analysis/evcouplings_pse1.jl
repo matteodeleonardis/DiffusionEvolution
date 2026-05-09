@@ -3,6 +3,7 @@ function run_evcouplings_analysis_pse1(;in_nat,
     in_r10,
     in_r20,
     evc_score_dir, contacts_file, output_root, file_model_scores::Vector)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     if !ispath(output_root * ".score.jld2")
         input_fasta = []

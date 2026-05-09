@@ -7,6 +7,7 @@ function run_evcouplings_analysis_dhfr(; in_nat,
     in_r5,
     in_r15,
     evc_score_dir, contacts_file, output_root, file_model_scores::Vector)
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     if !ispath(output_root * ".score.jld2")
         input_fasta = []
