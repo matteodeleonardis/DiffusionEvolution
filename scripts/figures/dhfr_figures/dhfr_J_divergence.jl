@@ -40,7 +40,7 @@ wt_fasta = "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR.fasta
 A = 21
 L = length(readfasta(wt_fasta)[1][2])
 
-file_model_params = collect_model_params_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0")
+file_model_params = collect_model_params_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0_pfam")
 d_labels = [parse(Int, split(split(f, "/")[10], "_")[4]) for f in file_model_params]
 epsilon_J = 1.0e-9
 

@@ -34,7 +34,7 @@ function collect_model_score_files(base_dir::AbstractString)
     return [p[2] for p in pairs]        # cut -f2-
 end
 
-file_model_scores = collect_model_score_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0")
+file_model_scores = collect_model_score_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0_pfam")
 low_rank_mf_dir = "/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/low_rank_mf"
 input_fasta = "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR_clean.fasta"
 wt_fasta = "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR.fasta"
@@ -48,7 +48,7 @@ plmdca_score = score_load["plmdca_score"]
 L = score_load["L"]
 A = 21
 
-contacts_file = "/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy"
+contacts_file = "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/contact_map.npy"
 true_contacts = npzread(contacts_file)
 true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), j in 1:size(true_contacts,2)]
 

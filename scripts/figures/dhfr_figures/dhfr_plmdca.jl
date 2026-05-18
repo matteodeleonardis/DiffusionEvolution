@@ -11,7 +11,7 @@ score_load = JLD2.load( "/home/students/s301803/CODE/DiffusionEvolution/results/
 plmdca_score = score_load["plmdca_score"]
 L = score_load["L"]
 
-contacts_file = "/home/students/s301803/dhfr_neutral_evolution/DHFR/contact_map.npy"
+contacts_file = "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/contact_map.npy"
 true_contacts = npzread(contacts_file)
 true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), j in 1:size(true_contacts,2)]
 ppv_plmdca = compute_true_positives(plmdca_score, true_contacts, x -> x>0.0)

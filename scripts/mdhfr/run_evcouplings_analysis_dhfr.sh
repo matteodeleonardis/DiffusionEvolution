@@ -1,7 +1,7 @@
 #!/bin/bash
 
 dir_files=$1
-this_dir="$(dirname ${BASH_SOURCE[0]})"
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 in_nat="${this_dir}/../../data/dhfr/mDHFR_clean.fasta"
 in_wt="${this_dir}/../../data/dhfr/mDHFR.fasta"
 in_r1="${this_dir}/../../data/dhfr/Round1_Q15_C10_aa.aln"

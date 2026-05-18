@@ -37,7 +37,7 @@ function run_plmdca_analysis_dhfr(;input_fasta, plmdca_dir, contacts_file, outpu
     ax.scatter([], [], color="red", label="incorrect prediction")
     ax.scatter([], [], color="green", label="real contact")
     ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
-    ax..set_title("Contact Map Predictions PlmDCA for mDHFR")
+    ax.set_title("Contact Map Predictions PlmDCA for mDHFR")
     gcf().savefig(output_root * ".contact.svg", format="svg", bbox_inches="tight")
     
     #new contacts plot

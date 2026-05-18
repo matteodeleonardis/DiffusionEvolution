@@ -33,7 +33,7 @@ function collect_model_params_files(base_dir::AbstractString)
     return [p[2] for p in pairs]        # cut -f2-
 end
 
-file_model_params = collect_model_params_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0")
+file_model_params = collect_model_params_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0_pfam")
 d_labels = [parse(Int, split(split(f, "/")[10], "_")[4]) for f in file_model_params]
 
 ratio_tvar = map(file_model_params) do file

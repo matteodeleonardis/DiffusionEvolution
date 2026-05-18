@@ -1,7 +1,7 @@
 #!/bin/bash
 
 dir_files=$1
-this_dir="$(dirname ${BASH_SOURCE[0]})"
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 input_fasta="${this_dir}/../../data/dhfr/mDHFR_clean.fasta"
 input_wt="${this_dir}/../../data/dhfr/mDHFR.fasta"
 output_root="${this_dir}/../../results/mdhfr/${dir_files}/low_rank_mf"

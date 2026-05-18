@@ -1,7 +1,7 @@
 #!/bin/bash
 
 code="$1"
-this_dir="$(dirname ${BASH_SOURCE[0]})"
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 env_path="${this_dir}/.."
 max_threads=12
 shift

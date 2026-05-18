@@ -2,7 +2,7 @@
 
 dir_files=$1
 gamma=$2
-this_dir="$(dirname ${BASH_SOURCE[0]})"
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 input_fasta="${this_dir}/../../data/dhfr/mDHFR_clean.fasta"
 plmdca_dir="${this_dir}/../../results/mdhfr/plmdca"
 output_root="${this_dir}/../../results/mdhfr/${dir_files}/plmdca"
