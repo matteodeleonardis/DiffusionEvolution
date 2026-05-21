@@ -1,12 +1,13 @@
 function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, 
-    prior_γ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
+    prior_γ::Float64, prior_n::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
 
     ll = 0.0
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
     γ = get_gamma(x, data.d)
+    n = get_n(x, data.d)
     for t in eachindex(data.round)
-        μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+        μ, Σ = compute_parameters(J, n, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
         ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
@@ -22,21 +23,25 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
         ll += prior_theta*sum(abs2, θ)/data.d
     end
     if prior_γ > 0.0
-        ll += prior_γ*abs2(log1pexp(-x[gamma_index(data.d)])) #it is -log(gamma) since gamma is 1/(1+exp(-x[gamma_index(data.d)]))
+        ll += prior_γ*abs2(x[gamma_index(data.d)]) #it is log(gamma) since gamma is exp(-x[gamma_index(data.d)])
+    end
+    if prior_n > 0.0
+        ll += prior_n*abs2(x[n_index(data.d)]) 
     end
 
     return  ll
 end
 
 
-function log_likelihood_fixed(x::Pars,  data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, 
+function log_likelihood_fixed(x::Pars,  data::Data, λ::Float64, prior_J::Float64, prior_theta::Float64, prior_n::Float64,
     ϵ_J::Float64, ϵ_Σ::Float64)
 
     ll = 0.0
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
+    n = get_n(x, data.d)
     for t in eachindex(data.round)
-        μ, Σ = compute_parameters(J, θ, 1.0, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+        μ, Σ = compute_parameters(J, n, θ, 1.0, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
         ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
@@ -51,13 +56,16 @@ function log_likelihood_fixed(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     if prior_theta > 0.0
         ll += prior_theta*sum(abs2, θ)/data.d
     end
+    if prior_n > 0.0
+        ll += prior_n*abs2(x[n_index(data.d)])
+    end
 
     return  ll
 end
 
 
 function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_J::Float64, 
-    prior_theta::Float64, prior_γ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
+    prior_theta::Float64, prior_γ::Float64, prior_n::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -65,7 +73,7 @@ function optim_wrapper_gamma(x::Pars, g::Pars, data::Data, λ::Float64, prior_J:
 
     ll = 0.0
     gs = Flux.gradient(x) do par
-        ll = log_likelihood_gamma(par, data, λ, prior_J, prior_theta, prior_γ, ϵ_J, ϵ_Σ)
+        ll = log_likelihood_gamma(par, data, λ, prior_J, prior_theta, prior_γ, prior_n, ϵ_J, ϵ_Σ)
     end
 
     g .= gs[1]
@@ -74,7 +82,7 @@ end
 
 
 function optim_wrapper_fixed(x::Pars, g::Pars, data::Data, λ::Float64, prior_J::Float64, 
-    prior_theta::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
+    prior_theta::Float64, prior_n::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
 
     if length(g)==0
         g = zeros(length(x))
@@ -82,7 +90,7 @@ function optim_wrapper_fixed(x::Pars, g::Pars, data::Data, λ::Float64, prior_J:
 
     ll = 0.0
     gs = Flux.gradient(x) do par
-        ll = log_likelihood_fixed(par, data, λ, prior_J, prior_theta, ϵ_J, ϵ_Σ)
+        ll = log_likelihood_fixed(par, data, λ, prior_J, prior_theta, prior_n, ϵ_J, ϵ_Σ)
     end
 
     g .= gs[1]
@@ -122,7 +130,7 @@ end
 
 
 function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, 
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, prior_n=0.0,
     epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
 
     x_gamma_0 = logit(inv(data.time[end]))
@@ -137,9 +145,9 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
 
         ll = 0.0
         if G !== nothing
-            ll = optim_wrapper_gamma(x, G, data, lambda, prior_J, prior_theta, prior_gamma, epsilon_J, epsilon_sigma)
+            ll = optim_wrapper_gamma(x, G, data, lambda, prior_J, prior_theta, prior_gamma, prior_n, epsilon_J, epsilon_sigma)
         elseif F!== nothing
-            ll = log_likelihood_gamma(x, data, lambda, prior_J, prior_theta, prior_gamma, epsilon_J, epsilon_sigma)
+            ll = log_likelihood_gamma(x, data, lambda, prior_J, prior_theta, prior_gamma, prior_n, epsilon_J, epsilon_sigma)
         end
 
         return ll
@@ -157,7 +165,7 @@ end
 
 
 function learn_fixed_optim(data::Data; x0=randn(npars(data.d)), initialize=-1,
-    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, 
+    alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_n=0.0,
     epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
 
     if initialize == 0
@@ -170,9 +178,9 @@ function learn_fixed_optim(data::Data; x0=randn(npars(data.d)), initialize=-1,
 
         ll = 0.0
         if G !== nothing
-            ll = optim_wrapper_fixed(x, G, data, lambda, prior_J, prior_theta, epsilon_J, epsilon_sigma)
+            ll = optim_wrapper_fixed(x, G, data, lambda, prior_J, prior_theta, prior_n, epsilon_J, epsilon_sigma)
         elseif F!== nothing
-            ll = log_likelihood_fixed(x, data, lambda, prior_J, prior_theta, epsilon_J, epsilon_sigma)
+            ll = log_likelihood_fixed(x, data, lambda, prior_J, prior_theta, prior_n, epsilon_J, epsilon_sigma)
         end
 
         return ll

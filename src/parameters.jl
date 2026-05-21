@@ -6,13 +6,13 @@ end
 
 function npars(d::Int)
 
-    n_couplings(d) + d
+    n_couplings(d) + d + 1
 end
 
 
 function npars_gamma(d::Int)
 
-    n_couplings(d) + d + 1
+    n_couplings(d) + d + 2
 end
 
 
@@ -28,9 +28,15 @@ function Hindex(i::Int, d::Int)
 end
 
 
-function gamma_index(d::Int)
+function n_index(d::Int)
 
     return n_couplings(d) + d + 1
+end
+
+
+function gamma_index(d::Int)
+
+    return n_couplings(d) + d + 2
 end
 
 
@@ -52,9 +58,15 @@ function get_Hparameter(x::Pars, i::Int, d::Int)
 end
 
 
+function get_n(x::Pars, d::Int)
+
+    return exp(x[n_index(d)])
+end
+
+
 function get_gamma(x::Pars, d::Int; beta=1.0)
 
-    return logistic(beta*x[gamma_index(d)])
+    return exp(beta*x[gamma_index(d)])
 end
 
 
@@ -74,8 +86,9 @@ function compute_J(x::Pars, d::Int, ϵ::Float64)
 
     m = [get_Jparameter(x, i, j,d) for i in 1:d, j in 1:d]
     J = m * m'
+    n = norm(J)
 
-    return J + ϵ*I(d)
+    return J/n + ϵ*I(d)
 end
 
 
@@ -99,7 +112,7 @@ function compute_mu(x0::Vector{Float64}, Λt, θ::Vector{Float64}, d::Int)
 end
 
 
-function compute_sigma(J, Λt, d::Int)
+function compute_sigma(J, n, Λt, d::Int)
 
     C = cholesky(J)
     sigma = C \ (I(d) - Λt^2)
@@ -114,7 +127,8 @@ function compute_parameters(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d
     θ = compute_theta(x, d)
     Λt = compute_lambda(J, γ, t)
     μ = compute_mu(x0, Λt, θ, d)
-    Σ = (1.0-λ)*compute_sigma(J, Λt, d)
+    n = get_n(x, d)
+    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d)
     Σ += λ*I(d)
     Σ = 0.5 * (Σ + Σ')
     Σ += ϵ*I(d)
@@ -130,7 +144,8 @@ function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
     θ = compute_theta(x, d)
     Λt = compute_lambda(J, get_gamma(x, d), t)
     μ = compute_mu(x0, Λt, θ, d)
-    Σ = (1.0-λ)*compute_sigma(J, Λt, d)
+    n = get_n(x, d)
+    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d)
     Σ += λ*I(d)
     Σ = 0.5 * (Σ + Σ')
     Σ += ϵ*I(d)
@@ -139,11 +154,11 @@ function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
 end
 
 
-function compute_parameters(J, θ, γ, t, x0, d, λ, ϵ)
+function compute_parameters(J, n, θ, γ, t, x0, d, λ, ϵ)
 
     Λt = compute_lambda(J, γ, t)
     μ = compute_mu(x0, Λt, θ, d)
-    Σ = (1.0-λ)*compute_sigma(J, Λt, d)
+    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d)
     Σ += λ*I(d)
     Σ = 0.5 * (Σ + Σ')
     Σ += ϵ*I(d)
