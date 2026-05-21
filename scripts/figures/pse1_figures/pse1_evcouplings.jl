@@ -94,12 +94,12 @@ end
 
 file_model_scores = collect_model_score_files("/home/students/s301803/CODE/DiffusionEvolution/results/pse1/run0")
 
-_, _, fig_n_contacts, ax_n_contacts, _, _, _, _ = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "OU", "EVCouplings")
+_, _, fig_n_contacts, ax_n_contacts, _, _, _, _ = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "OU", "Combined-MSA")
 
 random_baseline = (sum(true_contacts)/2)/(L*(L-1)/2)*div(L,2)
 ax_n_contacts.axhline(random_baseline, color="black", linestyle="--", label="Random")
 handles, labels = ax_n_contacts.get_legend_handles_labels()
-labels = ["OU", "EV Couplings", "Random"]
+labels = ["OU", "Combined-MSA", "Random"]
 ax_n_contacts.legend(handles, labels)
 ax_n_contacts.set_title("Precision of Contact Predictions for PSE1")
 

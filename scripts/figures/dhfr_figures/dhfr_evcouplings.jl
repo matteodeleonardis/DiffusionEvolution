@@ -50,7 +50,7 @@ for j in 1:div(L,2)
         end
     end
 end
-ax_plmdca.set_title("Predicted Additional Contacts (EV Couplings vs PlmDCA) for mDHFR")
+ax_plmdca.set_title("Predicted Additional Contacts for mDHFR\n Combined-MSA vs PlmDCA")
 ax_plmdca.set_xlabel("site i")
 ax_plmdca.set_ylabel("site j")
 colormap_contacts = PyPlot.matplotlib.colors.ListedColormap(["white", "grey"])
@@ -95,7 +95,7 @@ _, _, fig_n_contacts, ax_n_contacts, _, _, _, _ = compare_new_contacts(ev_coupli
 random_baseline = (sum(true_contacts)/2)/(L*(L-1)/2)*div(L,2)
 ax_n_contacts.axhline(random_baseline, color="black", linestyle="--", label="Random")
 handles, labels = ax_n_contacts.get_legend_handles_labels()
-labels = ["OU", "EV Couplings", "Random"]
+labels = ["OU", "Combined", "Random"]
 ax_n_contacts.legend(handles, labels)
 ax_n_contacts.set_title("Precision of Contact Predictions for mDHFR")
 
