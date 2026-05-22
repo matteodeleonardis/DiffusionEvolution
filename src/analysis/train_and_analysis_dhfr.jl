@@ -29,6 +29,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     prior_J = 0.01
     prior_theta = 0.01
     prior_gamma = 0.01 #prior_J * d^2
+    prior_n = 0.01
     whiten = false
     fixed = false
     extreme = false
@@ -38,7 +39,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
 
     results, model_settings, gamma_min, data, pca = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
         fixed=fixed, whiten=whiten, extreme=extreme, weight=false, opt_pkg=opt_pkg, d=d, initialize=length(times), 
-        prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma,
+        prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, prior_n=prior_n,
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
 
 
@@ -46,7 +47,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     g_res = zeros(length(x_opt))
     if fixed == false
         ll_opt = DiffusionEvolution.optim_wrapper_gamma(x_opt, g_res, data, lambda, 
-            prior_J, prior_theta, prior_gamma, 
+            prior_J, prior_theta, prior_gamma, prior_n,
             epsilon_J, epsilon_sigma)
         #if gamma is at the border, set gradient to zero
         if x_opt[end] <= 1e-12
@@ -54,7 +55,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         end
     else
         ll_opt = DiffusionEvolution.optim_wrapper_fixed(x_opt, g_res, data, lambda, 
-            prior_J, prior_theta,
+            prior_J, prior_theta, prior_n,
             epsilon_J, epsilon_sigma)
     end
 
@@ -68,6 +69,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         end
         print(io, "extrema |J|: ", extrema(abs.(J_opt)), "\n")
         print(io, "extrema |h|: ", extrema(abs.(theta_opt)), "\n")
+        print(io, "n: ", DiffusionEvolution.get_n(x_opt, d), "\n")
         print(io, "x[gamma]: ", results.minimizer[end], "\n")
         print(io, "extrema |x[J]|: ", extrema(abs.(results.minimizer[1:DiffusionEvolution.n_couplings(d)])), "\n")
         print(io, "extrema |x[h]|: ", 
@@ -90,6 +92,8 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
 
     #plot inferred distribution
     #plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
+
+    compute_log_likelihood_variants(x_opt,  data, lambda, epsilon_J, epsilon_sigma, output_root)
 
     #parameters as tensors
     fasta_wt = readfasta(file0)

@@ -18,6 +18,8 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
     
     @assert isapprox(C,C')
     J = svd_inv(C)
+    n = sqrt(sum(abs2, J))
+    J = J/n
     x_s = sqrt(J)
 
 
@@ -27,6 +29,7 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
         end
         x0[Hindex(i, d)] = m[i]
     end  
+    x0[n_index(d)] = log(n)
     
     if length(x0) == npars_gamma(d)
         x0[gamma_index(d)] = init_gamma
@@ -44,6 +47,7 @@ function init_id!(x0::Pars; d, init_gamma = -1.0)
         end
         x0[Hindex(i, d)] = 0.0
     end  
+    x0[n_index(d)] = 0.0
     
     if length(x0) == npars_gamma(d)
         x0[gamma_index(d)] = init_gamma

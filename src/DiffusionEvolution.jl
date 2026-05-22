@@ -31,7 +31,7 @@ module DiffusionEvolution
     export compute_energy, compute_weight, get_potts_params, compute_entropy, hist2d_with_marginals, derivative_nonuniform
 
     include("inference.jl")
-    export infer_series, fit_series, get_params_tens
+    export infer_series, fit_series, get_params_tens, log_likelihood_variants
 
     include("contacts.jl")
     export compute_norm, corr_APC, compute_true_positives, compute_frob_norm, contact_plot
@@ -50,7 +50,8 @@ module DiffusionEvolution
 
         # generic options
         opt_pkg::Symbol, initialize=-1,  
-        lambda=0.01, prior_J=0.0001, prior_theta=0.0001, prior_gamma=0.0001, epsilon_J=1.0e-9, epsilon_sigma=1.0e-12, d=1,
+        lambda=0.01, prior_J=0.0001, prior_theta=0.0001, prior_gamma=0.0001, prior_n=0.0001,
+        epsilon_J=1.0e-9, epsilon_sigma=1.0e-12, d=1,
 
         # optimization options for NLopt
         nlopt_alg=:LD_LBFGS,  
@@ -75,12 +76,12 @@ module DiffusionEvolution
         elseif opt_pkg == :Optim
             if fixed == false
                 results = learn_gamma_optim(data; initialize=initialize, 
-                    lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+                    lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, prior_n=prior_n,
                     epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
                     alg=optim_alg, stop_tol...)
             else
                 results = learn_fixed_optim(data; initialize=initialize, 
-                    lambda=lambda, prior_J=prior_J, prior_theta=prior_theta,
+                    lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_n=prior_n,
                     epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, 
                     alg=optim_alg, stop_tol...)
             end
@@ -89,7 +90,7 @@ module DiffusionEvolution
         gamma_min_empirical = estimate_gamma(data)
         num_params = length(results.minimizer)
         model_settings = (weight=weight, fixed=fixed, whiten=whiten, extreme=extreme, d=d, initialize=initialize,
-                            lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, 
+                            lambda=lambda, prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma, prior_n=prior_n,
                             epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, num_params=num_params)
 
         return results, model_settings, gamma_min_empirical, data, pca

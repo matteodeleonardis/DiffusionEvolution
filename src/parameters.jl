@@ -86,7 +86,7 @@ function compute_J(x::Pars, d::Int, ϵ::Float64)
 
     m = [get_Jparameter(x, i, j,d) for i in 1:d, j in 1:d]
     J = m * m'
-    n = norm(J)
+    n = sqrt(sum(abs2, J))
 
     return J/n + ϵ*I(d)
 end
@@ -116,7 +116,7 @@ function compute_sigma(J, n, Λt, d::Int)
 
     C = cholesky(J)
     sigma = C \ (I(d) - Λt^2)
-    return 0.5*(sigma + sigma')
+    return 0.5*(sigma + sigma')/n
 end
 
 

@@ -16,17 +16,17 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     end
 
 
-    if prior_J > 0.0
-        ll += prior_J*sum(abs2, J)/data.d^2
-    end
+    # if prior_J > 0.0
+    #     ll += prior_J*sum(abs2, J)/data.d^2
+    # end
     if prior_theta > 0.0
         ll += prior_theta*sum(abs2, θ)/data.d
     end
     if prior_γ > 0.0
-        ll += prior_γ*abs2(x[gamma_index(data.d)]) #it is log(gamma) since gamma is exp(-x[gamma_index(data.d)])
+        ll += prior_γ*abs2(x[gamma_index(data.d)] - x[n_index(data.d)]) #it is log(gamma/n)
     end
     if prior_n > 0.0
-        ll += prior_n*abs2(x[n_index(data.d)]) 
+        ll += prior_n*abs2(n) 
     end
 
     return  ll
@@ -50,14 +50,14 @@ function log_likelihood_fixed(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     end
 
 
-    if prior_J > 0.0
-        ll += prior_J*sum(abs2, J)/data.d^2
-    end
+    # if prior_J > 0.0
+    #     ll += prior_J*sum(abs2, J)/data.d^2
+    # end
     if prior_theta > 0.0
         ll += prior_theta*sum(abs2, θ)/data.d
     end
     if prior_n > 0.0
-        ll += prior_n*abs2(x[n_index(data.d)])
+        ll += prior_n*abs2(n)
     end
 
     return  ll
@@ -133,7 +133,7 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
     alg=Optim.LBFGS(), lambda=0.0, prior_J=0.0, prior_theta=0.0, prior_gamma=0.0, prior_n=0.0,
     epsilon_J=0.0, epsilon_sigma=0.0, stop_tol...)
 
-    x_gamma_0 = logit(inv(data.time[end]))
+    x_gamma_0 = log(inv(data.time[end]))
 
     if initialize == 0
         init_id!(x0, d=data.d, init_gamma=1.0)

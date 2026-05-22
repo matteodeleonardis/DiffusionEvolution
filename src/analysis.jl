@@ -18,7 +18,7 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
             ax_emp_dist[i].set_ylabel("pdf")
         end
     end
-    fig_emp_dist.savefig(output_root * ".emp_dist.svg", format="svg", bbox_inches="tight")
+    fig_emp_dist.savefig(output_root * ".emp_dist.png", format="png", bbox_inches="tight")
     xlim = ax_emp_dist[1].get_xlim()
     ylim = ax_emp_dist[1].get_ylim()
 
@@ -46,7 +46,7 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
             ax_inf_dist[i].set_xlim(xlim)
         end
     end
-    fig_inf_dist.savefig(output_root * ".inf_dist.svg", format="svg", bbox_inches="tight")
+    fig_inf_dist.savefig(output_root * ".inf_dist.png", format="png", bbox_inches="tight")
 
     figure()
     fig = gcf()
@@ -66,7 +66,7 @@ function plot_distribution(x_opt, data, times, output_root; lambda, epsilon_J, e
         ax.set_xlabel("PC1")
         ax.set_ylabel("pdf")
     end
-    fig.savefig(output_root * ".inf_dist_equilibrium.svg", format="svg", bbox_inches="tight")
+    fig.savefig(output_root * ".inf_dist_equilibrium.png", format="png", bbox_inches="tight")
 end
 
 
@@ -128,7 +128,7 @@ function compute_ppv(frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_
     plot(ppv_frobenius_wildtypegauge_apc[1:L], label="wildtypegauge_apc")
     xticks([0, L÷2, L], ["0", "L/2", "L"])
     legend()
-    gcf().savefig(output_root * ".ppv.svg", format="svg", bbox_inches="tight")
+    gcf().savefig(output_root * ".ppv.png", format="png", bbox_inches="tight")
 
     return ppv_frobenius_zerosumgauge, ppv_frobenius_zerosumgauge_apc,
         ppv_frobenius_wildtypegauge, ppv_frobenius_wildtypegauge_apc
@@ -152,7 +152,7 @@ function print_contact_plot(frobenius_score_zerosumgauge, frobenius_score_zerosu
     map(x -> x.set_xlabel("site i"), ax_contact)
     map(x -> x.set_ylabel("site j"), ax_contact)
 
-    fig_contact.savefig(output_root * ".contact.svg", format="svg", bbox_inches="tight")
+    fig_contact.savefig(output_root * ".contact.png", format="png", bbox_inches="tight")
 end
 
 function plot_gamma(output::Vector)
@@ -180,4 +180,21 @@ function plot_gamma(output::Vector)
     ax.set_xticks(eachindex(gammas), [basename(o) for o in output], rotation=90)
 
     return fig, ax, gammas, gamma_est
+end
+
+
+function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J::Float64, ϵ_Σ::Float64, output_root::String)
+
+    fig, ax = subplots(1, length(data.time), 6)    
+
+    for i in eachindex(data.time)
+        ll_vars = log_likelihood_variants(x, data, i, λ, ϵ_J, ϵ_Σ)
+        rho = cor(ll_vars, data.round[i].w)
+        ax[i].scatter(ll_vars, data.round[i].w)
+        ax[i].set_title("t=$(data.time[i]), ρ=$(round(rho, digits=3))")
+        ax[i].set_xlabel("log-likelihood variants")
+        ax[i].set_ylabel("(normalized) counts")
+    end
+
+    fig.savefig(output_root * ".log_likelihood_vs_counts.png", format="png", bbox_inches="tight")
 end
