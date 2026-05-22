@@ -189,8 +189,9 @@ function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J
 
     for i in eachindex(data.time)
         ll_vars = log_likelihood_variants(x, data, i, λ, ϵ_J, ϵ_Σ)
-        rho = cor(ll_vars, data.round[i].w)
-        ax[i].scatter(ll_vars, data.round[i].w)
+        log_counts = log.(data.round[i].w .+ 1e-12)
+        rho = cor(ll_vars, log_counts)
+        ax[i].scatter(ll_vars, log_counts, alpha=0.5)
         ax[i].set_title("t=$(data.time[i]), ρ=$(round(rho, digits=3))")
         ax[i].set_xlabel("log-likelihood variants")
         ax[i].set_ylabel("(normalized) counts")

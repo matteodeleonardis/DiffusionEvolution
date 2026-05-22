@@ -94,7 +94,7 @@ function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J
     C = cholesky(Σ)
     x_μ = data.round[t].x .- μ
     inv_Σ_x = C \ x_μ
-    lls = -sum((data.round[t].w' .* x_μ) .* inv_Σ_x, dims=1)/data.d
+    lls = -sum(x_μ .* inv_Σ_x, dims=1)/data.d
 
     return vec(lls)
 end
