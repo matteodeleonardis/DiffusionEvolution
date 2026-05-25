@@ -88,7 +88,7 @@ function compute_J(x::Pars, d::Int, ϵ::Float64)
     J = m * m'
     n = sqrt(sum(abs2, J))
 
-    return J/n + ϵ*I(d)
+    return J/(n+ϵ) + ϵ*I(d)
 end
 
 
@@ -112,11 +112,11 @@ function compute_mu(x0::Vector{Float64}, Λt, θ::Vector{Float64}, d::Int)
 end
 
 
-function compute_sigma(J, n, Λt, d::Int)
+function compute_sigma(J, n, Λt, d::Int, ϵ)
 
     C = cholesky(J)
     sigma = C \ (I(d) - Λt^2)
-    return 0.5*(sigma + sigma')/n
+    return 0.5*(sigma + sigma')/(n+ϵ)
 end
 
 
@@ -128,7 +128,7 @@ function compute_parameters(x::Pars, γ::Float64, t::Int, x0::Vector{Float64}, d
     Λt = compute_lambda(J, γ, t)
     μ = compute_mu(x0, Λt, θ, d)
     n = get_n(x, d)
-    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d)
+    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d, ϵ)
     Σ += λ*I(d)
     Σ = 0.5 * (Σ + Σ')
     Σ += ϵ*I(d)
@@ -145,7 +145,7 @@ function compute_parameters(x::Pars, t::Int, x0::Vector{Float64}, d::Int,
     Λt = compute_lambda(J, get_gamma(x, d), t)
     μ = compute_mu(x0, Λt, θ, d)
     n = get_n(x, d)
-    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d)
+    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d, ϵ)
     Σ += λ*I(d)
     Σ = 0.5 * (Σ + Σ')
     Σ += ϵ*I(d)
@@ -158,7 +158,7 @@ function compute_parameters(J, n, θ, γ, t, x0, d, λ, ϵ)
 
     Λt = compute_lambda(J, γ, t)
     μ = compute_mu(x0, Λt, θ, d)
-    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d)
+    Σ = (1.0-λ)*compute_sigma(J, n, Λt, d, ϵ)
     Σ += λ*I(d)
     Σ = 0.5 * (Σ + Σ')
     Σ += ϵ*I(d)
