@@ -130,4 +130,7 @@ module DiffusionEvolution
 
     include("analysis/J_divergence.jl")
     export J_divergence
+
+    include("analysis/reprint_inference.jl")
+    export reprint_inference
 end

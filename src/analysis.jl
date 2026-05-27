@@ -190,19 +190,18 @@ function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J
     for i in eachindex(data.time)
         ll_vars = log_likelihood_variants(x, data, i, λ, ϵ_J, ϵ_Σ)
         log_counts = log.(data.round[i].w .+ 1e-12)
-        idx = log_counts .> -10.0
-        rho = cor(ll_vars[idx], log_counts[idx])
-        ax[1,i].scatter(ll_vars[idx], log_counts[idx], alpha=0.5)
-        ax[1,i].set_title("t=$(data.time[i]), ρ=$(round(rho, digits=3)), filtered points: $(sum(idx))")
+        rho_log = cor(ll_vars, log_counts)
+        ax[1,i].scatter(ll_vars, log_counts, alpha=0.5)
+        ax[1,i].set_title("t=$(data.time[i]), ρ=$(round(rho_log, digits=3))")
         ax[1,i].set_xlabel("log-likelihood variants")
-        ax[1,i].set_ylabel("(normalized) counts")
+        ax[1,i].set_ylabel("log (normalized) counts")
 
-        rho_all = cor(ll_vars, log_counts)
-        ax[2,i].scatter(ll_vars, log_counts, alpha=0.5)
-        ax[2,i].set_title("t=$(data.time[i]), ρ=$(round(rho_all, digits=3)), all points")
-        ax[2,i].set_xlabel("log-likelihood variants")
+        rho = cor(exp.(ll_vars), data.round[i].w)
+        ax[2,i].scatter(exp.(ll_vars), data.round[i].w, alpha=0.5)
+        ax[2,i].set_title("t=$(data.time[i]), ρ=$(round(rho, digits=3)), all points")
+        ax[2,i].set_xlabel("likelihood variants")
         ax[2,i].set_ylabel("(normalized) counts")
     end
 
-    fig.savefig(output_root * ".log_likelihood_vs_counts.png", format="png", bbox_inches="tight")
+    fig.savefig(output_root * ".likelihood_vs_counts.png", format="png", bbox_inches="tight")
 end
