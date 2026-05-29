@@ -185,7 +185,7 @@ end
 
 function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J::Float64, ϵ_Σ::Float64, output_root::String)
 
-    fig, ax = subplots(2, length(data.time), 6)    
+    fig, ax = subplots(3, length(data.time), 6)    
 
     for i in eachindex(data.time)
         ll_vars = log_likelihood_variants(x, data, i, λ, ϵ_J, ϵ_Σ)
@@ -201,6 +201,11 @@ function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J
         ax[2,i].set_title("t=$(data.time[i]), ρ=$(round(rho, digits=3)), all points")
         ax[2,i].set_xlabel("likelihood variants")
         ax[2,i].set_ylabel("(normalized) counts")
+
+        observed = data.round[i].w .> 1e-12  
+        ax[3,i].hist(ll_vars[observed], alpha=0.5, label="observed")
+        ax[3,i].hist(ll_vars[.!observed], alpha=0.5, label="floor")
+        ax[3,i].legend()
     end
 
     fig.savefig(output_root * ".likelihood_vs_counts.png", format="png", bbox_inches="tight")
