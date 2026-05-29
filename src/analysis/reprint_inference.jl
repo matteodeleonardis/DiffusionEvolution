@@ -36,7 +36,7 @@ function reprint_inference(; output_root, file_model_scores)
     for (di, d) in pairs(d_values)
         path_pars = joinpath(dirname(file_model_scores[di]), split(basename(file_model_scores[di]), ".")[1]*".pars.jld2")
         x_pars = JLD2.load(path_pars)["x_opt"]
-        output_root_d = joinpath(output_root * string(d), basename(output_root) * "_d_$(d)")
+        output_root_d = joinpath(output_root * string(d), basename(output_root) * "$(d)")
         s_data = subdata(data, d)
         compute_log_likelihood_variants(x_pars,  s_data, lambda, epsilon_J, epsilon_sigma, output_root_d)
         

@@ -88,9 +88,8 @@ function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
     γ = get_gamma(x, data.d)
-    n = get_n(x, data.d)
    
-    μ, Σ = compute_parameters(J, n, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+    μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
     C = cholesky(Σ)
     x_μ = data.round[t].x .- μ
     inv_Σ_x = C \ x_μ
