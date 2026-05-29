@@ -144,18 +144,19 @@ function compute_entropy(x, d, ϵ, times)
 end
 
 
-function safe_cholesky(M; jitter=0.0, max_tries=5)
-    for k in 0:max_tries-1
-        t = jitter * (2.0^k)
-        try
-            return cholesky(Symmetric(M + t*I), check=true)
-        catch e
-            if !(e isa PosDefException)
-                rethrow(e)
-            end
-        end
+function safe_cholesky(A, name)
+    S = Symmetric(0.5 .* (A .+ A'))
+    vals = eigen(S).values
+    if !all(isfinite, A) || minimum(vals) <= 0
+        @show name
+        @show size(A)
+        @show extrema(A)
+        @show minimum(vals)
+        @show maximum(vals)
+        @show count(!isfinite, A)
+        error("$name is not positive definite")
     end
-    return nothing
+    return cholesky(S)
 end
 
 #plot

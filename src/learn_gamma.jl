@@ -8,7 +8,21 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     n = get_n(x, data.d)
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(J, n, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
-        C = cholesky(Σ)
+
+        evals_sigma = eigen(Symmetric(Σ)).values
+        if !all(isfinite, Σ) || minimum(evals_sigma) <= 0
+            Λt = compute_lambda(J, γ, data.time[t])
+
+            println("Error in Cholesky decomposition at time $(data.time[t]): ")
+            @show γ
+            @show n
+            @show minimum(evals_sigma)
+            @show minimum(eigen(Symmetric(J)).values)
+            @show maximum(eigen(Symmetric(Λt)).values)
+            @show minimum(eigen(Symmetric(I(data.d) - Λt^2)).values)
+        end
+
+        C = safe_cholesky(Σ, "Sigma($(data.time[t]))")
         ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
         inv_Σ_x = C \ x_μ

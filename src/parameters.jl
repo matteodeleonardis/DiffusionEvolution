@@ -114,9 +114,9 @@ end
 
 function compute_sigma(J, n, Λt, d::Int, ϵ)
 
-    C = cholesky(J)
+    C = safe_cholesky(J, "J")
     sigma = C \ (I(d) - Λt^2)
-    return 0.5*(sigma + sigma')/(n+ϵ)
+    return 0.5*n*(sigma + sigma')
 end
 
 
