@@ -31,7 +31,7 @@ module DiffusionEvolution
     export compute_energy, compute_weight, get_potts_params, compute_entropy, hist2d_with_marginals, derivative_nonuniform
 
     include("inference.jl")
-    export infer_series, fit_series, get_params_tens
+    export infer_series, fit_series, get_params_tens, log_likelihood_variants
 
     include("contacts.jl")
     export compute_norm, corr_APC, compute_true_positives, compute_frob_norm, contact_plot
@@ -129,4 +129,7 @@ module DiffusionEvolution
 
     include("analysis/J_divergence.jl")
     export J_divergence
+
+    include("analysis/reprint_inference.jl")
+    export reprint_inference
 end

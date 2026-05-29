@@ -1,0 +1,11 @@
+name: diffusion_evolution
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - biopython=1.78
+  - hmmer
+  - tmux

@@ -91,6 +91,8 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #plot inferred distribution
     #plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
 
+    compute_log_likelihood_variants(x_opt,  data, lambda, epsilon_J, epsilon_sigma, output_root)
+
     #parameters as tensors
     fasta_wt = readfasta(file0)
     wt = aa2int.(uppercase(fasta_wt[1][2]))

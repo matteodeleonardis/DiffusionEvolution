@@ -82,6 +82,25 @@ function estimate_gamma(data)
 end
 
 
+function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
+
+    ll = 0.0
+    J = compute_J(x, data.d, ϵ_J)
+    θ = compute_theta(x, data.d)
+    γ = get_gamma(x, data.d)
+    n = get_n(x, data.d)
+   
+    μ, Σ = compute_parameters(J, n, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+    C = cholesky(Σ)
+    x_μ = data.round[t].x .- μ
+    inv_Σ_x = C \ x_μ
+    lls = -sum(x_μ .* inv_Σ_x, dims=1)/data.d
+
+    return vec(lls)
+end
+
+
+
 
 
 
