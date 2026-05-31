@@ -23,7 +23,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #file_nat = file1
 
     #training
-    lambda = 0.01
+    lambda = 0.0
     epsilon_J = 1e-9
     epsilon_sigma = 1e-12
     prior_J = 0.01
@@ -92,6 +92,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #plot_distribution(x_opt, data, times, output_root; lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma)
 
     compute_log_likelihood_variants(x_opt,  data, lambda, epsilon_J, epsilon_sigma, output_root)
+    compute_mean_covariance(x_opt, data, lambda, epsilon_J, epsilon_sigma, output_root)
 
     #parameters as tensors
     fasta_wt = readfasta(file0)

@@ -190,23 +190,60 @@ function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J
     for i in eachindex(data.time)
         ll_vars = log_likelihood_variants(x, data, i, λ, ϵ_J, ϵ_Σ)
         log_counts = log.(data.round[i].w .+ 1e-12)
-        rho_log = cor(ll_vars, log_counts)
-        ax[1,i].scatter(ll_vars, log_counts, alpha=0.5)
+        idx = log_counts .> log(1e-8)
+        rho_log = cor(ll_vars[idx], log_counts[idx])
+        ax[1,i].scatter(ll_vars[idx], log_counts[idx]   , alpha=0.5)
         ax[1,i].set_title("t=$(data.time[i]), ρ=$(round(rho_log, digits=3))")
         ax[1,i].set_xlabel("log-likelihood variants")
         ax[1,i].set_ylabel("log (normalized) counts")
 
-        rho = cor(exp.(ll_vars), data.round[i].w)
-        ax[2,i].scatter(exp.(ll_vars), data.round[i].w, alpha=0.5)
+        rho = cor(exp.(ll_vars[idx]), data.round[i].w[idx])
+        ax[2,i].scatter(exp.(ll_vars[idx]), data.round[i].w[idx], alpha=0.5)
         ax[2,i].set_title("t=$(data.time[i]), ρ=$(round(rho, digits=3)), all points")
         ax[2,i].set_xlabel("likelihood variants")
         ax[2,i].set_ylabel("(normalized) counts")
 
-        observed = data.round[i].w .> 1e-12  
+        observed = data.round[i].w .> 1e-8
         ax[3,i].hist(ll_vars[observed], alpha=0.5, label="observed")
         ax[3,i].hist(ll_vars[.!observed], alpha=0.5, label="floor")
+        ax[3,i].set_title("t=$(data.time[i])")
+        ax[3,i].set_xlabel("log-likelihood variants")
+        ax[3,i].set_ylabel("count")
         ax[3,i].legend()
     end
 
     fig.savefig(output_root * ".likelihood_vs_counts.png", format="png", bbox_inches="tight")
 end
+
+function compute_mean_covariance(x::Pars,  
+    data::Data, lambda::Float64, 
+    epsilon_J::Float64, 
+    epsilon_sigma::Float64, 
+    output_root::String)
+
+    fig, ax = subplots(2, length(data.time), 6)
+
+    J = compute_J(x, data.d, epsilon_J)
+    theta = compute_theta(x, data.d)
+    gamma = get_gamma(x, data.d)
+    for t in eachindex(data.round)
+        mu, sigma = compute_parameters(J, theta, gamma, data.time[t], data.x0, data.d, lambda, epsilon_sigma)
+        mu_emp = dropdims(mean(data.round[t].x[1:data.d, :], Weights(data.round[t].w), dims=2), dims=2)
+        sigma_emp = cov(data.round[t].x[1:data.d, :], Weights(data.round[t].w), 2)
+        rho_mu = cor(mu, mu_emp)
+        rho_sigma = cor(vec(sigma), vec(sigma_emp))
+
+        ax[1,t].scatter(mu, mu_emp)
+        ax[1,t].set_title("mean t=$(data.time[t]), ρ=$(round(rho_mu, digits=3))")
+        ax[1,t].set_xlabel("inferred mean")
+        ax[1,t].set_ylabel("empirical mean")
+
+        ax[2,t].scatter(vec(sigma), vec(sigma_emp))
+        ax[2,t].set_title("covariance t=$(data.time[t]), ρ=$(round(rho_sigma, digits=3))")
+        ax[2,t].set_xlabel("inferred covariance")
+        ax[2,t].set_ylabel("empirical covariance")
+    end
+
+    fig.savefig(output_root * ".mean_covariance.png", format="png", bbox_inches="tight")
+end
+

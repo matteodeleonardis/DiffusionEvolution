@@ -6,12 +6,14 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     θ = compute_theta(x, data.d)
     γ = get_gamma(x, data.d)
     for t in eachindex(data.round)
+        ll_t = 0.0
         μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
-        ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
+        ll_t += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
         inv_Σ_x = C \ x_μ
-        ll += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)/data.d
+        ll_t += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)/data.d
+        ll += ll_t * data.weff[t]/data.Meff
     end
 
 
@@ -36,12 +38,14 @@ function log_likelihood_fixed(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
     for t in eachindex(data.round)
+        ll_t = 0.0
         μ, Σ = compute_parameters(J, θ, 1.0, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
-        ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
+        ll_t += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
         inv_Σ_x = C \ x_μ
-        ll += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)/data.d
+        ll_t += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)/data.d
+        ll += ll_t * data.weff[t]/data.Meff
     end
 
 

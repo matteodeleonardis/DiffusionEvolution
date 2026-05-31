@@ -10,6 +10,8 @@ struct Data
     time::Vector{Int} #[t1, ..., tN] we assume t0=0
     M::Int #number of samples
     d::Int
+    weff::Vector{Float64}
+    Meff::Float64
 end
 
 function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 3}, counts::Matrix, time::Vector{Int})
@@ -26,11 +28,16 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 3}, count
         sample[t] = Sample(coordinates[:,:,t], w[:,t])
     end
 
-    
+    weff = zeros(length(time))
+    for t in eachindex(weff)
+        weff[t] = exp(-sum(x-> x==0.0 ? 0.0 : x*log(x), w[:,t]))
+    end
 
-    return Data(x0, sample, time, size(w,2), size(coordinates, 1))
+    println("Weights rounds: ", join(weff, ", "))
+    println("Total effective weight: ", sum(weff))
+
+    return Data(x0, sample, time, size(w,2), size(coordinates, 1), weff, sum(weff))
 end
-
 
 function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 2}, counts::Matrix, time::Vector{Int})
 
@@ -46,9 +53,15 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 2}, count
         sample[t] = Sample(coordinates, w[:,t])
     end
 
-    
+    weff = zeros(length(time))
+    for t in eachindex(weff)
+        weff[t] = exp(-sum(x-> x==0.0 ? 0.0 : x*log(x), w[:,t]))
+    end
 
-    return Data(x0, sample, time, size(w,2), size(coordinates, 1))
+    println("Weights rounds: ", join(weff, ", "))
+    println("Total effective weight: ", sum(weff))
+
+    return Data(x0, sample, time, size(w,2), size(coordinates, 1), weff, sum(weff))
 end
 
 
@@ -57,7 +70,7 @@ function subdata(data::Data, d::Int)
     sub_x0 = data.x0[1:d]
     sub_round = map(x->Sample(x.x[1:d,:], x.w), data.round)
 
-    return Data(sub_x0, sub_round, data.time, data.M, d)
+    return Data(sub_x0, sub_round, data.time, data.M, d, data.weff, data.Meff)
 end
 
 
