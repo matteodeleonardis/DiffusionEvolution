@@ -3,6 +3,8 @@ module DiffusionEvolution
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
     using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles, Printf, NLSolversBase
 
+    import Flux.NNlib: logsumexp
+
     import PyPlot.subplots
     subplots(x, y ,d; kwargs...) = PyPlot.subplots(x, y; figsize=(d*y, d*x), kwargs...)
 

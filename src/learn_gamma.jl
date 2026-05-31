@@ -8,10 +8,10 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     for t in eachindex(data.round)
         μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
-        ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
         inv_Σ_x = C \ x_μ
-        ll += sum((data.round[t].w' .* x_μ) .* inv_Σ_x)/data.d
+        mahalanobis = 0.5 .* vec(sum(x_μ .* inv_Σ_x, dims=1))
+        ll += dot(data.round[t].w, mahalanobis)/data.d + logsumexp(-mahalanobis)/data.d
     end
 
 
