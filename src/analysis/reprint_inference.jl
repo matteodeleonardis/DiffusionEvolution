@@ -39,6 +39,7 @@ function reprint_inference(; output_root, file_model_scores)
         output_root_d = joinpath(output_root * string(d), basename(output_root) * "$(d)")
         s_data = subdata(data, d)
         compute_log_likelihood_variants(x_pars,  s_data, lambda, epsilon_J, epsilon_sigma, output_root_d)
+        compute_mean_covariance(x_pars, s_data, lambda, epsilon_J, epsilon_sigma, output_root_d)
         
     end
 
