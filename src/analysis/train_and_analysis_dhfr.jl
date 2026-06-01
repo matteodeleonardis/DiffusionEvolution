@@ -23,7 +23,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #file_nat = file1
 
     #training
-    lambda = 0.0
+    lambda = 0.01
     epsilon_J = 1e-9
     epsilon_sigma = 1e-12
     prior_J = 0.01

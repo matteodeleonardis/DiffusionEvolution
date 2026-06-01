@@ -1,4 +1,4 @@
-function reprint_inference(; output_root, file_model_scores)
+function reprint_inference_dhfr(; output_root, file_model_scores)
     PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
 
     
