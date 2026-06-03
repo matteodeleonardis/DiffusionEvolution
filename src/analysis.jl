@@ -225,9 +225,9 @@ function compute_mean_covariance(x::Pars,
 
     J = compute_J(x, data.d, epsilon_J)
     theta = compute_theta(x, data.d)
-    gamma = get_gamma(x, data.d)
+    gamma_mu, gamma_sigma = get_gamma(x, data.d)
     for t in eachindex(data.round)
-        mu, sigma = compute_parameters(J, theta, gamma, data.time[t], data.x0, data.d, lambda, epsilon_sigma)
+        mu, sigma = compute_parameters(J, theta, gamma_mu, gamma_sigma, data.time[t], data.x0, data.d, lambda, epsilon_sigma)
         mu_emp = dropdims(mean(data.round[t].x[1:data.d, :], Weights(data.round[t].w), dims=2), dims=2)
         sigma_emp = cov(data.round[t].x[1:data.d, :], Weights(data.round[t].w), 2)
         rho_mu = cor(mu, mu_emp)
@@ -246,4 +246,43 @@ function compute_mean_covariance(x::Pars,
 
     fig.savefig(output_root * ".mean_covariance.png", format="png", bbox_inches="tight")
 end
+
+
+# function test_random(x::Pars,  
+#     data::Data, lambda::Float64, 
+#     pca,
+#     nsamples,
+#     file_init,
+#     file_rounds,
+#     file_nat,
+#     epsilon_J::Float64, 
+#     epsilon_sigma::Float64, 
+#     output_root::String)
+
+#     fig, ax = subplots(2, length(data.time), 6)
+
+#     J = compute_J(x, data.d, epsilon_J)
+#     theta = compute_theta(x, data.d)
+#     gamma_mu, gamma_sigma = get_gamma(x, data.d)
+
+#     init_sequence = readfasta(file_init)[1][2]
+#     L = length(init_sequence)
+
+
+
+#     for t in eachindex(data.round)
+#         mu, sigma = compute_parameters(J, theta, gamma_mu, gamma_sigma, data.time[t], data.x0, data.d, lambda, epsilon_sigma)
+#         data_samples = map(x->x[2], readfasta(file_rounds[t]))
+#         p_mut_emp = mean(map(sum(x->x .!= init_sequence), data_samples))
+
+#         n_mut = rand(Binomial(L, p_mut_emp), nsamples)
+#         rand_samples_sequences = copy(collect.(data_samples))
+#         for i in eachindex(rand_samples_sequences)
+#             mut_idx = randperm(L)[1:n_mut[i]]
+#             for idx in mut_idx
+#                 rand_samples_sequences[i][idx] = rand(collect(replace(alpabet_aa(), data_samples[i][idx] => "", "-"=> "")))
+#             end
+#         end
+
+        
 

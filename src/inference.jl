@@ -67,9 +67,9 @@ function get_params_tens(x, pca, d, epsilon_J, A, L; whiten, epsilon_rel=1.0e-8,
         epsilon = epsilon_rel * maximum(lambda)
         W_proj = (1.0 ./ sqrt.(lambda .+ epsilon)) .* W_proj
     end
-    J_tens, h_tens, gamma = get_potts_params(x, W_proj, pca.mean, d=d, epsilon=epsilon_J, A=A, L=L, eps_warn=eps_warning, set_zero=set_zero)
+    J_tens, h_tens, gamma_mu, gamma_sigma = get_potts_params(x, W_proj, pca.mean, d=d, epsilon=epsilon_J, A=A, L=L, eps_warn=eps_warning, set_zero=set_zero)
 
-    return J_tens, h_tens, gamma
+    return J_tens, h_tens, gamma_mu, gamma_sigma
 end
 
 
@@ -87,9 +87,9 @@ function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J
     ll = 0.0
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
-    γ = get_gamma(x, data.d)
+    γ_mu, γ_sigma = get_gamma(x, data.d)
    
-    μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+    μ, Σ = compute_parameters(J, θ, γ_mu, γ_sigma, data.time[t], data.x0, data.d, λ, ϵ_Σ)
     C = cholesky(Σ)
     x_μ = data.round[t].x .- μ
     inv_Σ_x = C \ x_μ

@@ -4,9 +4,9 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     ll = 0.0
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
-    γ = get_gamma(x, data.d)
+    γ_mu, γ_sigma = get_gamma(x, data.d)
     for t in eachindex(data.round)
-        μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+        μ, Σ = compute_parameters(J, θ, γ_mu, γ_sigma, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
         ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
@@ -22,7 +22,8 @@ function log_likelihood_gamma(x::Pars,  data::Data, λ::Float64, prior_J::Float6
         ll += prior_theta*sum(abs2, θ)/data.d
     end
     if prior_γ > 0.0
-        ll += prior_γ*abs2(log1pexp(-x[gamma_index(data.d)])) #it is -log(gamma) since gamma is 1/(1+exp(-x[gamma_index(data.d)]))
+        ll += prior_γ*abs2(log(γ_mu)) 
+        ll += prior_γ*abs2(log(γ_sigma))
     end
 
     return  ll
@@ -36,7 +37,7 @@ function log_likelihood_fixed(x::Pars,  data::Data, λ::Float64, prior_J::Float6
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
     for t in eachindex(data.round)
-        μ, Σ = compute_parameters(J, θ, 1.0, data.time[t], data.x0, data.d, λ, ϵ_Σ)
+        μ, Σ = compute_parameters(J, θ, 1.0, 1.0, data.time[t], data.x0, data.d, λ, ϵ_Σ)
         C = cholesky(Σ)
         ll += (2*sum(log, diag(C.U)) + data.d*log2pi)/data.d
         x_μ = data.round[t].x .- μ
@@ -146,8 +147,10 @@ function learn_gamma_optim(data::Data; x0=randn(npars_gamma(data.d)), initialize
     end
 
     println("*** Gamma initalization ***")
-    println("x[gamma]: ", x0[gamma_index(data.d)])
-    println("gamma value: ", get_gamma(x0, data.d))
+    gamma_mu_index, gamma_sigma_index = gamma_index(data.d)
+    println("x[gamma_mu]: ", x0[gamma_mu_index])
+    println("x[gamma_sigma]: ", x0[gamma_sigma_index])
+    println("[gamma_mu, gamma_sigma]: ", get_gamma(x0, data.d))
     println()
 
     res = Optim.optimize(NLSolversBase.only_fg!(fg!), x0, alg, Optim.Options(; stop_tol...))

@@ -29,7 +29,9 @@ function init_cov!(x0::Pars, Xdata::Matrix{Float64}, w::Vector{Float64}; d, init
     end  
     
     if length(x0) == npars_gamma(d)
-        x0[gamma_index(d)] = init_gamma
+        gamma_mu_index, gamma_sigma_index = gamma_index(d)
+        x0[gamma_mu_index] = init_gamma
+        x0[gamma_sigma_index] = init_gamma
     end
 end
 
@@ -45,8 +47,10 @@ function init_id!(x0::Pars; d, init_gamma = -1.0)
         x0[Hindex(i, d)] = 0.0
     end  
     
-    if length(x0) == npars_gamma(d)
-        x0[gamma_index(d)] = init_gamma
+     if length(x0) == npars_gamma(d)
+        gamma_mu_index, gamma_sigma_index = gamma_index(d)
+        x0[gamma_mu_index] = init_gamma
+        x0[gamma_sigma_index] = init_gamma
     end
 end
 
@@ -111,12 +115,13 @@ function get_potts_params(x::Pars, Wproj::Matrix{Float64}, x_mean::Vector{Float6
     end
      
     if length(x)==npars_gamma(d)
-        γ = get_gamma(x, d)
+        γ_mu, γ_sigma = get_gamma(x, d)
     else
-        γ = 1.0
+        γ_mu = 1.0
+        γ_sigma = 1.0
     end
 
-    return (J_potts_tens, h_potts_tens, γ)
+    return (J_potts_tens, h_potts_tens, γ_mu, γ_sigma)
 end
 
 

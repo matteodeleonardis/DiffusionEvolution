@@ -23,12 +23,12 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #file_nat = file1
 
     #training
-    lambda = 0.01
+    lambda = 0.0
     epsilon_J = 1e-9
     epsilon_sigma = 1e-12
-    prior_J = 0.01
-    prior_theta = 0.01
-    prior_gamma = 0.01 #prior_J * d^2
+    prior_J = 0.0
+    prior_theta = 0.0
+    prior_gamma = 0.0 #prior_J * d^2
     whiten = false
     fixed = false
     extreme = false
@@ -63,7 +63,9 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
         J_opt = DiffusionEvolution.compute_J(x_opt, d, epsilon_J)
         theta_opt = DiffusionEvolution.compute_theta(x_opt, d)
         if fixed == false
-            print(io, "Gamma: ", DiffusionEvolution.get_gamma(results.minimizer, d), "\n")
+            gamma_mu, gamma_sigma = DiffusionEvolution.get_gamma(results.minimizer, d)
+            print(io, "Gamma_mu: ", gamma_mu, "\n")
+            print(io, "Gamma_sigma: ", gamma_sigma, "\n")
             print(io, "Gamma_min_empirical: ", gamma_min, "\n")
         end
         print(io, "extrema |J|: ", extrema(abs.(J_opt)), "\n")
@@ -99,7 +101,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     wt = aa2int.(uppercase(fasta_wt[1][2]))
     L = length(fasta_wt[1][2])
     A = 21
-    J_tens, h_tens, gamma = get_params_tens(x_opt, pca, d, epsilon_J, A, L; whiten=whiten, eps_warning=1.0e-4, set_zero=false)
+    J_tens, h_tens, gamma_mu, gamma_sigma = get_params_tens(x_opt, pca, d, epsilon_J, A, L; whiten=whiten, eps_warning=1.0e-4, set_zero=false)
 
     #computing scores
     frobenius_score_zerosumgauge, frobenius_score_zerosumgauge_apc, 
