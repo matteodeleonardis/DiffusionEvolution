@@ -84,7 +84,6 @@ end
 
 function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J::Float64, ϵ_Σ::Float64)
 
-    ll = 0.0
     J = compute_J(x, data.d, ϵ_J)
     θ = compute_theta(x, data.d)
     γ = get_gamma(x, data.d)
@@ -98,6 +97,19 @@ function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J
     return vec(lls)
 end
 
+
+function empirical_log_likelihood(data::Data, t::Int)
+
+    μ = dropdims(mean(data.round[t].x[1:data.d, :], Weights(data.round[t].w), dims=2), dims=2)
+    Σ = cov(data.round[t].x[1:data.d, :], Weights(data.round[t].w), 2)
+
+    C = cholesky(Σ)
+    x_μ = data.round[t].x .- μ
+    inv_Σ_x = C \ x_μ
+    lls = -sum(x_μ .* inv_Σ_x, dims=1)/data.d
+
+    return vec(lls)
+end
 
 
 

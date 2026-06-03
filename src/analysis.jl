@@ -185,7 +185,7 @@ end
 
 function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J::Float64, ϵ_Σ::Float64, output_root::String)
 
-    fig, ax = subplots(3, length(data.time), 6)    
+    fig, ax = subplots(5, length(data.time), 6)    
 
     for i in eachindex(data.time)
         ll_vars = log_likelihood_variants(x, data, i, λ, ϵ_J, ϵ_Σ)
@@ -203,13 +203,26 @@ function compute_log_likelihood_variants(x::Pars,  data::Data, λ::Float64, ϵ_J
         ax[2,i].set_xlabel("likelihood variants")
         ax[2,i].set_ylabel("(normalized) counts")
 
+        ll_emp = empirical_log_likelihood(data, i)
+        rho_log_emp = cor(ll_emp[idx], log_counts[idx])
+        ax[3,i].scatter(ll_emp[idx], log_counts[idx]   , alpha=0.5)
+        ax[3,i].set_title("t=$(data.time[i]), ρ=$(round(rho_log_emp, digits=3))")
+        ax[3,i].set_xlabel("empirical log-likelihood variants")
+        ax[3,i].set_ylabel("log (normalized) counts")
+
+        rho_emp = cor(exp.(ll_emp[idx]), data.round[i].w[idx])
+        ax[4,i].scatter(exp.(ll_emp[idx]), data.round[i].w[idx], alpha=0.5)
+        ax[4,i].set_title("t=$(data.time[i]), ρ=$(round(rho_emp, digits=3)), all points")
+        ax[4,i].set_xlabel("empirical likelihood variants")
+        ax[4,i].set_ylabel("(normalized) counts")
+
         observed = data.round[i].w .> 1e-8
-        ax[3,i].hist(ll_vars[observed], alpha=0.5, label="observed")
-        ax[3,i].hist(ll_vars[.!observed], alpha=0.5, label="floor")
-        ax[3,i].set_title("t=$(data.time[i])")
-        ax[3,i].set_xlabel("log-likelihood variants")
-        ax[3,i].set_ylabel("count")
-        ax[3,i].legend()
+        ax[5,i].hist(ll_vars[observed], alpha=0.5, label="observed")
+        ax[5,i].hist(ll_vars[.!observed], alpha=0.5, label="floor")
+        ax[5,i].set_title("t=$(data.time[i])")
+        ax[5,i].set_xlabel("log-likelihood variants")
+        ax[5,i].set_ylabel("count")
+        ax[5,i].legend()
     end
 
     fig.savefig(output_root * ".likelihood_vs_counts.png", format="png", bbox_inches="tight")
