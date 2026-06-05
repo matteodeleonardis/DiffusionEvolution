@@ -138,4 +138,7 @@ module DiffusionEvolution
 
     include("analysis/rand_seq_analysis_dhfr.jl")
     export rand_seq_analysis_dhfr
+
+    include("analysis/rand_seq_analysis_pse1.jl")
+    export rand_seq_analysis_pse1
 end

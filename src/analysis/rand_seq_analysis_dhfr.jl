@@ -118,16 +118,17 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
         for i in eachindex(times)
             ll_random = log_likelihood_variants(x_opt, data_random, i, lambda, epsilon_J, epsilon_sigma)
             ll_data = log_likelihood_variants(x_opt, data_data, i, lambda, epsilon_J, epsilon_sigma)
-            ax[i].hist(ll_random, bins=30, alpha=0.5, density=true, label="random samples")
-            ax[i].hist(ll_data, bins=30, alpha=0.5, density=true, label="experimental samples")
+            ax[i].hist(ll_random, weights=data_random.round[i].w, bins=30, alpha=0.5, density=true, label="random samples")
+            ax[i].hist(ll_data, weights=data_data.round[i].w, bins=30, alpha=0.5, density=true, label="experimental samples")
             ax[i].set_title("Round $(times[i])")
             ax[i].legend()
             ax[i].set_xlabel("log-likelihood variants")
         end
 
-        output_name = joinpath(dirname(model_pars[1]), split(basename(model_pars[1]), ".")[1]*".rand_seq_log_likelihood.png")
+        output_name = output_name = replace(model_pars[i], "pars.jld2" => "rand_seq_log_likelihood.png")
         fig.savefig(output_name, format="png", bbox_inches="tight")
-        #println("Saved figure at $output_name")
+        println("Saved figure at $output_name")
+        close(fig)
     end
 
 end
