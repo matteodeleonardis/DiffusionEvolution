@@ -114,6 +114,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
         epsilon_J = settings.epsilon_J
         epsilon_sigma = settings.epsilon_sigma
 
+        #random sequences log-likelihood
         fig, ax = subplots(1, length(times), 6)
         for i in eachindex(times)
             ll_random = log_likelihood_variants(x_opt, data_random, i, lambda, epsilon_J, epsilon_sigma)
@@ -129,6 +130,28 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
         fig.savefig(output_name, format="png", bbox_inches="tight")
         println("Saved figure at $output_name")
         close(fig)
+
+        #ancesor reconsruction
+        n_samples_anc_reconstruction = 100
+        samples_data_ancestor_reconstruction = randperm(data_data.M)[1:n_samples_anc_reconstruction]
+        samples_random_ancestor_reconstruction = randperm(data_random.M)[1:n_samples_anc_reconstruction]
+        fig_anc, ax_anc = subplots(1, length(times)-1, 6)
+        for i in 1:(length(times)-1)
+            ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, i, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, i, length(times), lambda, epsilon_J, epsilon_sigma)
+
+            ax_anc[i].hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
+            ax_anc[i].hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
+            ax_anc[i].set_title("Transition round $(times[i]) to round $(times[end])")
+            ax_anc[i].legend()
+            ax_anc[i].set_xlabel("log-likelihood transition probability (max over ancestors)")
+            ax_anc[i].set_ylabel("pdf")
+        end
+
+        output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood.png")
+        fig_anc.savefig(output_name_anc, format="png", bbox_inches="tight")
+        println("Saved figure at $output_name_anc")
+        close(fig_anc)
     end
 
 end

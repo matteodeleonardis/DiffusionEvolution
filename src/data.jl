@@ -28,7 +28,7 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 3}, count
 
     
 
-    return Data(x0, sample, time, size(w,2), size(coordinates, 1))
+    return Data(x0, sample, time, size(w,1), size(coordinates, 1))
 end
 
 
@@ -48,7 +48,7 @@ function collect_data(x0::Vector{Float64}, coordinates::Array{Float64, 2}, count
 
     
 
-    return Data(x0, sample, time, size(w,2), size(coordinates, 1))
+    return Data(x0, sample, time, size(w,1), size(coordinates, 1))
 end
 
 

@@ -112,6 +112,35 @@ function empirical_log_likelihood(data::Data, t::Int)
 end
 
 
+function transition_probability(x_opt, data, child, t_parent, t_child, lambda, epsilon_J, epsilon_sigma)
+
+    J = compute_J(x_opt, data.d, epsilon_J)
+    theta = compute_theta(x_opt, data.d)
+    gamma = get_gamma(x_opt, data.d)
+    delta_t = data.time[t_child] - data.time[t_parent]
+
+    max_logp = fill(-Inf, length(child))
+    for ip in 1:data.M
+        if data.round[t_parent].w[ip] == 0.0
+            continue
+        end
+        mu, sigma = compute_parameters(J, theta, gamma, delta_t, data.round[t_parent].x[:, ip], data.d, lambda, epsilon_sigma)
+        C = cholesky(sigma)
+        x_μ = data.round[t_child].x[:, child] .- mu
+        inv_sigma_x = C \ x_μ
+        logp = vec(-sum(x_μ .* inv_sigma_x, dims=1)/data.d) * log(data.round[t_parent].w[ip])
+        for i in eachindex(child)
+            if logp[i] > max_logp[i]
+                max_logp[i] = logp[i]
+            end
+        end
+    end
+
+    @assert all(isfinite.(max_logp)) "$(max_logp)"
+    return max_logp
+end
+
+
 
 
 
