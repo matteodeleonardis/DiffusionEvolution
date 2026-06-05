@@ -73,9 +73,9 @@ function collect_samples_data(input, init, file_nat, rand_samples, d_max)
 end
 
 
-function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
+function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
 
-    times = [1,2,3,4,5,15]
+    times = [10, 20]
 
     dvals = [parse(Int, split(split(basename(p), ".")[1], "_")[end]) for p in model_pars]
     dmax = maximum(dvals)
