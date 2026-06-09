@@ -136,6 +136,8 @@ module DiffusionEvolution
     include("analysis/reprint_inference_pse1.jl")
     export reprint_inference_pse1
 
+    include("analysis/rand_seq_analysis_utils.jl")
+
     include("analysis/rand_seq_analysis_dhfr.jl")
     export rand_seq_analysis_dhfr
 

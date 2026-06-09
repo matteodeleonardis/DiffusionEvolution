@@ -1,5 +1,5 @@
 import Pkg
-Pkg.activate(joinpath("@__DIR__", "..", ".."))
+Pkg.activate(joinpath(@__DIR__, "..", ".."))
 
 using DiffusionEvolution
 
