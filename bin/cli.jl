@@ -29,6 +29,11 @@ function collect_args()
             default = ""
             required = true
 
+        "--gamma"
+            range_tester = x -> x in ["yes", "no", ""]
+            help = "Whether to learn gamma or not. Options: yes, no"
+            default = ""
+
     end
     return parse_args(ARGS, s)
 end
