@@ -1,7 +1,7 @@
 module DiffusionEvolution
 
     using LinearAlgebra, Flux, NLopt, StatsBase, Optim, Distributions, FastaIO, BioSeqInt, MultivariateStats, PlmDCA, NPZ, Random, JLD2
-    using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles, Printf, NLSolversBase
+    using PyPlot, PottsGauge, LogExpFunctions, DelimitedFiles, Printf, NLSolversBase, ArgParse
 
     import PyPlot.subplots
     subplots(x, y ,d; kwargs...) = PyPlot.subplots(x, y; figsize=(d*y, d*x), kwargs...)
@@ -141,4 +141,7 @@ module DiffusionEvolution
 
     include("analysis/rand_seq_analysis_pse1.jl")
     export rand_seq_analysis_pse1
+
+    include("main.jl")
+    export main
 end
