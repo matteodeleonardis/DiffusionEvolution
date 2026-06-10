@@ -64,12 +64,12 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
             ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, i, length(times), lambda, epsilon_J, epsilon_sigma)
             ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, i, length(times), lambda, epsilon_J, epsilon_sigma)
 
-            ax_anc[i].hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
-            ax_anc[i].hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
-            ax_anc[i].set_title("Transition round $(times[i]) to round $(times[end])")
-            ax_anc[i].legend()
-            ax_anc[i].set_xlabel("log-likelihood transition probability (max over ancestors)")
-            ax_anc[i].set_ylabel("pdf")
+            ax_anc.hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
+            ax_anc.hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
+            ax_anc.set_title("Transition round $(times[i]) to round $(times[end])")
+            ax_anc.legend()
+            ax_anc.set_xlabel("log-likelihood transition probability (max over ancestors)")
+            ax_anc.set_ylabel("pdf")
         end
 
         output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood.png")

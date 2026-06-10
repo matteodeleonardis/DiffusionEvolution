@@ -128,7 +128,7 @@ function transition_probability(x_opt, data, child, t_parent, t_child, lambda, e
         C = cholesky(sigma)
         x_μ = data.round[t_child].x[:, child] .- mu
         inv_sigma_x = C \ x_μ
-        logp = vec(-sum(x_μ .* inv_sigma_x, dims=1)/data.d) * log(data.round[t_parent].w[ip])
+        logp = vec(-sum(x_μ .* inv_sigma_x, dims=1)/data.d) + log(data.round[t_parent].w[ip])
         for i in eachindex(child)
             if logp[i] > max_logp[i]
                 max_logp[i] = logp[i]
