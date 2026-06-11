@@ -118,14 +118,19 @@ function transition_probability(x_opt, data, child, t_parent, t_child, lambda, e
     theta = compute_theta(x_opt, data.d)
     gamma = get_gamma(x_opt, data.d)
     delta_t = data.time[t_child] - data.time[t_parent]
+    lambda_t = compute_lambda(J, gamma, delta_t)
+    sigma = compute_sigma(J, lambda_t, data.d)
+    sigma = (1.0 - lambda)*sigma + lambda*I(data.d)
+    sigma = 0.5 * (sigma + sigma')
+    sigma += epsilon_sigma*I(data.d)
+    C = cholesky(sigma)
 
     max_logp = fill(-Inf, length(child))
     for ip in 1:data.M
         if data.round[t_parent].w[ip] == 0.0
             continue
         end
-        mu, sigma = compute_parameters(J, theta, gamma, delta_t, data.round[t_parent].x[:, ip], data.d, lambda, epsilon_sigma)
-        C = cholesky(sigma)
+        mu = compute_mu( data.round[t_parent].x[:, ip], lambda_t, theta, data.d)
         x_μ = data.round[t_child].x[:, child] .- mu
         inv_sigma_x = C \ x_μ
         logp = vec(-sum(x_μ .* inv_sigma_x, dims=1)/data.d) .+ log(data.round[t_parent].w[ip])

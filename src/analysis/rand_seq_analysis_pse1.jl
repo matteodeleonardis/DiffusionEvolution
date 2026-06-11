@@ -88,6 +88,8 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
     end
     ax_p_val.set_xlabel("d")
     ax_p_val.set_ylabel("p value")
+    ax_p_val.legend()
+    ax_p_val.set_yscale(:log)
     output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction.png")
     fig_p_val.savefig(output_p_value, format="png", bbox_inches="tight")
     println("Saved figure at $output_p_value")
