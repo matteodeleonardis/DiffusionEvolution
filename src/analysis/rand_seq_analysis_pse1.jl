@@ -17,7 +17,8 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
 
     x_1hot_data = Float64.(reshape(Flux.onehotbatch(Z_data, collect(1:21)), :, size(Z_data,2)))
     x_pca_data = predict(pca, x_1hot_data)
-    
+
+    p_values = zeros(length(model_pars), length(times))
 
     for i in eachindex(model_pars)
         d = dvals[i]
@@ -60,13 +61,16 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
         samples_data_ancestor_reconstruction = randperm(data_data.M)[1:n_samples_anc_reconstruction]
         samples_random_ancestor_reconstruction = randperm(data_random.M)[1:n_samples_anc_reconstruction]
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)
-        for i in 1:(length(times)-1)
-            ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, i, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, i, length(times), lambda, epsilon_J, epsilon_sigma)
+        for t in 1:(length(times)-1)
+            ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+
+            test = SignedRankTest(ll_prob_random, ll_prob_data)
+            p_values[i,t] = pvalue(test; tail=:right)
 
             ax_anc.hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
             ax_anc.hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
-            ax_anc.set_title("Transition round $(times[i]) to round $(times[end])")
+            ax_anc.set_title("Transition round $(times[t]) to round $(times[end])")
             ax_anc.legend()
             ax_anc.set_xlabel("log-likelihood transition probability (max over ancestors)")
             ax_anc.set_ylabel("pdf")
@@ -77,5 +81,16 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
         println("Saved figure at $output_name_anc")
         close(fig_anc)
     end
+
+    fig_p_val, ax_p_val = subplots(1, 1, 6)
+    for t in 1:length(times)-1
+        ax_p_val.plot(dvals, p_values[:,t], label="time $(times[t])")
+    end
+    ax_p_val.set_xlabel("d")
+    ax_p_val.set_ylabel("p value")
+    output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction.png")
+    fig_p_val.savefig(output_p_value, format="png", bbox_inches="tight")
+    println("Saved figure at $output_p_value")
+    close(fig_p_val)
 
 end
