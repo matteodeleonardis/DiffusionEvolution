@@ -65,7 +65,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
             ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
             ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
 
-            test = SignedRankTest(ll_prob_random, ll_prob_data)
+            test = SignedRankTest(ll_prob_data, ll_prob_random)
             p_values[i,t] = pvalue(test; tail=:right)
 
             ax_anc.hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
