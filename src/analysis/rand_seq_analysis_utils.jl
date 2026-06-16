@@ -2,16 +2,18 @@ function compute_average_mut_rate(input::Vector, init)
     
     Z, counts, wt = read_fasta(input, init)
     L = length(wt)
-    dist_from_wt = zeros(Int, size(Z, 2))
+    dist_from_wt = [zeros(Int, size(Z, 2)) for _ in eachindex(input)]
     avg_mut_rate = zeros(length(input))
-    for s in axes(Z, 2)
-        dist_from_wt[s] = sum(Z[:,s] .!= wt)
+    for i in eachindex(input)
+        for s in axes(Z, 2)
+            dist_from_wt[i][s] = sum(Z[:,s] .!= wt)
+        end
     end
     for i in eachindex(input)
-        avg_mut_rate[i] = sum(counts[:,i] .* dist_from_wt ./ L) / sum(counts[:,i])
+        avg_mut_rate[i] = sum(counts[:,i] .* dist_from_wt[i] ./ L) / sum(counts[:,i])
     end
 
-    return avg_mut_rate
+    return avg_mut_rate, dist_from_wt, counts
 end
 
 function produce_random_data(avg_mut_rate, init, n_samples=1000)
@@ -20,6 +22,7 @@ function produce_random_data(avg_mut_rate, init, n_samples=1000)
     L = length(init_seq)
 
     rand_samples = [Vector{String}(undef, n_samples) for i in eachindex(avg_mut_rate)]
+    dist_from_wt = [zeros(Int, n_samples) for i in eachindex(avg_mut_rate)]
 
     for i in eachindex(avg_mut_rate)
         println("Generating random samples $i/$(length(avg_mut_rate)))")
@@ -32,10 +35,11 @@ function produce_random_data(avg_mut_rate, init, n_samples=1000)
                 rand_seq[pos] = rand(collect(replace(alphabet_aa(), "-" => "", rand_seq[pos] => "")))
             end
             rand_samples[i][s] = String(rand_seq)
+            dist_from_wt[i][s] = sum(collect(rand_seq) .!= collect(init_seq))
         end
     end
 
-    return rand_samples
+    return rand_samples, dist_from_wt
 end
 
 function collect_samples_data(input, init, file_nat, rand_samples, d_max)

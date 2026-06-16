@@ -5,8 +5,22 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
     dvals = [parse(Int, split(split(basename(p), ".")[1], "_")[end]) for p in model_pars]
     dmax = maximum(dvals)
 
-    avg_mut_rate = compute_average_mut_rate(file_rounds, file_wt)
-    rand_samples = produce_random_data(avg_mut_rate, file_wt)
+    avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds, file_wt)
+    rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt)
+    outname_d_hamm = joinpath(dirname(dirname(model_pars[1])), "d_hamm_init.png")
+    fig_hamm, ax_hamm = subplots(1, length(times), 6)
+    for t in eachindex(times)
+        ax_hamm[t].hist(d_hamm_init_data[t], weights=weights_data[:,t], density=true, bins=collect(0:50), alpha=0.3, label="experimental data")
+        ax_hamm[t].hist(d_hamm_init_rand[t], density=true, bins=collect(0:50), alpha=0.3, label="random data")
+        ax_hamm[t].set_xlabel("Hamming distance")
+        ax_hamm[t].set_ylabel("pdf")
+        ax_hamm[t].legend()
+        ax_hamm[t].set_title("Hamming distance from WT at t=$(times[t])")
+    end
+    fig_hamm.savefig(outname_d_hamm, format="png", bbox_inches="tight")
+    println("Saved figure at $outname_d_hamm")
+    close(fig_hamm)
+
     Z_random, w_random, Z_data, counts_data, wt_data, pca = collect_samples_data(file_rounds, file_wt, file_nat, rand_samples, dmax)
 
     x_1hot_wt = Float64.(reshape(Flux.onehotbatch(wt_data, collect(1:21)), :, 1))
