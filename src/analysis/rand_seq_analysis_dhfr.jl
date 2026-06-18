@@ -1,13 +1,22 @@
-function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
+function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_pars)
 
     times = [1,2,3,4,5,15]
 
     dvals = [parse(Int, split(split(basename(p), ".")[1], "_")[end]) for p in model_pars]
     dmax = maximum(dvals)
 
-    avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds, file_wt)
-    rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt, n_samples=10000)
-    outname_d_hamm = joinpath(dirname(dirname(model_pars[1])), "d_hamm_init.png")
+    if rand_seq == :uniform
+        avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds, file_wt)
+        rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt, n_samples=10000)
+    elseif rand_seq == :profile
+        f_stats, d_hamm_init_data, weights_data = compute_profile_stats(file_rounds, file_wt)
+        rand_samples, d_hamm_init_rand = produce_random_profile_data(f_stats, file_wt, n_samples=10000)
+    else
+        println("Invalid type of random sequence generation.")
+        return
+    end
+
+    outname_d_hamm = joinpath(dirname(dirname(model_pars[1])), "d_hamm_init_$(String(rand_seq)).png")
     fig_hamm, ax_hamm = subplots(1, length(times), 6)
     for t in eachindex(times)
         ax_hamm[t].hist(d_hamm_init_data[t], weights=weights_data[:,t], density=true, bins=collect(0:50), alpha=0.3, label="experimental data")
@@ -69,7 +78,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
             ax[i].set_xlabel("log-likelihood variants")
         end
 
-        output_name = output_name = replace(model_pars[i], "pars.jld2" => "rand_seq_log_likelihood.png")
+        output_name = output_name = replace(model_pars[i], "pars.jld2" => "rand_seq_log_likelihood_$(String(rand_seq)).png")
         fig.savefig(output_name, format="png", bbox_inches="tight")
         println("Saved figure at $output_name")
         close(fig)
@@ -94,7 +103,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
             ax_anc[t].set_ylabel("pdf")
         end
 
-        output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood.png")
+        output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood_$(String(rand_seq)).png")
         fig_anc.savefig(output_name_anc, format="png", bbox_inches="tight")
         println("Saved figure at $output_name_anc")
         close(fig_anc)
@@ -108,7 +117,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
     ax_p_val.set_ylabel("p value")
     ax_p_val.legend()
     ax_p_val.set_yscale(:log)
-    output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction.png")
+    output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction_$(String(rand_seq)).png")
     fig_p_val.savefig(output_p_value, format="png", bbox_inches="tight")
     println("Saved figure at $output_p_value")
     close(fig_p_val)

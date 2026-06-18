@@ -12,11 +12,13 @@ file_round5 = joinpath(@__DIR__, "../../data/dhfr/Round5_Q15_C10_aa.aln")
 file_round15 = joinpath(@__DIR__, "../../data/dhfr/Gen15_aa.aln")
 file_nat = joinpath(@__DIR__, "../../data/dhfr/mDHFR_clean.fasta")
 
-model_pars = ARGS
+rand_seq = Symbol(ARGS[1])
+model_pars = ARGS[2:end]
 
 rand_seq_analysis_dhfr(
     file_wt, 
     [file_round1, file_round2, file_round3, file_round4, file_round5, file_round15], 
     file_nat, 
-    ARGS
+    rand_seq,
+    model_pars
 )

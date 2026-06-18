@@ -34,6 +34,10 @@ function collect_args()
             help = "Whether to learn gamma or not. Options: yes, no"
             default = ""
 
+        "--random_seq"
+            range_tester = x -> x in ["uniform", "profile"]
+            help = "Random sequence generation for random_seq_analysis. Options: uniform, profile"
+
     end
     return parse_args(ARGS, s)
 end
