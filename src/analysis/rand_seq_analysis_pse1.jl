@@ -72,8 +72,8 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
 
         #ancesor reconsruction
         n_samples_anc_reconstruction = 100
-        samples_data_ancestor_reconstruction = randperm(data_data.M)[1:n_samples_anc_reconstruction]
-        samples_random_ancestor_reconstruction = randperm(data_random.M)[1:n_samples_anc_reconstruction]
+        samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
+        samples_random_ancestor_reconstruction = sample(1:data_random.M, Weights(data_random.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)
         for t in 1:(length(times)-1)
             ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
