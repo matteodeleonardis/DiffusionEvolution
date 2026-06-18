@@ -6,7 +6,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, model_pars)
     dmax = maximum(dvals)
 
     avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds, file_wt)
-    rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt)
+    rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt, n_samples=10000)
     outname_d_hamm = joinpath(dirname(dirname(model_pars[1])), "d_hamm_init.png")
     fig_hamm, ax_hamm = subplots(1, length(times), 6)
     for t in eachindex(times)

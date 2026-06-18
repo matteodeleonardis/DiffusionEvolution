@@ -6,7 +6,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
     dmax = maximum(dvals)
 
     avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds, file_wt)
-    rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt)
+    rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt, n_samples=10000)
     outname_d_hamm = joinpath(dirname(dirname(model_pars[1])), "d_hamm_init.png")
     fig_hamm, ax_hamm = subplots(1, length(times), 6)
     for t in eachindex(times)
@@ -48,7 +48,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
 
         x_opt = JLD2.load(model_pars[i])["x_opt"]
         
-        setting_path=joinpath(dirname(model_pars[1]), split(basename(model_pars[1]), ".")[1]*".settings.jld2")
+        setting_path=joinpath(dirname(model_pars[i]), split(basename(model_pars[i]), ".")[1]*".settings.jld2")
         settings = JLD2.load(setting_path)["model_settings"]
         whiten = settings.whiten
         weight = settings.weight
@@ -75,7 +75,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, model_pars)
         close(fig)
 
         #ancesor reconsruction
-        n_samples_anc_reconstruction = 100
+        n_samples_anc_reconstruction = 1000
         samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
         samples_random_ancestor_reconstruction = sample(1:data_random.M, Weights(data_random.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)

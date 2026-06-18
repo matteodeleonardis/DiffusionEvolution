@@ -16,7 +16,7 @@ function compute_average_mut_rate(input::Vector, init)
     return avg_mut_rate, dist_from_wt, counts
 end
 
-function produce_random_data(avg_mut_rate, init, n_samples=1000)
+function produce_random_data(avg_mut_rate, init; n_samples=1000)
 
     init_seq = readfasta(init)[1][2]
     L = length(init_seq)

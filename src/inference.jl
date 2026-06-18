@@ -124,7 +124,7 @@ function transition_probability(x_opt, data, child, t_parent, t_child, lambda, e
     sigma = 0.5 * (sigma + sigma')
     sigma += epsilon_sigma*I(data.d)
     C = cholesky(sigma)
-    log_sigma = 2.0 * log.(diag(C.L))
+    log_sigma = 2.0 * sum(log, diag(C.L))
 
     max_logp = fill(-Inf, length(child))
     for ip in 1:data.M
