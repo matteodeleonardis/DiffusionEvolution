@@ -53,12 +53,12 @@ function compute_profile_stats(input::Vector, init)
             dist_from_wt[i][s] = sum(Z[:,s] .!= wt)
             for pos in axes(Z, 1)
                 aa = Z[pos, s]
-                fi[i, pos, aa] += 1
+                fi[i, pos, aa] += counts[s, i]
             end
         end
         
     end
-    fi \= sum(fi, dims=3)
+    fi ./= sum(fi, dims=3)
 
     return fi, dist_from_wt, counts
 end
@@ -68,15 +68,15 @@ function produce_random_profile_data(fi, init; n_samples=1000)
     init_seq = readfasta(init)[1][2]
     L = length(init_seq)
 
-    rand_samples = [Vector{String}(undef, n_samples) for i in eachindex(avg_mut_rate)]
-    dist_from_wt = [zeros(Int, n_samples) for i in eachindex(avg_mut_rate)]
+    rand_samples = [Vector{String}(undef, n_samples) for i in axes(fi, 1)]
+    dist_from_wt = [zeros(Int, n_samples) for i in axes(fi,1)]
 
     for i in axes(fi, 1)
         println("Generating random samples $i/$(size(fi, 1))")
         for s in 1:n_samples
             seq = zeros(Int, L)
             for pos in 1:L
-                seq[i] = sample(1:21, Weights(fi[i, pos, :]))
+                seq[pos] = sample(1:21, Weights(fi[i, pos, :]))
             end
             rand_seq = String(int2aa.(seq))
             rand_samples[i][s] = rand_seq
