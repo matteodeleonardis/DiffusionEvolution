@@ -121,3 +121,106 @@ function collect_samples_data(input, init, file_nat, rand_samples, d_max)
 
     return Z_random, w_random, Z_data, counts_data, wt_data, pca
 end
+
+function compare_pca_moments(data_data, data_random, times, output_root)
+
+    PyPlot.matplotlib.rcParams["svg.fonttype"] = "none"
+
+    n_times = length(times)
+
+    fig_mean, ax_mean = subplots(1, n_times, 6)
+    fig_var, ax_var = subplots(1, n_times, 6)
+    fig_cov, ax_cov = subplots(1, n_times, 6)
+
+    for t in eachindex(times)
+
+        x_data = data_data.round[t].x
+        x_rand = data_random.round[t].x
+
+        w_data = data_data.round[t].w
+        w_rand = data_random.round[t].w
+
+        mu_data = dropdims(mean(x_data, Weights(w_data), dims=2), dims=2)
+        mu_rand = dropdims(mean(x_rand, Weights(w_rand), dims=2), dims=2)
+
+        cov_data = cov(x_data, Weights(w_data), 2)
+        cov_rand = cov(x_rand, Weights(w_rand), 2)
+
+        var_data = diag(cov_data)
+        var_rand = diag(cov_rand)
+
+        mean_corr = cor(mu_data, mu_rand)
+        var_corr = cor(var_data, var_rand)
+        cov_corr = cor(vec(cov_data), vec(cov_rand))
+
+        mean_dist = norm(mu_data - mu_rand)
+        cov_rel_dist = norm(cov_data - cov_rand) / norm(cov_data)
+
+        # Mean comparison
+        ax_mean[t].scatter(mu_data, mu_rand, alpha=0.7)
+
+        lo = minimum(vcat(mu_data, mu_rand))
+        hi = maximum(vcat(mu_data, mu_rand))
+        ax_mean[t].plot([lo, hi], [lo, hi], linestyle="--")
+
+        ax_mean[t].set_xlabel("experimental mean PC")
+        ax_mean[t].set_ylabel("profile-random mean PC")
+        ax_mean[t].set_title("t=$(times[t])")
+
+        ax_mean[t].text(
+            0.05, 0.95,
+            "ρ = $(round(mean_corr, digits=3))\n‖Δμ‖ = $(round(mean_dist, sigdigits=3))",
+            transform=ax_mean[t].transAxes,
+            verticalalignment="top",
+            bbox=Dict("boxstyle" => "round", "facecolor" => "white", "alpha" => 0.8)
+        )
+
+        # Variance comparison
+        ax_var[t].scatter(var_data, var_rand, alpha=0.7)
+
+        lo = minimum(vcat(var_data, var_rand))
+        hi = maximum(vcat(var_data, var_rand))
+        ax_var[t].plot([lo, hi], [lo, hi], linestyle="--")
+
+        ax_var[t].set_xlabel("experimental PC variance")
+        ax_var[t].set_ylabel("profile-random PC variance")
+        ax_var[t].set_title("t=$(times[t])")
+
+        ax_var[t].text(
+            0.05, 0.95,
+            "ρ = $(round(var_corr, digits=3))",
+            transform=ax_var[t].transAxes,
+            verticalalignment="top",
+            bbox=Dict("boxstyle" => "round", "facecolor" => "white", "alpha" => 0.8)
+        )
+
+        # Full covariance comparison
+        ax_cov[t].scatter(vec(cov_data), vec(cov_rand), alpha=0.3)
+
+        lo = minimum(vcat(vec(cov_data), vec(cov_rand)))
+        hi = maximum(vcat(vec(cov_data), vec(cov_rand)))
+        ax_cov[t].plot([lo, hi], [lo, hi], linestyle="--")
+
+        ax_cov[t].set_xlabel("experimental covariance entries")
+        ax_cov[t].set_ylabel("profile-random covariance entries")
+        ax_cov[t].set_title("t=$(times[t])")
+
+        ax_cov[t].text(
+            0.05, 0.95,
+            "ρ = $(round(cov_corr, digits=3))\nrel. dist = $(round(cov_rel_dist, sigdigits=3))",
+            transform=ax_cov[t].transAxes,
+            verticalalignment="top",
+            bbox=Dict("boxstyle" => "round", "facecolor" => "white", "alpha" => 0.8)
+        )
+    end
+
+    fig_mean.savefig(output_root * ".pca_mean_comparison.png", format="png", bbox_inches="tight")
+    fig_var.savefig(output_root * ".pca_variance_comparison.png", format="png", bbox_inches="tight")
+    fig_cov.savefig(output_root * ".pca_covariance_comparison.png", format="png", bbox_inches="tight")
+
+    close(fig_mean)
+    close(fig_var)
+    close(fig_cov)
+
+    return nothing
+end

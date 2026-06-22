@@ -55,6 +55,9 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         data_random = collect_data(wt_pca_wt_d, x_pca_random_d, w_random, times)
         data_data = collect_data(wt_pca_wt_d, x_pca_data_d, counts_data, times)
 
+        moment_output_root = replace(model_pars[i], ".pars.jld2" => ".moments_$(String(rand_seq))")
+        compare_pca_moments(data_data, data_random, times, moment_output_root)
+
         x_opt = JLD2.load(model_pars[i])["x_opt"]
         
         setting_path=joinpath(dirname(model_pars[i]), split(basename(model_pars[i]), ".")[1]*".settings.jld2")
