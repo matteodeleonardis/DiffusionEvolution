@@ -11,6 +11,9 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
     elseif rand_seq == :profile
         f_stats, d_hamm_init_data, weights_data = compute_profile_stats(file_rounds, file_wt)
         rand_samples, d_hamm_init_rand = produce_random_profile_data(f_stats, file_wt, n_samples=10000)
+    elseif rand_seq == :site_mut
+        f_mut, d_hamm_init_data, weights_data = compute_site_mut_stats(file_rounds, file_wt)
+        rand_samples, d_hamm_init_rand = produce_site_mut_data(f_mut, file_wt, n_samples=10000)
     else
         println("Invalid type of random sequence generation.")
         return

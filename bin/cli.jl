@@ -35,8 +35,8 @@ function collect_args()
             default = ""
 
         "--random_seq"
-            range_tester = x -> x in ["uniform", "profile"]
-            help = "Random sequence generation for random_seq_analysis. Options: uniform, profile"
+            range_tester = x -> x in ["uniform", "profile", "site_mut"]
+            help = "Random sequence generation for random_seq_analysis. Options: uniform, profile, site_mut"
 
     end
     return parse_args(ARGS, s)

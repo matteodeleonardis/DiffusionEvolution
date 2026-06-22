@@ -87,6 +87,54 @@ function produce_random_profile_data(fi, init; n_samples=1000)
     return rand_samples, dist_from_wt
 end
 
+function compute_site_mut_stats(input::Vector, init)
+    
+    Z, counts, wt = read_fasta(input, init)
+    L = length(wt)
+    dist_from_wt = [zeros(Int, size(Z, 2)) for _ in eachindex(input)]
+    fmut = zeros(length(input), L)
+    for i in eachindex(input)
+        for s in axes(Z, 2)
+            dist_from_wt[i][s] = sum(Z[:,s] .!= wt)
+            for pos in axes(Z, 1)
+                aa = Z[pos, s]
+                if aa != wt[pos]
+                    fmut[i, pos] += counts[s, i]
+                end
+            end
+        end
+        
+    end
+    fmut ./= transpose(sum(counts, dims=1))
+
+    return fmut, dist_from_wt, counts
+end
+
+function produce_site_mut_data(fmut, init; n_samples=1000)
+
+    init_seq = readfasta(init)[1][2]
+    L = length(init_seq)
+
+    rand_samples = [Vector{String}(undef, n_samples) for i in axes(fmut, 1)]
+    dist_from_wt = [zeros(Int, n_samples) for i in axes(fmut,1)]
+
+    for i in axes(fmut, 1)
+        println("Generating random samples $i/$(size(fmut, 1))")
+        for s in 1:n_samples
+            seq = collect(init_seq)
+            for pos in 1:L
+                if rand() < fmut[i, pos]
+                    seq[pos] = rand(collect(replace(alphabet_aa(), "-" => "", seq[pos] => "")))
+                end
+            end
+            rand_samples[i][s] = String(seq)
+            dist_from_wt[i][s] = sum(collect(seq) .!= collect(init_seq))
+        end
+    end
+
+    return rand_samples, dist_from_wt
+end
+
 
 function collect_samples_data(input, init, file_nat, rand_samples, d_max)
 
