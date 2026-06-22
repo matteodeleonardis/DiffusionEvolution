@@ -1,18 +1,19 @@
-function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_pars)
+function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, delta_t, model_pars)
 
     times = [1,2,3,4,5,15]
+    time_span = times[1 + delta_t:end]
 
     dvals = [parse(Int, split(split(basename(p), ".")[1], "_")[end]) for p in model_pars]
     dmax = maximum(dvals)
 
     if rand_seq == :uniform
-        avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds, file_wt)
+        avg_mut_rate, d_hamm_init_data, weights_data = compute_average_mut_rate(file_rounds[1:end-delta_t], file_wt)
         rand_samples, d_hamm_init_rand = produce_random_data(avg_mut_rate, file_wt, n_samples=10000)
     elseif rand_seq == :profile
-        f_stats, d_hamm_init_data, weights_data = compute_profile_stats(file_rounds, file_wt)
+        f_stats, d_hamm_init_data, weights_data = compute_profile_stats(file_rounds[1:end-delta_t], file_wt)
         rand_samples, d_hamm_init_rand = produce_random_profile_data(f_stats, file_wt, n_samples=10000)
     elseif rand_seq == :site_mut
-        f_mut, d_hamm_init_data, weights_data = compute_site_mut_stats(file_rounds, file_wt)
+        f_mut, d_hamm_init_data, weights_data = compute_site_mut_stats(file_rounds[1:end-delta_t], file_wt)
         rand_samples, d_hamm_init_rand = produce_site_mut_data(f_mut, file_wt, n_samples=10000)
     else
         println("Invalid type of random sequence generation.")
@@ -20,14 +21,14 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
     end
 
     outname_d_hamm = joinpath(dirname(dirname(model_pars[1])), "d_hamm_init_$(String(rand_seq)).png")
-    fig_hamm, ax_hamm = subplots(1, length(times), 6)
-    for t in eachindex(times)
+    fig_hamm, ax_hamm = subplots(1, length(time_span), 6)
+    for t in eachindex(time_span)
         ax_hamm[t].hist(d_hamm_init_data[t], weights=weights_data[:,t], density=true, bins=collect(0:50), alpha=0.3, label="experimental data")
         ax_hamm[t].hist(d_hamm_init_rand[t], density=true, bins=collect(0:50), alpha=0.3, label="random data")
         ax_hamm[t].set_xlabel("Hamming distance")
         ax_hamm[t].set_ylabel("pdf")
         ax_hamm[t].legend()
-        ax_hamm[t].set_title("Hamming distance from WT at t=$(times[t])")
+        ax_hamm[t].set_title("Hamming distance from WT at t=$(time_span[t]), Δt=$(delta_t)")
     end
     fig_hamm.savefig(outname_d_hamm, format="png", bbox_inches="tight")
     println("Saved figure at $outname_d_hamm")
@@ -36,7 +37,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
 
 
 
-    Z_random, w_random, Z_data, counts_data, wt_data, pca = collect_samples_data(file_rounds, file_wt, file_nat, rand_samples, dmax)
+    Z_random, w_random, Z_data, counts_data, wt_data, pca = collect_samples_data(file_rounds[1:end-delta_t], file_wt, file_nat, rand_samples, dmax)
 
     x_1hot_wt = Float64.(reshape(Flux.onehotbatch(wt_data, collect(1:21)), :, 1))
     x_pca_wt = predict(pca, x_1hot_wt)
@@ -47,7 +48,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
     x_1hot_data = Float64.(reshape(Flux.onehotbatch(Z_data, collect(1:21)), :, size(Z_data,2)))
     x_pca_data = predict(pca, x_1hot_data)
 
-    p_values = zeros(length(model_pars), length(times))
+    p_values = zeros(length(model_pars), length(time_span))
 
     for i in eachindex(model_pars)
         d = dvals[i]
@@ -55,11 +56,11 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         x_pca_data_d = x_pca_data[1:d, :]
         wt_pca_wt_d = vec(x_pca_wt[1:d, :])
 
-        data_random = collect_data(wt_pca_wt_d, x_pca_random_d, w_random, times)
-        data_data = collect_data(wt_pca_wt_d, x_pca_data_d, counts_data, times)
+        data_random = collect_data(wt_pca_wt_d, x_pca_random_d, w_random, time_span)
+        data_data = collect_data(wt_pca_wt_d, x_pca_data_d, counts_data, time_span)
 
-        moment_output_root = replace(model_pars[i], ".pars.jld2" => ".moments_$(String(rand_seq))")
-        compare_pca_moments(data_data, data_random, times, moment_output_root)
+        moment_output_root = replace(model_pars[i], ".pars.jld2" => ".moments_$(String(rand_seq))_delta_t=$(delta_t)")
+        compare_pca_moments(data_data, data_random, time_span, moment_output_root)
 
         x_opt = JLD2.load(model_pars[i])["x_opt"]
         
@@ -73,18 +74,18 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         epsilon_sigma = settings.epsilon_sigma
 
         #random sequences log-likelihood
-        fig, ax = subplots(1, length(times), 6)
-        for i in eachindex(times)
+        fig, ax = subplots(1, length(time_span), 6)
+        for i in eachindex(time_span)
             ll_random = log_likelihood_variants(x_opt, data_random, i, lambda, epsilon_J, epsilon_sigma)
             ll_data = log_likelihood_variants(x_opt, data_data, i, lambda, epsilon_J, epsilon_sigma)
             ax[i].hist(ll_random, weights=data_random.round[i].w, bins=30, alpha=0.5, density=true, label="random samples")
             ax[i].hist(ll_data, weights=data_data.round[i].w, bins=30, alpha=0.5, density=true, label="experimental samples")
-            ax[i].set_title("Round $(times[i])")
+            ax[i].set_title("Round $(time_span[i]), Δt=$(delta_t)")
             ax[i].legend()
             ax[i].set_xlabel("log-likelihood variants")
         end
 
-        output_name = output_name = replace(model_pars[i], "pars.jld2" => "rand_seq_log_likelihood_$(String(rand_seq)).png")
+        output_name = output_name = replace(model_pars[i], "pars.jld2" => "rand_seq_log_likelihood_$(String(rand_seq))_delta_t=$(delta_t).png")
         fig.savefig(output_name, format="png", bbox_inches="tight")
         println("Saved figure at $output_name")
         close(fig)
@@ -93,37 +94,37 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         n_samples_anc_reconstruction = 1000
         samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
         samples_random_ancestor_reconstruction = sample(1:data_random.M, Weights(data_random.round[end].w), n_samples_anc_reconstruction; replace=false)
-        fig_anc, ax_anc = subplots(1, length(times)-1, 6)
-        for t in 1:(length(times)-1)
-            ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+        fig_anc, ax_anc = subplots(1, length(time_span)-1, 6)
+        for t in 1:(length(time_span)-1)
+            ll_prob_data = transition_probability(x_opt, data_data, samples_data_ancestor_reconstruction, t, length(time_span), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_random = transition_probability(x_opt, data_random, samples_random_ancestor_reconstruction, t, length(time_span), lambda, epsilon_J, epsilon_sigma)
 
             test = SignedRankTest(ll_prob_data, ll_prob_random)
             p_values[i,t] = pvalue(test; tail=:right)
 
             ax_anc[t].hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
             ax_anc[t].hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
-            ax_anc[t].set_title("Transition round $(times[t]) to round $(times[end])")
+            ax_anc[t].set_title("Transition round $(time_span[t]) to round $(time_span[end]), Δt=$(delta_t)")
             ax_anc[t].legend()
             ax_anc[t].set_xlabel("log-likelihood transition probability (max over ancestors)")
             ax_anc[t].set_ylabel("pdf")
         end
 
-        output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood_$(String(rand_seq)).png")
+        output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood_$(String(rand_seq))_delta_t=$(delta_t).png")
         fig_anc.savefig(output_name_anc, format="png", bbox_inches="tight")
         println("Saved figure at $output_name_anc")
         close(fig_anc)
     end
 
     fig_p_val, ax_p_val = subplots(1, 1, 6)
-    for t in 1:length(times)-1
-        ax_p_val.plot(dvals, p_values[:,t], label="time $(times[t])")
+    for t in 1:length(time_span)-1
+        ax_p_val.plot(dvals, p_values[:,t], label="time $(time_span[t])")
     end
     ax_p_val.set_xlabel("d")
     ax_p_val.set_ylabel("p value")
     ax_p_val.legend()
     ax_p_val.set_yscale(:log)
-    output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction_$(String(rand_seq)).png")
+    output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction_$(String(rand_seq))_delta_t=$(delta_t).png")
     fig_p_val.savefig(output_p_value, format="png", bbox_inches="tight")
     println("Saved figure at $output_p_value")
     close(fig_p_val)

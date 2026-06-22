@@ -368,6 +368,7 @@ function main(args)
     elseif args["run"] == "random_seq_analysis"
         dir_files = args["dir"]
         random_seq = args["random_seq"]
+        delta_t = args["delta_t"]
         
         if args["data"] == "dhfr"
             this_dir = @__DIR__
@@ -394,7 +395,7 @@ function main(args)
 
             rand_seq_analysis_script = joinpath(@__DIR__, "../scripts/mdhfr/rand_seq_analysis_dhfr.jl")
 
-            cmd = `julia $rand_seq_analysis_script $random_seq $model_pars_files`
+            cmd = `julia $rand_seq_analysis_script $random_seq $delta_t $model_pars_files`
 
             run(cmd)
 
@@ -423,7 +424,7 @@ function main(args)
 
             rand_seq_analysis_script = joinpath(@__DIR__, "../scripts/pse1/rand_seq_analysis_pse1.jl")
 
-            cmd = `julia $rand_seq_analysis_script $random_seq $model_pars_files`
+            cmd = `julia $rand_seq_analysis_script $random_seq $delta_t$model_pars_files`
 
             run(cmd)
         end
