@@ -136,7 +136,7 @@ function transition_probability(x_opt, data_parent, data_child, child, t_parent,
         mu = compute_mu( data_parent.round[t_parent].x[:, ip], lambda_t, theta, data_parent.d)
         x_μ = data_child.round[t_child].x[:, child] .- mu
         inv_sigma_x = C \ x_μ
-        logp = -0.5*(log_sigma + data.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data_parent.round[t_parent].w[ip])
+        logp = -0.5*(log_sigma + data_parent.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data_parent.round[t_parent].w[ip])
         for i in eachindex(child)
             if logp[i] > max_logp[i]
                 max_logp[i] = logp[i]
