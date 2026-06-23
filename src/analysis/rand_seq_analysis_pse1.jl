@@ -116,7 +116,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         fig_traj, ax_traj = subplots(1, length(times)-1, 6)
         for t in 1:(length(times)-1)
             ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_traj_random = transition_probability(x_opt, data_random, data_data, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
 
             test_traj = MannWhitneyUTest(ll_prob_traj_data, ll_prob_traj_random)
             p_values_traj[i,t] = pvalue(test_traj; tail=:right)
