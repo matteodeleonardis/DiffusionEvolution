@@ -121,12 +121,12 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
             test_traj = MannWhitneyUTest(ll_prob_traj_data, ll_prob_traj_random)
             p_values_traj[i,t] = pvalue(test_traj; tail=:right)
 
-            ax_anc.hist(ll_prob_traj_random, alpha=0.5, density=true, label="random samples")
-            ax_anc.hist(ll_prob_traj_data, alpha=0.5, density=true, label="experimental samples")    
-            ax_anc.set_title("Transition round $(times[t]) to round $(times[end])")
-            ax_anc.legend()
-            ax_anc.set_xlabel("log-likelihood transition probability (max over ancestors)")
-            ax_anc.set_ylabel("pdf")
+            ax_traj.hist(ll_prob_traj_random, alpha=0.5, density=true, label="random samples")
+            ax_traj.hist(ll_prob_traj_data, alpha=0.5, density=true, label="experimental samples")    
+            ax_traj.set_title("Transition round $(times[t]) to round $(times[end])")
+            ax_traj.legend()
+            ax_traj.set_xlabel("log-likelihood transition probability (max over ancestors)")
+            ax_traj.set_ylabel("pdf")
         end
 
         output_name_traj = output_name = replace(model_pars[i], "pars.jld2" => "trajectory_reconstruction_likelihood_$(String(rand_seq)).png")
