@@ -424,7 +424,7 @@ function main(args)
 
             rand_seq_analysis_script = joinpath(@__DIR__, "../scripts/pse1/rand_seq_analysis_pse1.jl")
 
-            cmd = `julia $rand_seq_analysis_script $random_seq $delta_t$model_pars_files`
+            cmd = `julia $rand_seq_analysis_script $random_seq $model_pars_files`
 
             run(cmd)
         end
