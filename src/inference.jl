@@ -112,29 +112,31 @@ function empirical_log_likelihood(data::Data, t::Int)
 end
 
 
-function transition_probability(x_opt, data, child, t_parent, t_child, lambda, epsilon_J, epsilon_sigma)
+function transition_probability(x_opt, data_parent, data_child, child, t_parent, t_child, lambda, epsilon_J, epsilon_sigma)
 
-    J = compute_J(x_opt, data.d, epsilon_J)
-    theta = compute_theta(x_opt, data.d)
-    gamma = get_gamma(x_opt, data.d)
-    delta_t = data.time[t_child] - data.time[t_parent]
+    @assert data_parent.d == data_child.d
+
+    J = compute_J(x_opt, data_parent.d, epsilon_J)
+    theta = compute_theta(x_opt, data_parent.d)
+    gamma = get_gamma(x_opt, data_parent.d)
+    delta_t = data_child.time[t_child] - data_parent.time[t_parent]
     lambda_t = compute_lambda(J, gamma, delta_t)
-    sigma = compute_sigma(J, lambda_t, data.d)
-    sigma = (1.0 - lambda)*sigma + lambda*I(data.d)
+    sigma = compute_sigma(J, lambda_t, data_parent.d)
+    sigma = (1.0 - lambda)*sigma + lambda*I(data_parent.d)
     sigma = 0.5 * (sigma + sigma')
-    sigma += epsilon_sigma*I(data.d)
+    sigma += epsilon_sigma*I(data_parent.d)
     C = cholesky(sigma)
     log_sigma = 2.0 * sum(log, diag(C.L))
 
     max_logp = fill(-Inf, length(child))
-    for ip in 1:data.M
-        if data.round[t_parent].w[ip] == 0.0
+    for ip in 1:data_parent.M
+        if data_parent.round[t_parent].w[ip] == 0.0
             continue
         end
-        mu = compute_mu( data.round[t_parent].x[:, ip], lambda_t, theta, data.d)
-        x_μ = data.round[t_child].x[:, child] .- mu
+        mu = compute_mu( data_parent.round[t_parent].x[:, ip], lambda_t, theta, data_parent.d)
+        x_μ = data_child.round[t_child].x[:, child] .- mu
         inv_sigma_x = C \ x_μ
-        logp = -0.5*(log_sigma + data.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data.round[t_parent].w[ip])
+        logp = -0.5*(log_sigma + data.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data_parent.round[t_parent].w[ip])
         for i in eachindex(child)
             if logp[i] > max_logp[i]
                 max_logp[i] = logp[i]
