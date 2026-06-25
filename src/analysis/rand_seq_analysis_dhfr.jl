@@ -104,11 +104,20 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
             test = SignedRankTest(ll_prob_data, ll_prob_random)
             p_values[i,t] = pvalue(test; tail=:right)
 
-            ax_anc[t].hist(ll_prob_data .- ll_prob_random, alpha=0.5, density=true)   
-            ax_anc[t].set_title("Transition round $(times[t]) to round $(times[end])")
-            ax_anc[t].legend()
-            ax_anc[t].set_xlabel("Δlog-posterior (max over experimental/random ancestors)")
+            delta = ll_prob_data .- ll_prob_random
+
+            qlo, qhi = quantile(delta, [0.01, 0.99])
+            pad = 0.1 * (qhi - qlo)
+
+            bins = range(qlo - pad, qhi + pad; length=60)
+
+            ax_anc[t].hist(delta, bins=bins, alpha=0.6, density=true,
+                        label="experimental - random ancestors")
+            ax_anc[t].axvline(0.0, linestyle="--", color="black")
+            ax_anc[t].set_xlim(qlo - pad, qhi + pad)
+            ax_anc[t].set_xlabel("Δ log joint score per dimension")
             ax_anc[t].set_ylabel("pdf")
+            ax_anc[t].legend()
         end
 
         output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood_$(String(rand_seq)).png")
@@ -123,7 +132,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         for t in 1:(length(times)-1)
             ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, 
                 t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
-                
+
             ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction, 
                 t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
 

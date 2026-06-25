@@ -91,18 +91,29 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)
         for t in 1:(length(times)-1)
-            ll_prob_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_random = transition_probability(x_opt, data_random, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
+
+            ll_prob_random = transition_probability(x_opt, data_random, data_data, samples_data_ancestor_reconstruction,
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
 
             test = SignedRankTest(ll_prob_data, ll_prob_random)
             p_values[i,t] = pvalue(test; tail=:right)
 
-            ax_anc.hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
-            ax_anc.hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
-            ax_anc.set_title("Transition round $(times[t]) to round $(times[end])")
-            ax_anc.legend()
-            ax_anc.set_xlabel("log-likelihood transition probability (max over ancestors)")
+            delta = ll_prob_data .- ll_prob_random
+
+            qlo, qhi = quantile(delta, [0.01, 0.99])
+            pad = 0.1 * (qhi - qlo)
+
+            bins = range(qlo - pad, qhi + pad; length=60)
+
+            ax_anc.hist(delta, bins=bins, alpha=0.6, density=true,
+                        label="experimental - random ancestors")
+            ax_anc.axvline(0.0, linestyle="--", color="black")
+            ax_anc.set_xlim(qlo - pad, qhi + pad)
+            ax_anc.set_xlabel("Δ log joint score per dimension")
             ax_anc.set_ylabel("pdf")
+            ax_anc.legend()
         end
 
         output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood_$(String(rand_seq)).png")
@@ -115,8 +126,11 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         samples_random_ancestor_reconstruction = sample(1:data_random.M, Weights(data_random.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_traj, ax_traj = subplots(1, length(times)-1, 6)
         for t in 1:(length(times)-1)
-            ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
+
+            ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction,
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
 
             test_traj = MannWhitneyUTest(ll_prob_traj_data, ll_prob_traj_random)
             p_values_traj[i,t] = pvalue(test_traj; tail=:right)
