@@ -149,10 +149,10 @@ function transition_probability(x_opt, data_parent, data_child, child, t_parent,
     end
 
     if normalize_child
-        max_logp .-= log(data_parent.round[t_child].w[child])
+        max_logp .-= log(data_child.round[t_child].w[child])
     end
 
-    logp ./= data_parent.d
+    max_logp ./= data_parent.d
     @assert all(isfinite.(max_logp)) "$(max_logp)"
     return max_logp
 end
