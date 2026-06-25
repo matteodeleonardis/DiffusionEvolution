@@ -90,11 +90,12 @@ function log_likelihood_variants(x::Pars,  data::Data, t::Int, λ::Float64, ϵ_J
    
     μ, Σ = compute_parameters(J, θ, γ, data.time[t], data.x0, data.d, λ, ϵ_Σ)
     C = cholesky(Σ)
+    logdet_sigma = 2.0 * sum(log, diag(C.L))
     x_μ = data.round[t].x .- μ
     inv_Σ_x = C \ x_μ
-    lls = -sum(x_μ .* inv_Σ_x, dims=1)/data.d
+    lls = -0.5*(logdet_sigma + data.d*log2pi) .- vec(0.5*sum(x_μ .* inv_Σ_x, dims=1))
 
-    return vec(lls)
+    return lls ./ data.d
 end
 
 
@@ -104,15 +105,18 @@ function empirical_log_likelihood(data::Data, t::Int)
     Σ = cov(data.round[t].x[1:data.d, :], Weights(data.round[t].w), 2)
 
     C = cholesky(Σ)
+    logdet_sigma = 2.0 * sum(log, diag(C.L))
+
     x_μ = data.round[t].x .- μ
     inv_Σ_x = C \ x_μ
-    lls = -sum(x_μ .* inv_Σ_x, dims=1)/data.d
+    lls = -0.5*(logdet_sigma + data.d*log2pi) .- vec(0.5*sum(x_μ .* inv_Σ_x, dims=1))
 
-    return vec(lls)
+    return lls ./ data.d
 end
 
 
-function transition_probability(x_opt, data_parent, data_child, child, t_parent, t_child, lambda, epsilon_J, epsilon_sigma)
+function transition_probability(x_opt, data_parent, data_child, child, t_parent, t_child, lambda, epsilon_J, epsilon_sigma;
+    normalize_child=false)
 
     @assert data_parent.d == data_child.d
 
@@ -126,7 +130,7 @@ function transition_probability(x_opt, data_parent, data_child, child, t_parent,
     sigma = 0.5 * (sigma + sigma')
     sigma += epsilon_sigma*I(data_parent.d)
     C = cholesky(sigma)
-    log_sigma = 2.0 * sum(log, diag(C.L))
+    logdet_sigma = 2.0 * sum(log, diag(C.L))
 
     max_logp = fill(-Inf, length(child))
     for ip in 1:data_parent.M
@@ -136,12 +140,17 @@ function transition_probability(x_opt, data_parent, data_child, child, t_parent,
         mu = compute_mu( data_parent.round[t_parent].x[:, ip], lambda_t, theta, data_parent.d)
         x_μ = data_child.round[t_child].x[:, child] .- mu
         inv_sigma_x = C \ x_μ
-        logp = -0.5*(log_sigma + data_parent.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data_parent.round[t_parent].w[ip])
+        logp = -0.5*(logdet_sigma + data_parent.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data_parent.round[t_parent].w[ip])
+        logp ./= data_parent.d
         for i in eachindex(child)
             if logp[i] > max_logp[i]
                 max_logp[i] = logp[i]
             end
         end
+    end
+
+    if normalize_child
+        max_logp .-= log(data_parent.round[t_parent].w[child])
     end
 
     @assert all(isfinite.(max_logp)) "$(max_logp)"

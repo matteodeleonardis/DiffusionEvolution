@@ -95,17 +95,19 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)
         for t in 1:(length(times)-1)
-            ll_prob_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_random = transition_probability(x_opt, data_random, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, 
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
+
+            ll_prob_random = transition_probability(x_opt, data_random, data_data, samples_data_ancestor_reconstruction, 
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
 
             test = SignedRankTest(ll_prob_data, ll_prob_random)
             p_values[i,t] = pvalue(test; tail=:right)
 
-            ax_anc[t].hist(ll_prob_random, alpha=0.5, density=true, label="random samples")
-            ax_anc[t].hist(ll_prob_data, alpha=0.5, density=true, label="experimental samples")    
+            ax_anc[t].hist(ll_prob_data .- ll_prob_random, alpha=0.5, density=true)   
             ax_anc[t].set_title("Transition round $(times[t]) to round $(times[end])")
             ax_anc[t].legend()
-            ax_anc[t].set_xlabel("log-likelihood transition probability (max over ancestors)")
+            ax_anc[t].set_xlabel("Δlog-posterior (max over experimental/random ancestors)")
             ax_anc[t].set_ylabel("pdf")
         end
 
@@ -119,8 +121,11 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         samples_random_ancestor_reconstruction = sample(1:data_random.M, Weights(data_random.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_traj, ax_traj = subplots(1, length(times)-1, 6)
         for t in 1:(length(times)-1)
-            ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
-            ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction, t, length(times), lambda, epsilon_J, epsilon_sigma)
+            ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction, 
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
+                
+            ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction, 
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
 
             test_traj = MannWhitneyUTest(ll_prob_traj_data, ll_prob_traj_random)
             p_values_traj[i,t] = pvalue(test_traj; tail=:right)
@@ -129,7 +134,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
             ax_traj[t].hist(ll_prob_traj_data, alpha=0.5, density=true, label="experimental samples")
             ax_traj[t].set_title("Transition round $(times[t]) to round $(times[end])")
             ax_traj[t].legend()
-            ax_traj[t].set_xlabel("log-likelihood transition probability (max over ancestors)")
+            ax_traj[t].set_xlabel("Δlog-posterior (max over experimental/random offsprings)")
             ax_traj[t].set_ylabel("pdf")
         end
 
