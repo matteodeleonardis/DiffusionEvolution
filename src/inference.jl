@@ -141,7 +141,6 @@ function transition_probability(x_opt, data_parent, data_child, child, t_parent,
         x_μ = data_child.round[t_child].x[:, child] .- mu
         inv_sigma_x = C \ x_μ
         logp = -0.5*(logdet_sigma + data_parent.d*log2pi) .- vec(0.5.*sum(x_μ .* inv_sigma_x, dims=1)) .+ log(data_parent.round[t_parent].w[ip])
-        logp ./= data_parent.d
         for i in eachindex(child)
             if logp[i] > max_logp[i]
                 max_logp[i] = logp[i]
@@ -150,9 +149,10 @@ function transition_probability(x_opt, data_parent, data_child, child, t_parent,
     end
 
     if normalize_child
-        max_logp .-= log(data_parent.round[t_parent].w[child])
+        max_logp .-= log(data_parent.round[t_child].w[child])
     end
 
+    logp ./= data_parent.d
     @assert all(isfinite.(max_logp)) "$(max_logp)"
     return max_logp
 end
