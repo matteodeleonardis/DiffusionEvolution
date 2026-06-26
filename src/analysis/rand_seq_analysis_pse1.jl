@@ -102,7 +102,21 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
 
             delta = ll_prob_data .- ll_prob_random
 
-            ax_anc.hist(delta, alpha=0.6, density=true, label="experimental - random ancestors")
+            δmin = minimum(delta)
+            δmax = maximum(delta)
+            δrange = δmax - δmin
+            δscale = max(abs(δmin), abs(δmax), 1.0)
+
+            if δrange < 1e-12 * δscale
+                δ0 = mean(delta)
+                ϵ = 1e-12 * δscale
+                bins = collect(range(δ0 - ϵ, δ0 + ϵ; length=11))
+            else
+                bins = 30
+            end
+
+            ax_anc.hist(delta, bins=bins, alpha=0.6, density=true,
+            label="experimental - random ancestors")
             ax_anc.axvline(0.0, linestyle="--", color="black")
             ax_anc.set_xlabel("Δ log joint score per dimension")
             ax_anc.set_ylabel("pdf")
