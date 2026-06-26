@@ -106,15 +106,8 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
 
             delta = ll_prob_data .- ll_prob_random
 
-            qlo, qhi = quantile(delta, [0.01, 0.99])
-            pad = 0.1 * (qhi - qlo)
-
-            bins = range(qlo - pad, qhi + pad; length=60)
-
-            ax_anc[t].hist(delta, bins=bins, alpha=0.6, density=true,
-                        label="experimental - random ancestors")
+            ax_anc[t].hist(delta, alpha=0.6, density=true,label="experimental - random ancestors")
             ax_anc[t].axvline(0.0, linestyle="--", color="black")
-            ax_anc[t].set_xlim(qlo - pad, qhi + pad)
             ax_anc[t].set_xlabel("Δ log joint score per dimension")
             ax_anc[t].set_ylabel("pdf")
             ax_anc[t].legend()
