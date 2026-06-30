@@ -90,6 +90,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         n_samples_anc_reconstruction = 100
         samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)
+        ancestor_reconstruction_likelihood_values = Float64[]
         for t in 1:(length(times)-1)
             ll_prob_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
                 t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
@@ -101,23 +102,26 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
             p_values[i,t] = pvalue(test; tail=:right)
 
             delta = ll_prob_data .- ll_prob_random
+            append!(ancestor_reconstruction_likelihood_values, vec(delta))
 
-            δmin = minimum(delta)
-            δmax = maximum(delta)
-            δrange = δmax - δmin
-            δscale = max(abs(δmin), abs(δmax), 1.0)
+            delta_min, delta_max = extrema(delta)
+            delta_span = delta_max - delta_min
+            delta_center = 0.5 * (delta_min + delta_max)
+            plot_min = min(0.0, delta_min)
+            plot_max = max(0.0, delta_max)
+            plot_width = max(plot_max - plot_min, abs(delta_center), 1e-3)
+            plot_margin = 0.2 * plot_width
+            delta_color = delta_center >= 0.0 ? "tab:blue" : "tab:red"
 
-            if δrange < 1e-12 * δscale
-                δ0 = mean(delta)
-                ϵ = 1e-12 * δscale
-                bins = collect(range(δ0 - ϵ, δ0 + ϵ; length=11))
+            if delta_span <= 1e-10
+                ax_anc.axvline(delta_center, color=delta_color, linewidth=3,
+                    label="experimental - random ancestors")
             else
-                bins = 30
+                ax_anc.hist(delta, alpha=0.6, color=delta_color,
+                    label="experimental - random ancestors")
             end
-
-            ax_anc.hist(delta, bins=bins, alpha=0.6, density=true,
-            label="experimental - random ancestors")
             ax_anc.axvline(0.0, linestyle="--", color="black")
+            ax_anc.set_xlim(plot_min - plot_margin, plot_max + plot_margin)
             ax_anc.set_xlabel("Δ log joint score per dimension")
             ax_anc.set_ylabel("pdf")
             ax_anc.legend()
@@ -126,6 +130,13 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         output_name_anc = output_name = replace(model_pars[i], "pars.jld2" => "ancestor_reconstruction_likelihood_$(String(rand_seq)).png")
         fig_anc.savefig(output_name_anc, format="png", bbox_inches="tight")
         println("Saved figure at $output_name_anc")
+        output_name_anc_txt = splitext(output_name_anc)[1] * ".txt"
+        open(output_name_anc_txt, "w") do io
+            for value in ancestor_reconstruction_likelihood_values
+                println(io, value)
+            end
+        end
+        println("Saved values at $output_name_anc_txt")
         close(fig_anc)
 
         ###child reconstruction
@@ -167,6 +178,15 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
     output_p_value = joinpath(dirname(dirname(model_pars[1])), "ancestor_reconstruction_$(String(rand_seq)).png")
     fig_p_val.savefig(output_p_value, format="png", bbox_inches="tight")
     println("Saved figure at $output_p_value")
+    output_p_value_txt = splitext(output_p_value)[1] * ".txt"
+    open(output_p_value_txt, "w") do io
+        for t in 1:length(times)-1
+            for i in eachindex(dvals)
+                println(io, "$(dvals[i]) $(times[t]) $(p_values[i,t])")
+            end
+        end
+    end
+    println("Saved values at $output_p_value_txt")
     close(fig_p_val)
 
     fig_p_val_traj, ax_p_val_traj = subplots(1, 1, 6)
@@ -178,8 +198,17 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
     ax_p_val_traj.legend()
     ax_p_val_traj.set_yscale(:log)
     output_p_value_traj = joinpath(dirname(dirname(model_pars[1])), "trajectory_reconstruction_$(String(rand_seq)).png")
-    fig_p_val.savefig(output_p_value_traj, format="png", bbox_inches="tight")
+    fig_p_val_traj.savefig(output_p_value_traj, format="png", bbox_inches="tight")
     println("Saved figure at $output_p_value_traj")
+    output_p_value_traj_txt = splitext(output_p_value_traj)[1] * ".txt"
+    open(output_p_value_traj_txt, "w") do io
+        for t in 1:length(times)-1
+            for i in eachindex(dvals)
+                println(io, "$(dvals[i]) $(times[t]) $(p_values_traj[i,t])")
+            end
+        end
+    end
+    println("Saved values at $output_p_value_traj_txt")
     close(fig_p_val_traj)
 
 end
