@@ -49,6 +49,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
 
     p_values = zeros(length(model_pars), length(times)-1)
     p_values_traj = zeros(length(model_pars), length(times)-1)
+    p_values_traj_zero = zeros(length(model_pars))
 
     for i in eachindex(model_pars)
         d = dvals[i]
@@ -169,6 +170,28 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
         fig_traj.savefig(output_name_traj, format="png", bbox_inches="tight")
         println("Saved figure at $output_name_traj")
         close(fig_traj)
+
+        ###last round reconstruction
+
+        fig_traj_zero, ax_traj_zero = subplots(1, 1, 6)
+        ll_prob_traj_zero_data = log_likelihood_variants(x_opt, data_data, length(times), lambda, epsilon_J, epsilon_sigma)
+
+        ll_prob_traj_zero_random = log_likelihood_variants(x_opt, data_random, length(times), lambda, epsilon_J, epsilon_sigma)
+
+        test_traj_zero = MannWhitneyUTest(ll_prob_traj_zero_data, ll_prob_traj_zero_random)
+        p_values_traj_zero[i] = pvalue(test_traj_zero; tail=:right)
+
+        ax_traj_zero.hist(ll_prob_traj_zero_random, alpha=0.5, density=true, label="random samples")
+        ax_traj_zero.hist(ll_prob_traj_zero_data, alpha=0.5, density=true, label="experimental samples")
+        ax_traj_zero.set_title("log-likelihood round $(times[end])")
+        ax_traj_zero.legend()
+        ax_traj_zero.set_xlabel("log-likelihood")
+        ax_traj_zero.set_ylabel("pdf")
+
+        output_name_traj_zero = output_name = replace(model_pars[i], "pars.jld2" => "trajectory_reconstruction_wt_likelihood_$(String(rand_seq)).png")
+        fig_traj_zero.savefig(output_name_traj_zero, format="png", bbox_inches="tight")
+        println("Saved figure at $output_name_traj_zero")
+        close(fig_traj_zero)
     end
 
     fig_p_val, ax_p_val = subplots(1, 1, 6)
@@ -197,6 +220,7 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
     for t in 1:length(times)-1
         ax_p_val_traj.plot(dvals, p_values_traj[:,t], label="time $(times[t])")
     end
+    ax_p_val_traj.plot(dvals, p_values_traj_zero, label="Wild Type")
     ax_p_val_traj.set_xlabel("d")
     ax_p_val_traj.set_ylabel("p value")
     ax_p_val_traj.legend()
@@ -206,6 +230,9 @@ function rand_seq_analysis_dhfr(file_wt, file_rounds, file_nat, rand_seq, model_
     println("Saved figure at $output_p_value_traj")
     output_p_value_traj_txt = splitext(output_p_value_traj)[1] * ".txt"
     open(output_p_value_traj_txt, "w") do io
+        for i in eachindex(dvals)
+            println(io, "$(dvals[i]) 0 $(p_values_traj_zero[i])")
+        end
         for t in 1:length(times)-1
             for i in eachindex(dvals)
                 println(io, "$(dvals[i]) $(times[t]) $(p_values_traj[i,t])")
