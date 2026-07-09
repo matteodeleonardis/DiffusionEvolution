@@ -212,3 +212,35 @@ function compare_new_contacts(plmdca_score, true_contacts, file_model_scores::Ve
 
 	return fig, ax, fig_n_contacts, ax_n_contacts, fig_n_new_contacts, ax_n_new_contacts, fig_acc, ax_acc 
 end
+
+function compare_new_contacts_combined(plmdca_score, true_contacts, combined_msa_score, pairs_threshold; 
+	min_dist_intermediate = 12, max_dist_intermediate = 23)
+
+	contacts_plmdca = []
+	additional_contacts = []
+	additional_contacts_intermediate = []
+	additional_contacts_long = []
+	for i in 1:pairs_threshold
+		plmdca_i, plmdca_j = plmdca_score[i][1], plmdca_score[i][2]
+		if true_contacts[plmdca_i, plmdca_j] > 0
+			push!(contacts_plmdca, (plmdca_i, plmdca_j))
+		end
+	end
+
+	for i in 1:pairs_threshold
+		combined_msa_i, combined_msa_j = combined_msa_score[i][1], combined_msa_score[i][2]
+		if (true_contacts[combined_msa_i, combined_msa_j] > 0) && !((combined_msa_i, combined_msa_j) in contacts_plmdca)
+			push!(additional_contacts, (combined_msa_i, combined_msa_j))
+			if min_dist_intermediate <= abs(combined_msa_i - combined_msa_j) <= max_dist_intermediate
+				push!(additional_contacts_intermediate, (combined_msa_i, combined_msa_j))
+			elseif abs(combined_msa_i - combined_msa_j) >= max_dist_intermediate + 1
+				push!(additional_contacts_long, (combined_msa_i, combined_msa_j))
+			end
+		end
+	end
+
+	
+
+
+	return additional_contacts, additional_contacts_intermediate, additional_contacts_long 
+end

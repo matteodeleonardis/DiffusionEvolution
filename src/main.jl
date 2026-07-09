@@ -219,7 +219,7 @@ function main(args)
             this_dir = @__DIR__
 
             input_fasta = "$(this_dir)/../data/pse1/PSE1_clean.fasta"
-            input_wt = "$(this_dir)/../data/pse1/PSE1.fasta"
+            input_wt = "$(this_dir)/../data/pse1/PSE1.fas"
 
             output_root = "$(this_dir)/../results/pse1/$(dir_files)/low_rank_mf"
             low_rank_dir = "$(this_dir)/../results/pse1/low_rank_mf"
@@ -313,15 +313,12 @@ function main(args)
             this_dir = @__DIR__
 
             in_nat = "$(this_dir)/../data/pse1/PSE1_clean.fasta"
-            in_wt = "$(this_dir)/../data/pse1/PSE1.fasta"
+            in_wt = "$(this_dir)/../data/pse1/PSE1.fas"
 
             # Replace these names if your PSE1 round/alignment files differ.
-            in_r1 = "$(this_dir)/../data/pse1/Round1_Q15_C10_aa.aln"
-            in_r2 = "$(this_dir)/../data/pse1/Round2_Q15_C10_aa.aln"
-            in_r3 = "$(this_dir)/../data/pse1/Round3_Q15_C10_aa.aln"
-            in_r4 = "$(this_dir)/../data/pse1/Round4_Q15_C10_aa.aln"
-            in_r5 = "$(this_dir)/../data/pse1/Round5_Q15_C10_aa.aln"
-            in_r15 = "$(this_dir)/../data/pse1/Gen15_aa.aln"
+            in_r1 = "$(this_dir)/../data/pse1/Rnd10.fas"
+            in_r2 = "$(this_dir)/../data/pse1/Rnd20_init.fas"
+            
 
             output_root = "$(this_dir)/../results/pse1/$(dir_files)/ev_couplings"
             output_dir = dirname(output_root)
@@ -360,7 +357,7 @@ function main(args)
 
             ev_couplings_analysis_script = joinpath(@__DIR__, "../scripts/pse1/ev_couplings_analysis.jl")
 
-            cmd = `julia $ev_couplings_analysis_script $in_nat $in_r1 $in_wt $in_r2 $in_r3 $in_r4 $in_r5 $in_r15 $evc_score_dir $output_root $model_score_files`
+            cmd = `julia $ev_couplings_analysis_script $in_nat $in_r1 $in_wt $in_r2 $evc_score_dir $output_root $model_score_files`
 
             run(cmd)
         end
@@ -534,7 +531,7 @@ function main(args)
             this_dir = @__DIR__
 
             input_fasta = "$(this_dir)/../data/pse1/PSE1_clean.fasta"
-            input_wt = "$(this_dir)/../data/pse1/PSE1.fasta"
+            input_wt = "$(this_dir)/../data/pse1/PSE1.fas"
             output_root = "$(this_dir)/../results/pse1/$(dir_files)/J_divergence"
 
             search_root = normpath(joinpath(

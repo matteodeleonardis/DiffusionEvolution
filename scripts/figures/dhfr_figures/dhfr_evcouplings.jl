@@ -1,17 +1,17 @@
 import Pkg
 Pkg.activate("..")
 
-using DiffusionEvolution: compare_new_contacts
+using DiffusionEvolution: compare_new_contacts, compare_new_contacts_combined
 using JLD2, PyPlot, NPZ
 
 import PyPlot.subplots
 subplots(x, y ,d; kwargs...) = PyPlot.subplots(x, y; figsize=(d*y, d*x), kwargs...)
 
-score_load = JLD2.load( "/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/ev_couplings/ev_couplings.score.jld2")
+score_load = JLD2.load( "/home/matteo/Projects/DiffusionEvolution/results/mdhfr/ev_couplings/ev_couplings.score.jld2")
 ev_couplings_score = score_load["ev_couplings_score"]
 L = score_load["L"]
 
-contacts_file = "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/contact_map.npy"
+contacts_file = "/home/matteo/Projects/DiffusionEvolution/data/dhfr/contact_map.npy"
 true_contacts = npzread(contacts_file)
 true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), j in 1:size(true_contacts,2)]
 
@@ -19,7 +19,7 @@ true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), 
 fig_plmdca, ax_plmdca = subplots(1, 1, 4)
 min_dist_intermediate = 12
 max_dist_intermediate = 23
-plmdca_score = JLD2.load("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/plmdca/plmdca.score.jld2")["plmdca_score"]
+plmdca_score = JLD2.load("/home/matteo/Projects/DiffusionEvolution/results/mdhfr/plmdca/plmdca.score.jld2")["plmdca_score"]
 contacts_plmdca = []
 for i in 1:div(L,2)
     if true_contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
@@ -88,7 +88,7 @@ function collect_model_score_files(base_dir::AbstractString)
     return [p[2] for p in pairs]        # cut -f2-
 end
 
-file_model_scores = collect_model_score_files("/home/students/s301803/CODE/DiffusionEvolution/results/mdhfr/run0_pfam")
+file_model_scores = collect_model_score_files("/home/matteo/Projects/DiffusionEvolution/results/mdhfr/run0_pfam")
 
 _, _, fig_n_contacts, ax_n_contacts, _, _, _, _ = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "OU", "EVCouplings")
 
@@ -101,3 +101,19 @@ ax_n_contacts.set_title("Precision of Contact Predictions for mDHFR")
 
 
 fig_n_contacts.savefig("mdhfr_evcouplings_n_contacts_compare.svg", format="svg", bbox_inches="tight")
+
+ 
+fig_new_contacts_combined, ax_new_contacts_combined = subplots(1, 1, 6)
+_, _, _, _, fig_new_contacts_ou, ax_n_contacts_ou, _, _ = compare_new_contacts(plmdca_score, true_contacts, file_model_scores, div(L,2), "OU", "PlmDCA")
+add_contacts_combined_msa, _, _ = compare_new_contacts_combined(plmdca_score, true_contacts, ev_couplings_score, div(L,2))
+
+line_additional_ou = ax_n_contacts_ou.lines[1]
+ax_new_contacts_combined.plot(line_additional_ou.get_xdata(), line_additional_ou.get_ydata(), label="OU additional contacts")
+
+ax_new_contacts_combined.axhline(length(add_contacts_combined_msa), color="orangered", linestyle="--", label="Combined-MSA additional contacts")
+
+ax_new_contacts_combined.set_xlabel("d")
+ax_new_contacts_combined.set_ylabel("number of contacts")
+ax_new_contacts_combined.set_title("Additional Contacts for mDHFR\n vs PlmDCA")
+ax_new_contacts_combined.legend()
+fig_new_contacts_combined.savefig("mdhfr_evcouplings_new_contacts_ou_vs_combined_msa.svg", format="svg", bbox_inches="tight")

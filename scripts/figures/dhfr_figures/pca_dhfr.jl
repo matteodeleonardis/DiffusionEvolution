@@ -150,16 +150,16 @@ function plot_pca_density_overlay(X_nat, X_exp; pcx=1, pcy=2, outfile=nothing)
 end
 
 args = Dict(
-    "natural" => "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR_clean.fasta",
+    "natural" => "/home/matteo/Projects/DiffusionEvolution/data/dhfr/mDHFR_clean.fasta",
     "experimental" => [
-        "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/Round1_Q15_C10_aa.aln",
-        "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/Round2_Q15_C10_aa.aln",
-        "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/Round3_Q15_C10_aa.aln",
-        "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/Round4_Q15_C10_aa.aln",
-        "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/Round5_Q15_C10_aa.aln",
-        "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/Gen15_aa.aln"
+        "/home/matteo/Projects/DiffusionEvolution/data/dhfr/Round1_Q15_C10_aa.aln",
+        "/home/matteo/Projects/DiffusionEvolution/data/dhfr/Round2_Q15_C10_aa.aln",
+        "/home/matteo/Projects/DiffusionEvolution/data/dhfr/Round3_Q15_C10_aa.aln",
+        "/home/matteo/Projects/DiffusionEvolution/data/dhfr/Round4_Q15_C10_aa.aln",
+        "/home/matteo/Projects/DiffusionEvolution/data/dhfr/Round5_Q15_C10_aa.aln",
+        "/home/matteo/Projects/DiffusionEvolution/data/dhfr/Gen15_aa.aln"
     ],
-    "wt" => "/home/students/s301803/CODE/DiffusionEvolution/data/dhfr/mDHFR.fasta",
+    "wt" => "/home/matteo/Projects/DiffusionEvolution/data/dhfr/mDHFR.fasta",
     "output" => "pca_dhfr_density.svg"
 )
 

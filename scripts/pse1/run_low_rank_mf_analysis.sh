@@ -3,7 +3,7 @@
 dir_files=$1
 this_dir="$(dirname ${BASH_SOURCE[0]})"
 input_fasta="${this_dir}/../../data/pse1/PSE1_clean.fasta"
-input_wt="${this_dir}/../../data/pse1/PSE1.fasta"
+input_wt="${this_dir}/../../data/pse1/PSE1.fas"
 output_root="${this_dir}/../../results/pse1/${dir_files}/low_rank_mf"
 low_rank_dir="${this_dir}/../../results/pse1/low_rank_mf/"
 mkdir -p $low_rank_dir

@@ -4,7 +4,7 @@ dir_files=$1
 
 this_dir="$(dirname ${BASH_SOURCE[0]})"
 in_nat="${this_dir}/../../data/pse1/PSE1_clean.fasta"
-in_wt="${this_dir}/../../data/pse1/PSE1.fasta"
+in_wt="${this_dir}/../../data/pse1/PSE1.fas"
 in_r10="${this_dir}/../../data/pse1/Rnd10.fasta"
 in_r20="${this_dir}/../../data/pse1/Rnd20_init.fasta"
 output_root="${this_dir}/../../results/pse1/${dir_files}/ev_couplings"
