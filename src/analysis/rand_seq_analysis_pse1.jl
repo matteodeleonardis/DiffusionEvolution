@@ -201,10 +201,10 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
 
         for t in 1:length(times)-1
             ll_prob_traj_zero_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
-                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true, prior=false)
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false, prior=false)
 
             ll_prob_traj_zero_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction,
-                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true, prior=false)
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false, prior=false)
 
             test_traj_zero = MannWhitneyUTest(ll_prob_traj_zero_data, ll_prob_traj_zero_random)
             p_values_traj_zero[i,t+1] = pvalue(test_traj_zero; tail=:right)
