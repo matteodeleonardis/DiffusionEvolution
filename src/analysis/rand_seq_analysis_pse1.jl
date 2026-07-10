@@ -46,7 +46,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
 
     p_values = zeros(length(model_pars), length(times)-1)
     p_values_traj = zeros(length(model_pars), length(times))
-    p_values_traj_zero = zeros(length(model_pars))
+    p_values_traj_zero = zeros(length(model_pars), length(times))
 
     for i in eachindex(model_pars)
         d = dvals[i]
@@ -87,17 +87,17 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         println("Saved figure at $output_name")
         close(fig)
 
-        #ancesor reconsruction
+        #backward ancesor reconsruction
         n_samples_anc_reconstruction = 100
         samples_data_ancestor_reconstruction = sample(1:data_data.M, Weights(data_data.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_anc, ax_anc = subplots(1, length(times)-1, 6)
         ancestor_reconstruction_likelihood_values = Float64[]
         for t in 1:(length(times)-1)
             ll_prob_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
-                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false, prior=true)
 
             ll_prob_random = transition_probability(x_opt, data_random, data_data, samples_data_ancestor_reconstruction,
-                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false)
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=false, prior=true)
 
             test = SignedRankTest(ll_prob_data, ll_prob_random)
             p_values[i,t] = pvalue(test; tail=:right)
@@ -140,7 +140,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         println("Saved values at $output_name_anc_txt")
         close(fig_anc)
 
-        ###child reconstruction
+        ###forward ancestor reconstruction
         
         samples_random_ancestor_reconstruction = sample(1:data_random.M, Weights(data_random.round[end].w), n_samples_anc_reconstruction; replace=false)
         fig_traj, ax_traj = subplots(1, length(times), 6)
@@ -163,10 +163,10 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
 
         for t in 1:(length(times)-1)
             ll_prob_traj_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
-                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true, prior=true)
 
             ll_prob_traj_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction,
-                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true)
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true, prior=true)
 
             test_traj = MannWhitneyUTest(ll_prob_traj_data, ll_prob_traj_random)
             p_values_traj[i,t+1] = pvalue(test_traj; tail=:right)
@@ -175,7 +175,7 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
             ax_traj[t+1].hist(ll_prob_traj_data, alpha=0.5, density=true, label="experimental samples")    
             ax_traj[t+1].set_title("Transition round $(times[t]) to round $(times[end])")
             ax_traj[t+1].legend()
-            ax_traj[t+1].set_xlabel("log-likelihood transition probability (max over ancestors)")
+            ax_traj[t+1].set_xlabel("Δlog-posterior (max over experimental/random offsprings)")
             ax_traj[t+1].set_ylabel("pdf")
         end
 
@@ -184,20 +184,38 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         println("Saved figure at $output_name_traj")
         close(fig_traj)
 
-        ###last round reconstruction
+        ###trajectory reconstruction
 
-        fig_traj_zero, ax_traj_zero = subplots(1, 1, 6)
+        fig_traj_zero, ax_traj_zero = subplots(1, length(times), 6)
         
 
         test_traj_zero = MannWhitneyUTest(ll_prob_traj_zero_data, ll_prob_traj_zero_random)
-        p_values_traj_zero[i] = pvalue(test_traj_zero; tail=:right)
+        p_values_traj_zero[i,1] = pvalue(test_traj_zero; tail=:right)
 
-        ax_traj_zero.hist(ll_prob_traj_zero_random, alpha=0.5, density=true, label="random samples")
-        ax_traj_zero.hist(ll_prob_traj_zero_data, alpha=0.5, density=true, label="experimental samples")
-        ax_traj_zero.set_title("log-likelihood round $(times[end])")
-        ax_traj_zero.legend()
-        ax_traj_zero.set_xlabel("log-likelihood")
-        ax_traj_zero.set_ylabel("pdf")
+        ax_traj_zero[1].hist(ll_prob_traj_zero_random, alpha=0.5, density=true, label="random samples")
+        ax_traj_zero[1].hist(ll_prob_traj_zero_data, alpha=0.5, density=true, label="experimental samples")
+        ax_traj_zero[1].set_title("log-likelihood round 0 to $(times[end])")
+        ax_traj_zero[1].legend()
+        ax_traj_zero[1].set_xlabel("log-likelihood")
+        ax_traj_zero[1].set_ylabel("pdf")
+
+        for t in 1:length(times)-1
+            ll_prob_traj_zero_data = transition_probability(x_opt, data_data, data_data, samples_data_ancestor_reconstruction,
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true, prior=false)
+
+            ll_prob_traj_zero_random = transition_probability(x_opt, data_data, data_random, samples_random_ancestor_reconstruction,
+                t, length(times), lambda, epsilon_J, epsilon_sigma; normalize_child=true, prior=false)
+
+            test_traj_zero = MannWhitneyUTest(ll_prob_traj_zero_data, ll_prob_traj_zero_random)
+            p_values_traj_zero[i,t+1] = pvalue(test_traj_zero; tail=:right)
+
+            ax_traj_zero[t+1].hist(ll_prob_traj_zero_random, alpha=0.5, density=true, label="random samples")
+            ax_traj_zero[t+1].hist(ll_prob_traj_zero_data, alpha=0.5, density=true, label="experimental samples")
+            ax_traj_zero[t+1].set_title("log-likelihood round $(times[t]) to $(times[end])")
+            ax_traj_zero[t+1].legend()
+            ax_traj_zero[t+1].set_xlabel("log-likelihood (max over round $(times[t]) ancestors)")
+            ax_traj_zero[t+1].set_ylabel("pdf")
+        end
 
         output_name_traj_zero = output_name = replace(model_pars[i], "pars.jld2" => "trajectory_reconstruction_wt_likelihood_$(String(rand_seq)).png")
         fig_traj_zero.savefig(output_name_traj_zero, format="png", bbox_inches="tight")
@@ -232,7 +250,6 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         time_label = t > 1 ? times[t-1] : 0
         ax_p_val_traj.plot(dvals, p_values_traj[:,t], label="time $(time_label)")
     end
-    ax_p_val_traj.plot(dvals, p_values_traj_zero, label="Wild Type")
     ax_p_val_traj.set_xlabel("d")
     ax_p_val_traj.set_ylabel("p value")
     ax_p_val_traj.legend()
@@ -253,17 +270,24 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
     close(fig_p_val_traj)
 
     fig_p_val_traj_zero, ax_p_val_traj_zero = subplots(1, 1, 6)
-    ax_p_val_traj_zero.plot(dvals, p_values_traj_zero)
+    for t in eachindex(times)
+        time_label = t > 1 ? times[t-1] : 0
+        ax_p_val_traj_zero.plot(dvals, p_values_traj_zero[:,t], label="time $(time_label)")
+    end
     ax_p_val_traj_zero.set_xlabel("d")
     ax_p_val_traj_zero.set_ylabel("p value")
     ax_p_val_traj_zero.set_yscale(:log)
-    output_p_value_traj_zero = joinpath(dirname(dirname(model_pars[1])), "trajectory_reconstruction_wt_pvalue_$(String(rand_seq)).png")
+    ax_p_val_traj_zero.legend()
+    output_p_value_traj_zero = joinpath(dirname(dirname(model_pars[1])), "trajectory_reconstruction_pvalue_$(String(rand_seq)).png")
     fig_p_val_traj_zero.savefig(output_p_value_traj_zero, format="png", bbox_inches="tight")
     println("Saved figure at $output_p_value_traj_zero")
     output_p_value_traj_zero_txt = splitext(output_p_value_traj_zero)[1] * ".txt"
     open(output_p_value_traj_zero_txt, "w") do io
-        for i in eachindex(dvals)
-            println(io, "$(dvals[i]) $(p_values_traj_zero[i])")
+        for t in eachindex(times)
+            time_label = t > 1 ? times[t-1] : 0
+            for i in eachindex(dvals)
+                println(io, "$(dvals[i]) $(time_label) $(p_values_traj_zero[i,t])")
+            end
         end
     end
     println("Saved values at $output_p_value_traj_zero_txt")
