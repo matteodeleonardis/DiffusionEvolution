@@ -149,8 +149,8 @@ function rand_seq_analysis_pse1(file_wt, file_rounds, file_nat, rand_seq, model_
         last_round_random_idx = data_random.round[end].w .> 0.0
         ll_prob_traj_zero_data = log_likelihood_variants(x_opt, data_data, length(times), lambda, epsilon_J, epsilon_sigma)[last_round_data_idx]
         ll_prob_traj_zero_random = log_likelihood_variants(x_opt, data_random, length(times), lambda, epsilon_J, epsilon_sigma)[last_round_random_idx]
-        ll_prob_traj_data = ll_prob_traj_zero_data .- log.(data_data.round[end].w[last_round_data_idx])
-        ll_prob_traj_random = ll_prob_traj_zero_random .- log.(data_random.round[end].w[last_round_random_idx])
+        ll_prob_traj_data = ll_prob_traj_zero_data .- log.(data_data.round[end].w[last_round_data_idx]) ./ data_data.d
+        ll_prob_traj_random = ll_prob_traj_zero_random .- log.(data_random.round[end].w[last_round_random_idx]) ./ data_random.d
         test_traj = MannWhitneyUTest(ll_prob_traj_data, ll_prob_traj_random)
         p_values_traj[i,1] = pvalue(test_traj; tail=:right)
 
