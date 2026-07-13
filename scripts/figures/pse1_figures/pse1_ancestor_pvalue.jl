@@ -12,7 +12,7 @@ using PyPlot
 #
 # or edit this default path:
 input_txt = length(ARGS) >= 1 ? ARGS[1] :
-    joinpath(@__DIR__, "../../../results/pse1/run0_lastout/forward_ancestor_reconstruction_pvalue_uniform.txt")
+    joinpath(@__DIR__, "../../../results/pse1/run0_lastout/pse1_run0_lastout_trajectory_reconstruction_pvalue_uniform.txt")
 
 model_label = split(input_txt, "/")[end-1]
 
@@ -40,7 +40,7 @@ for row in axes(raw, 1)
 end
 
 # Significance thresholds
-alpha = 1e-3
+alpha = 0.05
 
 
 # Code each point as:
@@ -81,9 +81,9 @@ ax.set_xticklabels(string.(dvals), rotation=45, ha="right", fontsize=7)
 ax.set_yticks(0:length(time_labels)-1)
 ax.set_yticklabels(string.(time_labels), fontsize=8)
 
-ax.set_xlabel("latent dimension d")
+ax.set_xlabel("d")
 ax.set_ylabel("ancestor time")
-ax.set_title("Forward ancestor reconstruction significance")
+ax.set_title("PSE1 Trajectory Reconstruction Significance")
 
 # Colorbar
 cbar = fig.colorbar(img, ax=ax, ticks=[0, 1])

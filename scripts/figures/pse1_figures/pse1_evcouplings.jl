@@ -7,11 +7,11 @@ using JLD2, PyPlot
 import PyPlot.subplots
 subplots(x, y ,d; kwargs...) = PyPlot.subplots(x, y; figsize=(d*y, d*x), kwargs...)
 
-score_load = JLD2.load( "/home/students/s301803/CODE/DiffusionEvolution/results/pse1/ev_couplings/ev_couplings.score.jld2")
+score_load = JLD2.load( "/home/matteo/Projects/DiffusionEvolution/results/pse1/ev_couplings/ev_couplings.score.jld2")
 ev_couplings_score = score_load["ev_couplings_score"]
 L = score_load["L"]
 
-contacts_file = "/home/students/s301803/CODE/DiffusionEvolution/data/pse1/contact_map.jld2"
+contacts_file = "/home/matteo/Projects/DiffusionEvolution/data/pse1/contact_map.jld2"
 true_contacts=JLD2.load(contacts_file)["contacts"]
 if true_contacts != true_contacts'
     true_contacts += true_contacts'
@@ -22,7 +22,7 @@ true_contacts = [true_contacts[i,j]>0 ? 1 : 0 for i in 1:size(true_contacts,1), 
 fig_plmdca, ax_plmdca = subplots(1, 1, 4)
 min_dist_intermediate = 12
 max_dist_intermediate = 23
-plmdca_score = JLD2.load("/home/students/s301803/CODE/DiffusionEvolution/results/pse1/plmdca/plmdca.score.jld2")["plmdca_score"]
+plmdca_score = JLD2.load("/home/matteo/Projects/DiffusionEvolution/results/pse1/plmdca/plmdca.score.jld2")["plmdca_score"]
 contacts_plmdca = []
 for i in 1:div(L,2)
     if true_contacts[plmdca_score[i][1], plmdca_score[i][2]] > 0
@@ -53,7 +53,7 @@ for j in 1:div(L,2)
         end
     end
 end
-ax_plmdca.set_title("Predicted Additional Contacts (EV Couplings vs PlmDCA) for PSE1")
+ax_plmdca.set_title("Predicted Additional Contacts for PSE1\n Combined-MSA vs PlmDCA")
 ax_plmdca.set_xlabel("site i")
 ax_plmdca.set_ylabel("site j")
 colormap_contacts = PyPlot.matplotlib.colors.ListedColormap(["white", "grey"])
@@ -92,7 +92,7 @@ function collect_model_score_files(base_dir::AbstractString)
     return [p[2] for p in pairs]        # cut -f2-
 end
 
-file_model_scores = collect_model_score_files("/home/students/s301803/CODE/DiffusionEvolution/results/pse1/run0")
+file_model_scores = collect_model_score_files("/home/matteo/Projects/DiffusionEvolution/results/pse1/run0")
 
 _, _, fig_n_contacts, ax_n_contacts, _, _, _, _ = compare_new_contacts(ev_couplings_score, true_contacts, file_model_scores, div(L,2), "OU", "Combined-MSA")
 
