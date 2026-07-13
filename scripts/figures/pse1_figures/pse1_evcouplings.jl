@@ -53,7 +53,7 @@ for j in 1:div(L,2)
         end
     end
 end
-ax_plmdca.set_title("Predicted Additional Contacts (EV Couplings vs PlmDCA) for PSE1")
+ax_plmdca.set_title("Predicted Additional Contacts for PSE1\n Combined-MSA vs PlmDCA")
 ax_plmdca.set_xlabel("site i")
 ax_plmdca.set_ylabel("site j")
 colormap_contacts = PyPlot.matplotlib.colors.ListedColormap(["white", "grey"])
