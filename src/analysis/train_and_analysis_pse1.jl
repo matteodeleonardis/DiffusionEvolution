@@ -11,7 +11,9 @@ function run_analysis_pse1(;d, opt_pkg, output_root, contacts_file)
     file1 = joinpath(data_dir, "pse1/Rnd10.fas")
     file2 = joinpath(data_dir, "pse1/Rnd20_init.fas")
 
-    times = [10, 20]
+    input_files = [file1]#, file2]
+
+    times = [10]#, 20]
 
 
     # natural sequences
@@ -32,7 +34,7 @@ function run_analysis_pse1(;d, opt_pkg, output_root, contacts_file)
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
 
-    results, model_settings, gamma_min, data, pca = DiffusionEvolution.learn(file_nat, file0, [file1, file2], times;
+    results, model_settings, gamma_min, data, pca = DiffusionEvolution.learn(file_nat, file0, input_files, times;
         fixed=fixed, whiten=whiten, extreme=extreme, weight=false, opt_pkg=opt_pkg, d=d, initialize=length(times), 
         prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma,
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)

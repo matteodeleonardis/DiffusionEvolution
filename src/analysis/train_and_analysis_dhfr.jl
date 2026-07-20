@@ -15,7 +15,9 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     file5 = joinpath(data_dir, "dhfr/Round5_Q15_C10_aa.aln")
     file15 = joinpath(data_dir, "dhfr/Gen15_aa.aln")
 
-    times = [1,2,3,4,5, 15]
+    input_files = [file1, file2, file3, file4, file5]#, file15]
+
+    times = [1,2,3,4,5]#, 15]
 
 
     # natural sequences
@@ -36,7 +38,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
     #stopping criteria
     stop_tol = (g_abstol = 1.0e-4, x_abstol = 1.0e-5, x_reltol = 1.0e-5)
 
-    results, model_settings, gamma_min, data, pca = DiffusionEvolution.learn(file_nat, file0, [file1, file2, file3, file4, file5, file15], times;
+    results, model_settings, gamma_min, data, pca = DiffusionEvolution.learn(file_nat, file0, input_files, times;
         fixed=fixed, whiten=whiten, extreme=extreme, weight=false, opt_pkg=opt_pkg, d=d, initialize=length(times), 
         prior_J=prior_J, prior_theta=prior_theta, prior_gamma=prior_gamma,
         lambda=lambda, epsilon_J=epsilon_J, epsilon_sigma=epsilon_sigma, stop_tol...)
