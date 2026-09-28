@@ -205,7 +205,8 @@ function compare_pca_moments(data_data, data_random, times, output_root)
         cov_rel_dist = norm(cov_data - cov_rand) / norm(cov_data)
 
         # Mean comparison
-        ax_mean[t].scatter(mu_data, mu_rand, alpha=0.7)
+        ax_mean[t].scatter(mu_data, mu_rand, alpha=0.7, edgecolors="none",
+    rasterized=true)
 
         lo = minimum(vcat(mu_data, mu_rand))
         hi = maximum(vcat(mu_data, mu_rand))
@@ -243,7 +244,9 @@ function compare_pca_moments(data_data, data_random, times, output_root)
         )
 
         # Full covariance comparison
-        ax_cov[t].scatter(vec(cov_data), vec(cov_rand), alpha=0.3)
+        upper_indices = findall(triu(trues(size(cov_data)), 0))
+        ax_cov[t].scatter(vec(cov_data[upper_indices]), vec(cov_rand[upper_indices]), alpha=0.3, edgecolors="none",
+    rasterized=true)
 
         lo = minimum(vcat(vec(cov_data), vec(cov_rand)))
         hi = maximum(vcat(vec(cov_data), vec(cov_rand)))
@@ -262,9 +265,9 @@ function compare_pca_moments(data_data, data_random, times, output_root)
         )
     end
 
-    fig_mean.savefig(output_root * ".pca_mean_comparison.png", format="png", bbox_inches="tight")
-    fig_var.savefig(output_root * ".pca_variance_comparison.png", format="png", bbox_inches="tight")
-    fig_cov.savefig(output_root * ".pca_covariance_comparison.png", format="png", bbox_inches="tight")
+    fig_mean.savefig(output_root * ".pca_mean_comparison.svg", format="svg", dpi=300, bbox_inches="tight")
+    fig_var.savefig(output_root * ".pca_variance_comparison.svg", format="svg", bbox_inches="tight")
+    fig_cov.savefig(output_root * ".pca_covariance_comparison.svg", format="svg", dpi=300, bbox_inches="tight")
 
     close(fig_mean)
     close(fig_var)
