@@ -17,7 +17,7 @@ function run_analysis_dhfr(;d, opt_pkg, output_root, contacts_file)
 
     input_files = [file1, file2, file3, file4, file5]#, file15]
 
-    times = [1,2,3,4,5]#, 15]
+    times = [1,2,3,4,5, 15]
 
 
     # natural sequences

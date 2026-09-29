@@ -22,7 +22,7 @@ function run_evcouplings_analysis_pse1(;in_nat,
         @save joinpath(evc_score_dir, "ev_couplings.score.jld2") ev_couplings_score L
     else
         println("Loading ev_couplings scores.")
-        score_load = JLD2.load(evc_score_dir * "ev_couplings.score.jld2")
+        score_load = JLD2.load(joinpath(evc_score_dir, "ev_couplings.score.jld2"))
         ev_couplings_score = score_load["ev_couplings_score"]
         L = score_load["L"]
     end
